@@ -23,6 +23,7 @@ import PropertiesPage from "./pages/properties/PropertiesPage";
 import PropertyDetailPage from "./pages/properties/PropertyDetailPage";
 import NewPropertyPage from "./pages/properties/NewPropertyPage";
 import PublicPropertyPage from "./pages/properties/PublicPropertyPage";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,10 @@ const App = () => (
             <Route path="/email/campaigns/:id" element={<AuthRoute><CampaignDetailPage /></AuthRoute>} />
             <Route path="/email/campaigns/new" element={<AuthRoute><NewCampaignPage /></AuthRoute>} />
             <Route path="/email/templates" element={<AuthRoute><EmailTemplatesPage /></AuthRoute>} />
+            
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AuthRoute requireAdmin={true}><AdminDashboard /></AuthRoute>} />
+            <Route path="/admin/users" element={<AuthRoute requireAdmin={true}><AdminDashboard /></AuthRoute>} />
             
             {/* Catch all route */}
             <Route path="*" element={<NotFound />} />

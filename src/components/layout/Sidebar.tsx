@@ -1,7 +1,8 @@
 
 import { Link } from 'react-router-dom';
-import { Home, Users, Building2, PieChart, Settings, Menu, Mail } from 'lucide-react';
+import { Home, Users, Building2, PieChart, Settings, Menu, Mail, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SidebarProps {
   open: boolean;
@@ -9,6 +10,8 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
+  const { isAdmin } = useAuth();
+  
   const menuItems = [
     { icon: Home, label: 'Dashboard', path: '/' },
     { icon: Users, label: 'Contacts', path: '/contacts' },
@@ -16,6 +19,11 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
     { icon: Building2, label: 'Properties', path: '/properties' },
     { icon: PieChart, label: 'Analytics', path: '/analytics' },
     { icon: Settings, label: 'Settings', path: '/settings' },
+  ];
+  
+  // Only show admin options to admin users
+  const adminItems = [
+    { icon: Shield, label: 'Admin Dashboard', path: '/admin' },
   ];
 
   return (
@@ -44,6 +52,27 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
               </Link>
             </li>
           ))}
+          
+          {isAdmin && (
+            <>
+              <li className="pt-2">
+                <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
+                  Admin
+                </div>
+              </li>
+              {adminItems.map((item) => (
+                <li key={item.path}>
+                  <Link
+                    to={item.path}
+                    className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span className="font-medium">{item.label}</span>
+                  </Link>
+                </li>
+              ))}
+            </>
+          )}
         </ul>
       </nav>
     </aside>
