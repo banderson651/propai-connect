@@ -14,6 +14,11 @@ import Register from "./pages/Register";
 import ContactsPage from "./pages/contacts/ContactsPage";
 import ContactDetailPage from "./pages/contacts/ContactDetailPage";
 import NewContactPage from "./pages/contacts/NewContactPage";
+import EmailCampaignsPage from "./pages/email/EmailCampaignsPage";
+import EmailAccountsPage from "./pages/email/EmailAccountsPage";
+import CampaignDetailPage from "./pages/email/CampaignDetailPage";
+import NewCampaignPage from "./pages/email/NewCampaignPage";
+import EmailTemplatesPage from "./pages/email/EmailTemplatesPage";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +52,13 @@ const App = () => (
             <Route path="/properties" element={<AuthRoute><Index /></AuthRoute>} />
             <Route path="/analytics" element={<AuthRoute><Index /></AuthRoute>} />
             <Route path="/settings" element={<AuthRoute><Index /></AuthRoute>} />
+            
+            {/* Email Campaign Routes */}
+            <Route path="/email" element={<AuthRoute><EmailCampaignsPage /></AuthRoute>} />
+            <Route path="/email/accounts" element={<AuthRoute><EmailAccountsPage /></AuthRoute>} />
+            <Route path="/email/campaigns/:id" element={<AuthRoute><CampaignDetailPage /></AuthRoute>} />
+            <Route path="/email/campaigns/new" element={<AuthRoute><NewCampaignPage /></AuthRoute>} />
+            <Route path="/email/templates" element={<AuthRoute><EmailTemplatesPage /></AuthRoute>} />
             
             {/* Catch all route */}
             <Route path="*" element={<NotFound />} />

@@ -1,6 +1,6 @@
 
 import { Link } from 'react-router-dom';
-import { Home, Users, Building2, PieChart, Settings, Menu } from 'lucide-react';
+import { Home, Users, Building2, PieChart, Settings, Menu, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SidebarProps {
@@ -12,6 +12,7 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
   const menuItems = [
     { icon: Home, label: 'Dashboard', path: '/' },
     { icon: Users, label: 'Contacts', path: '/contacts' },
+    { icon: Mail, label: 'Email Campaigns', path: '/email' },
     { icon: Building2, label: 'Properties', path: '/properties' },
     { icon: PieChart, label: 'Analytics', path: '/analytics' },
     { icon: Settings, label: 'Settings', path: '/settings' },
