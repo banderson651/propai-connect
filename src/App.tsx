@@ -19,6 +19,10 @@ import EmailAccountsPage from "./pages/email/EmailAccountsPage";
 import CampaignDetailPage from "./pages/email/CampaignDetailPage";
 import NewCampaignPage from "./pages/email/NewCampaignPage";
 import EmailTemplatesPage from "./pages/email/EmailTemplatesPage";
+import PropertiesPage from "./pages/properties/PropertiesPage";
+import PropertyDetailPage from "./pages/properties/PropertyDetailPage";
+import NewPropertyPage from "./pages/properties/NewPropertyPage";
+import PublicPropertyPage from "./pages/properties/PublicPropertyPage";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +38,7 @@ const App = () => (
             <Route path="/landing" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/properties/public/:slug" element={<PublicPropertyPage />} />
             
             {/* Root path redirect - public users go to landing, authenticated to dashboard */}
             <Route 
@@ -49,7 +54,12 @@ const App = () => (
             <Route path="/contacts" element={<AuthRoute><ContactsPage /></AuthRoute>} />
             <Route path="/contacts/:id" element={<AuthRoute><ContactDetailPage /></AuthRoute>} />
             <Route path="/contacts/new" element={<AuthRoute><NewContactPage /></AuthRoute>} />
-            <Route path="/properties" element={<AuthRoute><Index /></AuthRoute>} />
+            
+            {/* Property Routes */}
+            <Route path="/properties" element={<AuthRoute><PropertiesPage /></AuthRoute>} />
+            <Route path="/properties/:id" element={<AuthRoute><PropertyDetailPage /></AuthRoute>} />
+            <Route path="/properties/new" element={<AuthRoute><NewPropertyPage /></AuthRoute>} />
+            
             <Route path="/analytics" element={<AuthRoute><Index /></AuthRoute>} />
             <Route path="/settings" element={<AuthRoute><Index /></AuthRoute>} />
             
