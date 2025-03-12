@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { AuthRoute } from "./components/auth/AuthRoute";
 import Index from "./pages/Index";
@@ -30,8 +30,17 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             
+            {/* Root path redirect - public users go to landing, authenticated to dashboard */}
+            <Route 
+              path="/" 
+              element={
+                <AuthRoute>
+                  <Index />
+                </AuthRoute>
+              } 
+            />
+            
             {/* Protected routes */}
-            <Route path="/" element={<AuthRoute><Index /></AuthRoute>} />
             <Route path="/contacts" element={<AuthRoute><ContactsPage /></AuthRoute>} />
             <Route path="/contacts/:id" element={<AuthRoute><ContactDetailPage /></AuthRoute>} />
             <Route path="/contacts/new" element={<AuthRoute><NewContactPage /></AuthRoute>} />
@@ -39,7 +48,7 @@ const App = () => (
             <Route path="/analytics" element={<AuthRoute><Index /></AuthRoute>} />
             <Route path="/settings" element={<AuthRoute><Index /></AuthRoute>} />
             
-            {/* Redirect to landing page if not authenticated */}
+            {/* Catch all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

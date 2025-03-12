@@ -1,11 +1,12 @@
 
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building2, LogIn } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -13,31 +14,27 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { login, isAuthenticated } = useAuth();
 
-  const handleLogin = (e: React.FormEvent) => {
+  // If already logged in, redirect to dashboard
+  if (isAuthenticated) {
+    return <Navigate to="/" />;
+  }
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate authentication (this would be an API call in a real app)
-    setTimeout(() => {
-      // Demo account credentials check
-      if ((email === 'user@propai.com' && password === 'demouser123') || 
-          (email === 'admin@propai.com' && password === 'demoadmin123')) {
-        
-        // Store user info in localStorage (in a real app, you'd use a more secure method)
-        const isAdmin = email === 'admin@propai.com';
-        localStorage.setItem('user', JSON.stringify({ 
-          email, 
-          role: isAdmin ? 'admin' : 'user',
-          name: isAdmin ? 'Admin User' : 'Demo User'
-        }));
-        
+    try {
+      const success = await login(email, password);
+      
+      if (success) {
         toast({
           title: "Login successful",
-          description: `Welcome back, ${isAdmin ? 'Admin' : 'Demo User'}!`,
+          description: "Welcome back to PropAI!",
         });
         
-        // Redirect to dashboard
+        // The redirect will happen automatically via the isAuthenticated check above
         navigate('/');
       } else {
         toast({
@@ -46,8 +43,15 @@ const Login = () => {
           variant: "destructive",
         });
       }
+    } catch (error) {
+      toast({
+        title: "Login error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (

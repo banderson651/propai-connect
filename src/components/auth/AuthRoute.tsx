@@ -12,8 +12,8 @@ export const AuthRoute = ({ children, requireAdmin = false }: AuthRouteProps) =>
   const location = useLocation();
   
   if (!isAuthenticated) {
-    // Redirect to login if not authenticated
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    // Redirect to landing page if not authenticated
+    return <Navigate to="/landing" state={{ from: location }} replace />;
   }
   
   if (requireAdmin && !isAdmin) {
