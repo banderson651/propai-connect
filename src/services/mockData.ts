@@ -1,5 +1,5 @@
 
-import { Contact, Interaction } from '@/types/contact';
+import { Contact, Interaction, ContactTag } from '@/types/contact';
 import { v4 as uuidv4 } from 'uuid';
 
 // Mock contacts data
