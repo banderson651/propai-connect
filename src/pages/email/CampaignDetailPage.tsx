@@ -146,11 +146,11 @@ const CampaignDetailPage = () => {
       case 'scheduled':
         return <Badge variant="secondary">Scheduled</Badge>;
       case 'running':
-        return <Badge variant="success" className="bg-green-500">Running</Badge>;
+        return <Badge variant="default" className="bg-green-500">Running</Badge>;
       case 'paused':
-        return <Badge variant="warning" className="bg-yellow-500">Paused</Badge>;
+        return <Badge variant="outline" className="bg-yellow-500">Paused</Badge>;
       case 'completed':
-        return <Badge variant="success" className="bg-blue-500">Completed</Badge>;
+        return <Badge variant="outline" className="bg-blue-500">Completed</Badge>;
       case 'failed':
         return <Badge variant="destructive">Failed</Badge>;
       default:

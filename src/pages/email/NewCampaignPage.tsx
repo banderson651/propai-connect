@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -30,7 +29,9 @@ const NewCampaignPage = () => {
     contactIds: [] as string[],
     sendingRate: 20,
     scheduled: null as string | null,
-    status: 'draft' as const
+    status: 'draft' as const,
+    startedAt: null as string | null,
+    completedAt: null as string | null
   });
 
   const { data: emailAccounts = [], isLoading: isLoadingAccounts } = useQuery({
@@ -43,7 +44,6 @@ const NewCampaignPage = () => {
     queryFn: getEmailTemplates
   });
   
-  // Temporary data for contacts selection
   const contacts = [
     { id: 'id1', name: 'John Smith', email: 'john@example.com' },
     { id: 'id2', name: 'Sarah Johnson', email: 'sarah@example.com' },
