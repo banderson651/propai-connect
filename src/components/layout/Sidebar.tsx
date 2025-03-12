@@ -1,8 +1,9 @@
 
 import { Link } from 'react-router-dom';
-import { Home, Users, Building2, PieChart, Settings, Menu, Mail, Shield } from 'lucide-react';
+import { Home, Users, Building2, PieChart, Settings, Menu, Mail, Shield, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useWhatsApp } from '@/contexts/WhatsAppContext';
 
 interface SidebarProps {
   open: boolean;
@@ -11,6 +12,7 @@ interface SidebarProps {
 
 export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
   const { isAdmin } = useAuth();
+  const { isConnected } = useWhatsApp();
   
   const menuItems = [
     { icon: Home, label: 'Dashboard', path: '/' },
@@ -18,6 +20,13 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
     { icon: Mail, label: 'Email Campaigns', path: '/email' },
     { icon: Building2, label: 'Properties', path: '/properties' },
     { icon: PieChart, label: 'Analytics', path: '/analytics' },
+    { 
+      icon: MessageSquare, 
+      label: 'WhatsApp', 
+      path: '/settings', 
+      badge: isConnected ? 'Connected' : undefined,
+      badgeColor: 'bg-green-100 text-green-800'
+    },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];
   
@@ -49,6 +58,11 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
               >
                 <item.icon className="h-5 w-5" />
                 <span className="font-medium">{item.label}</span>
+                {item.badge && (
+                  <span className={`text-xs px-2 py-0.5 rounded-full ml-auto ${item.badgeColor || 'bg-gray-100 text-gray-800'}`}>
+                    {item.badge}
+                  </span>
+                )}
               </Link>
             </li>
           ))}

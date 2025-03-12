@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -31,6 +30,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from '@/components/ui/use-toast';
+import { WhatsAppChat } from '@/components/whatsapp/WhatsAppChat';
+import { WhatsAppButton, CallButton } from '@/components/whatsapp/WhatsAppButton';
 
 const interactionTypeOptions: InteractionType[] = ['call', 'email', 'meeting', 'note', 'other'];
 
@@ -51,7 +52,6 @@ const ContactDetailPage = () => {
   const [interactions, setInteractions] = useState<Interaction[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
-  // New interaction form state
   const [newInteractionOpen, setNewInteractionOpen] = useState(false);
   const [interactionType, setInteractionType] = useState<InteractionType>('call');
   const [interactionContent, setInteractionContent] = useState('');
@@ -138,6 +138,12 @@ const ContactDetailPage = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {contact.phone && (
+              <>
+                <CallButton contact={contact} />
+                <WhatsAppButton contact={contact} />
+              </>
+            )}
             <Button variant="outline" size="sm" onClick={() => navigate(`/contacts/${contact.id}/edit`)}>
               <Edit className="mr-2 h-4 w-4" />
               Edit
@@ -225,112 +231,138 @@ const ContactDetailPage = () => {
             </CardContent>
           </Card>
           
-          <Card className="md:col-span-2">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg">Interaction History</CardTitle>
-              <Dialog open={newInteractionOpen} onOpenChange={setNewInteractionOpen}>
-                <DialogTrigger asChild>
-                  <Button size="sm">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Interaction
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Add New Interaction</DialogTitle>
-                    <DialogDescription>
-                      Record a new interaction with this contact.
-                    </DialogDescription>
-                  </DialogHeader>
-                  
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Interaction Type</label>
-                      <Select 
-                        value={interactionType} 
-                        onValueChange={(value) => setInteractionType(value as InteractionType)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select interaction type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {interactionTypeOptions.map(type => (
-                            <SelectItem key={type} value={type}>
-                              {type.charAt(0).toUpperCase() + type.slice(1)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    {(interactionType === 'email') && (
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Subject</label>
-                        <Input
-                          value={interactionSubject}
-                          onChange={(e) => setInteractionSubject(e.target.value)}
-                          placeholder="Email subject"
-                        />
+          <Tabs className="md:col-span-2" defaultValue="interactions">
+            <TabsList>
+              <TabsTrigger value="interactions">Interactions</TabsTrigger>
+              <TabsTrigger value="whatsapp">WhatsApp Chat</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="interactions">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="text-lg">Interaction History</CardTitle>
+                  <Dialog open={newInteractionOpen} onOpenChange={setNewInteractionOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Interaction
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Add New Interaction</DialogTitle>
+                        <DialogDescription>
+                          Record a new interaction with this contact.
+                        </DialogDescription>
+                      </DialogHeader>
+                      
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Interaction Type</label>
+                          <Select 
+                            value={interactionType} 
+                            onValueChange={(value) => setInteractionType(value as InteractionType)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select interaction type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {interactionTypeOptions.map(type => (
+                                <SelectItem key={type} value={type}>
+                                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        {(interactionType === 'email') && (
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium">Subject</label>
+                            <Input
+                              value={interactionSubject}
+                              onChange={(e) => setInteractionSubject(e.target.value)}
+                              placeholder="Email subject"
+                            />
+                          </div>
+                        )}
+                        
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Content</label>
+                          <Textarea
+                            value={interactionContent}
+                            onChange={(e) => setInteractionContent(e.target.value)}
+                            placeholder={`Details about this ${interactionType}`}
+                            rows={5}
+                          />
+                        </div>
                       </div>
-                    )}
+                      
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setNewInteractionOpen(false)}>Cancel</Button>
+                        <Button onClick={handleAddInteraction}>Save Interaction</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </CardHeader>
+                <CardContent>
+                  <Tabs defaultValue="all">
+                    <TabsList className="mb-4">
+                      <TabsTrigger value="all">All</TabsTrigger>
+                      <TabsTrigger value="calls">Calls</TabsTrigger>
+                      <TabsTrigger value="emails">Emails</TabsTrigger>
+                      <TabsTrigger value="meetings">Meetings</TabsTrigger>
+                    </TabsList>
                     
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Content</label>
-                      <Textarea
-                        value={interactionContent}
-                        onChange={(e) => setInteractionContent(e.target.value)}
-                        placeholder={`Details about this ${interactionType}`}
-                        rows={5}
+                    <TabsContent value="all">
+                      <InteractionsList 
+                        interactions={sortedInteractions} 
+                        filter="all" 
                       />
+                    </TabsContent>
+                    
+                    <TabsContent value="calls">
+                      <InteractionsList 
+                        interactions={sortedInteractions} 
+                        filter="call" 
+                      />
+                    </TabsContent>
+                    
+                    <TabsContent value="emails">
+                      <InteractionsList 
+                        interactions={sortedInteractions} 
+                        filter="email" 
+                      />
+                    </TabsContent>
+                    
+                    <TabsContent value="meetings">
+                      <InteractionsList 
+                        interactions={sortedInteractions} 
+                        filter="meeting" 
+                      />
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="whatsapp">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">WhatsApp Conversation</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {contact.phone ? (
+                    <WhatsAppChat contact={contact} />
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500">This contact doesn't have a phone number for WhatsApp messaging.</p>
                     </div>
-                  </div>
-                  
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setNewInteractionOpen(false)}>Cancel</Button>
-                    <Button onClick={handleAddInteraction}>Save Interaction</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="all">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="all">All</TabsTrigger>
-                  <TabsTrigger value="calls">Calls</TabsTrigger>
-                  <TabsTrigger value="emails">Emails</TabsTrigger>
-                  <TabsTrigger value="meetings">Meetings</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="all">
-                  <InteractionsList 
-                    interactions={sortedInteractions} 
-                    filter="all" 
-                  />
-                </TabsContent>
-                
-                <TabsContent value="calls">
-                  <InteractionsList 
-                    interactions={sortedInteractions} 
-                    filter="call" 
-                  />
-                </TabsContent>
-                
-                <TabsContent value="emails">
-                  <InteractionsList 
-                    interactions={sortedInteractions} 
-                    filter="email" 
-                  />
-                </TabsContent>
-                
-                <TabsContent value="meetings">
-                  <InteractionsList 
-                    interactions={sortedInteractions} 
-                    filter="meeting" 
-                  />
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </DashboardLayout>
