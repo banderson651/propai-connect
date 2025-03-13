@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -239,7 +238,7 @@ export const WhatsAppProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         contactId: msg.contact_id,
         content: msg.content,
         timestamp: msg.timestamp,
-        direction: msg.direction
+        direction: msg.direction as 'incoming' | 'outgoing'
       }));
     } catch (error) {
       console.error('Error fetching WhatsApp messages:', error);
