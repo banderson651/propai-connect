@@ -17,16 +17,31 @@ import {
   Server, 
   Trash, 
   RefreshCw, 
-  Edit 
+  Edit, 
+  Send,
+  Loader2
 } from 'lucide-react';
 import { EmailAccount, EmailAccountType } from '@/types/email';
-import { getEmailAccounts, createEmailAccount, deleteEmailAccount, updateEmailAccount } from '@/services/emailService';
+import { 
+  getEmailAccounts, 
+  createEmailAccount, 
+  deleteEmailAccount, 
+  updateEmailAccount, 
+  testEmailConnection,
+  sendTestEmail
+} from '@/services/emailService';
 import { useToast } from '@/hooks/use-toast';
 
 const EmailAccountsPage = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('accounts');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isTestDialogOpen, setIsTestDialogOpen] = useState(false);
+  const [testingAccount, setTestingAccount] = useState<EmailAccount | null>(null);
+  const [testEmailRecipient, setTestEmailRecipient] = useState('');
+  const [isTesting, setIsTesting] = useState(false);
+  const [isTestingSend, setIsTestingSend] = useState(false);
+  
   const [newAccount, setNewAccount] = useState({
     name: '',
     email: '',
@@ -118,6 +133,69 @@ const EmailAccountsPage = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleTestConnection = async () => {
+    if (!testingAccount) return;
+    
+    setIsTesting(true);
+    try {
+      const result = await testEmailConnection(testingAccount);
+      if (result.success) {
+        toast({
+          title: "Connection Successful",
+          description: result.message,
+        });
+      } else {
+        toast({
+          title: "Connection Failed",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while testing the connection.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
+  const handleSendTestEmail = async () => {
+    if (!testingAccount || !testEmailRecipient) return;
+
+    setIsTestingSend(true);
+    try {
+      const result = await sendTestEmail(testingAccount.id, testEmailRecipient);
+      if (result.success) {
+        toast({
+          title: "Test Email Sent",
+          description: result.message,
+        });
+      } else {
+        toast({
+          title: "Failed to Send Test Email",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while sending the test email.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsTestingSend(false);
+    }
+  };
+
+  const openTestDialog = (account: EmailAccount) => {
+    setTestingAccount(account);
+    setIsTestDialogOpen(true);
   };
 
   // Helper function to render status badge
@@ -279,6 +357,98 @@ const EmailAccountsPage = () => {
         </div>
       </div>
 
+      {/* Test Email Connection Dialog */}
+      <Dialog open={isTestDialogOpen} onOpenChange={setIsTestDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Test Email Connection</DialogTitle>
+            <DialogDescription>
+              Verify your email account connection and send a test email
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-6">
+            <div className="space-y-4">
+              <div className="border rounded-md p-4 bg-gray-50">
+                <h3 className="font-medium mb-2">Account Details</h3>
+                {testingAccount && (
+                  <div className="space-y-1">
+                    <p className="text-sm">
+                      <span className="font-medium">Name:</span> {testingAccount.name}
+                    </p>
+                    <p className="text-sm">
+                      <span className="font-medium">Email:</span> {testingAccount.email}
+                    </p>
+                    <p className="text-sm">
+                      <span className="font-medium">Server:</span> {testingAccount.host}:{testingAccount.port} ({testingAccount.type})
+                    </p>
+                  </div>
+                )}
+              </div>
+              
+              <div>
+                <Button 
+                  onClick={handleTestConnection} 
+                  disabled={isTesting}
+                  className="w-full"
+                >
+                  {isTesting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Testing Connection...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Test Connection
+                    </>
+                  )}
+                </Button>
+              </div>
+              
+              <div className="pt-4 border-t">
+                <h3 className="font-medium mb-2">Send Test Email</h3>
+                <div className="space-y-3">
+                  <div>
+                    <label htmlFor="testEmailRecipient" className="block text-sm font-medium mb-1">
+                      Recipient Email
+                    </label>
+                    <Input
+                      id="testEmailRecipient"
+                      type="email"
+                      value={testEmailRecipient}
+                      onChange={(e) => setTestEmailRecipient(e.target.value)}
+                      placeholder="recipient@example.com"
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleSendTestEmail} 
+                    disabled={isTestingSend || !testEmailRecipient}
+                    className="w-full"
+                  >
+                    {isTestingSend ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4 mr-2" />
+                        Send Test Email
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsTestDialogOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Tabs 
         defaultValue="accounts" 
         value={activeTab} 
@@ -358,6 +528,13 @@ const EmailAccountsPage = () => {
                           onClick={() => handleRefreshAccount(account.id)}
                         >
                           <RefreshCw className="h-4 w-4 mr-1" /> Refresh
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openTestDialog(account)}
+                        >
+                          <CheckCircle className="h-4 w-4 mr-1" /> Test
                         </Button>
                         <Button 
                           variant="outline" 

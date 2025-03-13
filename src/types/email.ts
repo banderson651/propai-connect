@@ -53,3 +53,8 @@ export interface Campaign {
   updatedAt: string;
   stats: CampaignStats;
 }
+
+export interface EmailTestResult {
+  success: boolean;
+  message: string;
+}
