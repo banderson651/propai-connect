@@ -9,7 +9,71 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      contact_import_mappings: {
+        Row: {
+          created_at: string
+          id: string
+          import_id: string
+          source_column: string
+          target_field: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          import_id: string
+          source_column: string
+          target_field: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          import_id?: string
+          source_column?: string
+          target_field?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_import_mappings_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "contact_imports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_imports: {
+        Row: {
+          created_at: string
+          filename: string
+          id: string
+          imported_rows: number
+          status: string
+          total_rows: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          filename: string
+          id?: string
+          imported_rows?: number
+          status?: string
+          total_rows?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          filename?: string
+          id?: string
+          imported_rows?: number
+          status?: string
+          total_rows?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

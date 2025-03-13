@@ -1,15 +1,20 @@
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Plus, UserPlus, Tag, Phone, Mail, CalendarDays } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Search, Plus, UserPlus, Tag } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getContacts, getInteractions } from '@/services/mockData';
 import { Contact, ContactTag } from '@/types/contact';
 import { Link } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
+import { ContactCard } from '@/components/contacts/ContactCard';
+import { ContactViewType, ContactsViewSwitcher } from '@/components/contacts/ContactsViewSwitcher';
+import { ImportContacts } from '@/components/contacts/ImportContacts';
+import { ContactListView } from '@/components/contacts/ContactListView';
+import { ContactTableView } from '@/components/contacts/ContactTableView';
+import { ContactCarouselView } from '@/components/contacts/ContactCarouselView';
 
 const TagColors: Record<ContactTag, string> = {
   'buyer': 'bg-blue-100 text-blue-800',
@@ -38,6 +43,7 @@ const ContactBadge = ({ tag }: { tag: ContactTag }) => {
 const ContactsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState<ContactTag | null>(null);
+  const [viewType, setViewType] = useState<ContactViewType>('grid');
   
   const contacts = getContacts();
   const interactions = getInteractions();
@@ -65,15 +71,52 @@ const ContactsPage = () => {
     });
   }, [contacts, searchTerm, selectedTag]);
   
-  const contactLastInteraction = (contactId: string) => {
-    const contactInteractions = interactions.filter(i => i.contactId === contactId);
-    if (contactInteractions.length === 0) return null;
+  const getContactLastInteractions = useCallback(() => {
+    const lastInteractionMap: Record<string, any> = {};
     
-    const sorted = [...contactInteractions].sort((a, b) => 
-      new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
+    contacts.forEach(contact => {
+      const contactInteractions = interactions.filter(i => i.contactId === contact.id);
+      if (contactInteractions.length > 0) {
+        const sorted = [...contactInteractions].sort((a, b) => 
+          new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
+        lastInteractionMap[contact.id] = sorted[0];
+      }
+    });
     
-    return sorted[0];
+    return lastInteractionMap;
+  }, [contacts, interactions]);
+  
+  const lastInteractionMap = useMemo(() => getContactLastInteractions(), [getContactLastInteractions]);
+
+  const renderContactsView = () => {
+    switch (viewType) {
+      case 'list':
+        return <ContactListView contacts={filteredContacts} lastInteraction={lastInteractionMap} />;
+      case 'table':
+        return <ContactTableView contacts={filteredContacts} lastInteraction={lastInteractionMap} />;
+      case 'carousel':
+        return <ContactCarouselView contacts={filteredContacts} lastInteraction={lastInteractionMap} />;
+      case 'grid':
+      default:
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredContacts.map(contact => (
+              <ContactCard 
+                key={contact.id} 
+                contact={contact} 
+                lastInteraction={lastInteractionMap[contact.id]}
+              />
+            ))}
+            
+            {filteredContacts.length === 0 && (
+              <div className="col-span-3 text-center py-12">
+                <p className="text-gray-500">No contacts found matching your criteria.</p>
+              </div>
+            )}
+          </div>
+        );
+    }
   };
 
   return (
@@ -86,15 +129,18 @@ const ContactsPage = () => {
               Manage your contacts and track interactions
             </p>
           </div>
-          <Link to="/contacts/new">
-            <Button>
-              <UserPlus className="mr-2 h-4 w-4" />
-              Add Contact
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <ImportContacts />
+            <Link to="/contacts/new">
+              <Button>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Add Contact
+              </Button>
+            </Link>
+          </div>
         </div>
         
-        <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 justify-between">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
@@ -104,14 +150,17 @@ const ContactsPage = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Button
-            variant={selectedTag ? "default" : "outline"}
-            className="flex items-center gap-2"
-            onClick={() => setSelectedTag(null)}
-          >
-            <Tag className="h-4 w-4" />
-            All Tags
-          </Button>
+          <div className="flex gap-2 items-center">
+            <ContactsViewSwitcher currentView={viewType} onChange={setViewType} />
+            <Button
+              variant={selectedTag ? "default" : "outline"}
+              className="flex items-center gap-2"
+              onClick={() => setSelectedTag(null)}
+            >
+              <Tag className="h-4 w-4" />
+              All Tags
+            </Button>
+          </div>
         </div>
         
         <div className="flex flex-wrap gap-2 my-4">
@@ -139,135 +188,118 @@ const ContactsPage = () => {
           </TabsList>
           
           <TabsContent value="all" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredContacts.map(contact => (
-                <ContactCard 
-                  key={contact.id} 
-                  contact={contact} 
-                  lastInteraction={contactLastInteraction(contact.id)}
-                />
-              ))}
-              
-              {filteredContacts.length === 0 && (
-                <div className="col-span-3 text-center py-12">
-                  <p className="text-gray-500">No contacts found matching your criteria.</p>
-                </div>
-              )}
-            </div>
+            {renderContactsView()}
           </TabsContent>
           
           <TabsContent value="recent" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredContacts
-                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                .slice(0, 6)
-                .map(contact => (
-                  <ContactCard 
-                    key={contact.id} 
-                    contact={contact} 
-                    lastInteraction={contactLastInteraction(contact.id)}
-                  />
-                ))
-              }
-            </div>
+            {viewType === 'grid' ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredContacts
+                  .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                  .slice(0, 6)
+                  .map(contact => (
+                    <ContactCard 
+                      key={contact.id} 
+                      contact={contact} 
+                      lastInteraction={lastInteractionMap[contact.id]}
+                    />
+                  ))
+                }
+              </div>
+            ) : (
+              <>
+                {(() => {
+                  const recentContacts = filteredContacts
+                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                    .slice(0, 6);
+                    
+                  switch (viewType) {
+                    case 'list':
+                      return <ContactListView contacts={recentContacts} lastInteraction={lastInteractionMap} />;
+                    case 'table':
+                      return <ContactTableView contacts={recentContacts} lastInteraction={lastInteractionMap} />;
+                    case 'carousel':
+                      return <ContactCarouselView contacts={recentContacts} lastInteraction={lastInteractionMap} />;
+                    default:
+                      return null;
+                  }
+                })()}
+              </>
+            )}
           </TabsContent>
           
           <TabsContent value="buyers" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredContacts
-                .filter(contact => contact.tags.includes('buyer'))
-                .map(contact => (
-                  <ContactCard 
-                    key={contact.id} 
-                    contact={contact} 
-                    lastInteraction={contactLastInteraction(contact.id)}
-                  />
-                ))
-              }
+            {(() => {
+              const buyerContacts = filteredContacts.filter(contact => contact.tags.includes('buyer'));
               
-              {filteredContacts.filter(contact => contact.tags.includes('buyer')).length === 0 && (
-                <div className="col-span-3 text-center py-12">
-                  <p className="text-gray-500">No buyers found matching your criteria.</p>
-                </div>
-              )}
-            </div>
+              switch (viewType) {
+                case 'grid':
+                  return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {buyerContacts.map(contact => (
+                        <ContactCard 
+                          key={contact.id} 
+                          contact={contact} 
+                          lastInteraction={lastInteractionMap[contact.id]}
+                        />
+                      ))}
+                      
+                      {buyerContacts.length === 0 && (
+                        <div className="col-span-3 text-center py-12">
+                          <p className="text-gray-500">No buyers found matching your criteria.</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                case 'list':
+                  return <ContactListView contacts={buyerContacts} lastInteraction={lastInteractionMap} />;
+                case 'table':
+                  return <ContactTableView contacts={buyerContacts} lastInteraction={lastInteractionMap} />;
+                case 'carousel':
+                  return <ContactCarouselView contacts={buyerContacts} lastInteraction={lastInteractionMap} />;
+                default:
+                  return null;
+              }
+            })()}
           </TabsContent>
           
           <TabsContent value="sellers" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredContacts
-                .filter(contact => contact.tags.includes('seller'))
-                .map(contact => (
-                  <ContactCard 
-                    key={contact.id} 
-                    contact={contact} 
-                    lastInteraction={contactLastInteraction(contact.id)}
-                  />
-                ))
-              }
+            {(() => {
+              const sellerContacts = filteredContacts.filter(contact => contact.tags.includes('seller'));
               
-              {filteredContacts.filter(contact => contact.tags.includes('seller')).length === 0 && (
-                <div className="col-span-3 text-center py-12">
-                  <p className="text-gray-500">No sellers found matching your criteria.</p>
-                </div>
-              )}
-            </div>
+              switch (viewType) {
+                case 'grid':
+                  return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {sellerContacts.map(contact => (
+                        <ContactCard 
+                          key={contact.id} 
+                          contact={contact} 
+                          lastInteraction={lastInteractionMap[contact.id]}
+                        />
+                      ))}
+                      
+                      {sellerContacts.length === 0 && (
+                        <div className="col-span-3 text-center py-12">
+                          <p className="text-gray-500">No sellers found matching your criteria.</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                case 'list':
+                  return <ContactListView contacts={sellerContacts} lastInteraction={lastInteractionMap} />;
+                case 'table':
+                  return <ContactTableView contacts={sellerContacts} lastInteraction={lastInteractionMap} />;
+                case 'carousel':
+                  return <ContactCarouselView contacts={sellerContacts} lastInteraction={lastInteractionMap} />;
+                default:
+                  return null;
+              }
+            })()}
           </TabsContent>
         </Tabs>
       </div>
     </DashboardLayout>
-  );
-};
-
-interface ContactCardProps {
-  contact: Contact;
-  lastInteraction: any | null;
-}
-
-const ContactCard = ({ contact, lastInteraction }: ContactCardProps) => {
-  return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="font-semibold text-lg">{contact.name}</h3>
-            <div className="flex items-center text-gray-600 text-sm mt-1">
-              <Mail className="h-4 w-4 mr-1" />
-              <span>{contact.email}</span>
-            </div>
-            {contact.phone && (
-              <div className="flex items-center text-gray-600 text-sm mt-1">
-                <Phone className="h-4 w-4 mr-1" />
-                <span>{contact.phone}</span>
-              </div>
-            )}
-          </div>
-          <Link to={`/contacts/${contact.id}`}>
-            <Button variant="ghost" size="sm">View</Button>
-          </Link>
-        </div>
-        
-        <div className="mt-4 flex flex-wrap gap-1">
-          {contact.tags.map(tag => (
-            <ContactBadge key={tag} tag={tag} />
-          ))}
-        </div>
-        
-        {lastInteraction && (
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <div className="flex items-center text-sm text-gray-500">
-              <CalendarDays className="h-4 w-4 mr-1" />
-              <span>Last interaction: {new Date(lastInteraction.date).toLocaleDateString()}</span>
-            </div>
-            <p className="text-sm mt-1 text-gray-700 truncate">
-              {lastInteraction.type.charAt(0).toUpperCase() + lastInteraction.type.slice(1)}:
-              {' '}{lastInteraction.content.substring(0, 40)}
-              {lastInteraction.content.length > 40 ? '...' : ''}
-            </p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
   );
 };
 
