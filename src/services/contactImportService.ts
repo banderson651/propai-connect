@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Contact, ContactTag } from '@/types/contact';
 import { saveContact, analyzeTextForTags } from './mockData';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface ImportMapping {
   sourceColumn: string;
@@ -93,12 +94,23 @@ export const getColumnPreviews = (data: string[][], maxPreviewRows: number = 5):
 
 export const createImportRecord = async (filename: string, totalRows: number): Promise<string | null> => {
   try {
+    // Get current user id from local storage
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) {
+      console.error('User not authenticated');
+      return null;
+    }
+    
+    const user = JSON.parse(storedUser);
+    const userId = user.email; // Using email as user_id since we don't have UUID in the mock auth
+    
     const { data, error } = await supabase
       .from('contact_imports')
       .insert({
         filename,
         total_rows: totalRows,
-        status: 'mapping'
+        status: 'mapping',
+        user_id: userId
       })
       .select('id')
       .single();
