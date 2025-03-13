@@ -1,9 +1,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { Contact, ContactTag } from '@/types/contact';
-import { saveContact, analyzeTextForTags } from './mockData';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 
 export interface ImportMapping {
   sourceColumn: string;
@@ -209,18 +207,27 @@ export const processImport = async (
           throw new Error('Missing required fields: name and email');
         }
         
-        // Auto-generate tags from notes
-        if (contactData.notes && contactData.notes.length > 20) {
-          const suggestedTags = analyzeTextForTags(contactData.notes);
-          suggestedTags.forEach(tag => {
-            if (!contactData.tags.includes(tag)) {
-              contactData.tags.push(tag);
-            }
-          });
-        }
+        // Generate a new UUID for the contact
+        const contactId = uuidv4();
+        const now = new Date().toISOString();
         
-        // Save the contact
-        saveContact(contactData);
+        // Insert the contact into Supabase
+        const { error } = await supabase
+          .from('contacts')
+          .insert({
+            id: contactId,
+            name: contactData.name,
+            email: contactData.email,
+            phone: contactData.phone || null,
+            address: contactData.address || null,
+            tags: contactData.tags,
+            notes: contactData.notes || null,
+            created_at: now,
+            updated_at: now
+          });
+          
+        if (error) throw error;
+        
         progress.successful++;
         
         // Update progress every 10 contacts
