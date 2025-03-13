@@ -77,7 +77,7 @@ export const WhatsAppProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const { error } = await supabase
         .from('whatsapp_config')
         .upsert({ 
-          id: 1, // Using a constant ID for simplicity
+          id: '1', // Using a constant ID for simplicity
           phone_number: phoneNumber,
           api_key: apiKey
         });
@@ -138,7 +138,7 @@ export const WhatsAppProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const { error } = await supabase
         .from('whatsapp_config')
         .delete()
-        .eq('id', 1);
+        .eq('id', '1');
       
       if (error) throw error;
       

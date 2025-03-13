@@ -13,7 +13,12 @@ export const getContacts = async (): Promise<Contact[]> => {
       
     if (error) throw error;
     
-    return data || [];
+    return data.map(contact => ({
+      ...contact,
+      createdAt: contact.created_at,
+      updatedAt: contact.updated_at,
+      tags: contact.tags || []
+    })) as Contact[];
   } catch (error) {
     console.error('Error fetching contacts:', error);
     return [];
@@ -31,7 +36,14 @@ export const getContactById = async (id: string): Promise<Contact | null> => {
       
     if (error) throw error;
     
-    return data || null;
+    if (!data) return null;
+    
+    return {
+      ...data,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      tags: data.tags || []
+    } as Contact;
   } catch (error) {
     console.error(`Error fetching contact with ID ${id}:`, error);
     return null;
@@ -65,7 +77,8 @@ export const saveContact = async (contact: Omit<Contact, 'id' | 'createdAt' | 'u
     return {
       ...data,
       createdAt: data.created_at,
-      updatedAt: data.updated_at
+      updatedAt: data.updated_at,
+      tags: data.tags || []
     } as Contact;
   } catch (error) {
     console.error('Error creating contact:', error);
@@ -95,7 +108,8 @@ export const updateContact = async (id: string, updates: Partial<Omit<Contact, '
     return {
       ...data,
       createdAt: data.created_at,
-      updatedAt: data.updated_at
+      updatedAt: data.updated_at,
+      tags: data.tags || []
     } as Contact;
   } catch (error) {
     console.error(`Error updating contact with ID ${id}:`, error);

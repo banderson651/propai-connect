@@ -74,6 +74,137 @@ export type Database = {
         }
         Relationships: []
       }
+      contacts: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      interactions: {
+        Row: {
+          contact_id: string
+          content: string
+          created_at: string
+          date: string
+          id: string
+          subject: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          contact_id: string
+          content: string
+          created_at?: string
+          date?: string
+          id?: string
+          subject?: string | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          contact_id?: string
+          content?: string
+          created_at?: string
+          date?: string
+          id?: string
+          subject?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interactions_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_config: {
+        Row: {
+          api_key: string
+          created_at: string
+          id: string
+          phone_number: string
+          updated_at: string
+        }
+        Insert: {
+          api_key: string
+          created_at?: string
+          id: string
+          phone_number: string
+          updated_at?: string
+        }
+        Update: {
+          api_key?: string
+          created_at?: string
+          id?: string
+          phone_number?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      whatsapp_messages: {
+        Row: {
+          contact_id: string
+          content: string
+          created_at: string
+          direction: string
+          id: string
+          message_id: string | null
+          timestamp: string
+        }
+        Insert: {
+          contact_id: string
+          content: string
+          created_at?: string
+          direction: string
+          id?: string
+          message_id?: string | null
+          timestamp?: string
+        }
+        Update: {
+          contact_id?: string
+          content?: string
+          created_at?: string
+          direction?: string
+          id?: string
+          message_id?: string | null
+          timestamp?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
