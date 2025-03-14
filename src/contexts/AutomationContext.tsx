@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Json } from '@/integrations/supabase/types';
 
 export interface AutomationRule {
   id: string;
@@ -85,6 +86,9 @@ export const AutomationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const createRule = async (rule: Omit<AutomationRule, 'id' | 'createdAt' | 'updatedAt'>): Promise<AutomationRule> => {
     try {
+      // Serialize actions to make it compatible with Json type
+      const actionsJson = JSON.parse(JSON.stringify(rule.actions)) as Json;
+      
       // Using any type temporarily until Supabase types get updated
       const { data, error } = await supabase
         .from('automation_rules')
@@ -93,7 +97,7 @@ export const AutomationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           description: rule.description,
           trigger_type: rule.triggerType,
           trigger_condition: rule.triggerCondition,
-          actions: rule.actions,
+          actions: actionsJson,
           is_active: rule.isActive
         })
         .select('*')
@@ -134,18 +138,26 @@ export const AutomationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const updateRule = async (id: string, updates: Partial<AutomationRule>): Promise<boolean> => {
     try {
+      // Create an object with only the fields that should be updated
+      const updateData: any = {};
+      
+      if (updates.name !== undefined) updateData.name = updates.name;
+      if (updates.description !== undefined) updateData.description = updates.description;
+      if (updates.triggerType !== undefined) updateData.trigger_type = updates.triggerType;
+      if (updates.triggerCondition !== undefined) updateData.trigger_condition = updates.triggerCondition;
+      if (updates.isActive !== undefined) updateData.is_active = updates.isActive;
+      if (updates.actions !== undefined) {
+        // Serialize actions to make it compatible with Json type
+        updateData.actions = JSON.parse(JSON.stringify(updates.actions)) as Json;
+      }
+      
+      // Add updated_at timestamp
+      updateData.updated_at = new Date().toISOString();
+      
       // Using any type temporarily until Supabase types get updated
       const { error } = await supabase
         .from('automation_rules')
-        .update({
-          name: updates.name,
-          description: updates.description,
-          trigger_type: updates.triggerType,
-          trigger_condition: updates.triggerCondition,
-          actions: updates.actions,
-          is_active: updates.isActive,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', id) as any;
 
       if (error) throw error;
