@@ -3,12 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2, Check, Phone, AlertCircle } from 'lucide-react';
+import { Loader2, Check, Phone, AlertCircle, Facebook } from 'lucide-react';
 import { useWhatsApp } from '@/contexts/WhatsAppContext';
 import { useToast } from '@/components/ui/use-toast';
+import { Separator } from '@/components/ui/separator';
 
 export const WhatsAppSetup = () => {
-  const { isConnected, connectWhatsApp, disconnectWhatsApp, phoneNumber, verifyConnection } = useWhatsApp();
+  const { isConnected, connectWhatsApp, disconnectWhatsApp, phoneNumber, verifyConnection, connectWithFacebook } = useWhatsApp();
   const { toast } = useToast();
   const [apiKey, setApiKey] = useState('');
   const [phone, setPhone] = useState('');
@@ -30,6 +31,16 @@ export const WhatsAppSetup = () => {
     
     setIsLoading(true);
     const connected = await connectWhatsApp(apiKey, phone);
+    setIsLoading(false);
+    
+    if (connected) {
+      setConnectionStatus('verified');
+    }
+  };
+
+  const handleFacebookConnect = async () => {
+    setIsLoading(true);
+    const connected = await connectWithFacebook();
     setIsLoading(false);
     
     if (connected) {
@@ -135,59 +146,91 @@ export const WhatsAppSetup = () => {
             </div>
           </div>
         ) : (
-          <form onSubmit={handleConnect} className="space-y-4">
+          <div className="space-y-6">
             <div className="space-y-2">
-              <label htmlFor="whatsapp-phone" className="text-sm font-medium">
-                WhatsApp Business Phone Number
-              </label>
-              <Input 
-                id="whatsapp-phone" 
-                placeholder="+1234567890" 
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                required
-              />
+              <Button 
+                onClick={handleFacebookConnect} 
+                className="w-full bg-[#1877F2] hover:bg-[#0a61d1]"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Facebook className="mr-2 h-4 w-4" />
+                )}
+                Connect with WhatsApp Business Manager
+              </Button>
+              <p className="text-xs text-center text-gray-500">
+                Connect directly to your WhatsApp Business account
+              </p>
             </div>
             
-            <div className="space-y-2">
-              <label htmlFor="whatsapp-api" className="text-sm font-medium">
-                WhatsApp Business API Key
-              </label>
-              <Input 
-                id="whatsapp-api" 
-                placeholder="Enter your API key" 
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                required
-              />
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-background px-2 text-gray-500">
+                  Or connect manually
+                </span>
+              </div>
             </div>
-          </form>
+            
+            <form onSubmit={handleConnect} className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="whatsapp-phone" className="text-sm font-medium">
+                  WhatsApp Business Phone Number
+                </label>
+                <Input 
+                  id="whatsapp-phone" 
+                  placeholder="+1234567890" 
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="whatsapp-api" className="text-sm font-medium">
+                  WhatsApp Business API Key
+                </label>
+                <Input 
+                  id="whatsapp-api" 
+                  placeholder="Enter your API key" 
+                  type="password"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <Button
+                type="submit"
+                onClick={handleConnect}
+                disabled={isLoading || !apiKey || !phone}
+                className="w-full"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Connecting...
+                  </>
+                ) : (
+                  'Connect Manually'
+                )}
+              </Button>
+            </form>
+          </div>
         )}
       </CardContent>
       
       <CardFooter className="flex justify-end">
-        {isConnected ? (
+        {isConnected && (
           <Button
             variant="outline"
             onClick={disconnectWhatsApp}
           >
             Disconnect WhatsApp
-          </Button>
-        ) : (
-          <Button
-            type="submit"
-            onClick={handleConnect}
-            disabled={isLoading || !apiKey || !phone}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Connecting...
-              </>
-            ) : (
-              'Connect WhatsApp'
-            )}
           </Button>
         )}
       </CardFooter>
