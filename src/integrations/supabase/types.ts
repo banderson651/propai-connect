@@ -190,6 +190,7 @@ export type Database = {
       whatsapp_config: {
         Row: {
           api_key: string
+          business_account_id: string | null
           created_at: string
           id: string
           phone_number: string
@@ -197,6 +198,7 @@ export type Database = {
         }
         Insert: {
           api_key: string
+          business_account_id?: string | null
           created_at?: string
           id: string
           phone_number: string
@@ -204,6 +206,7 @@ export type Database = {
         }
         Update: {
           api_key?: string
+          business_account_id?: string | null
           created_at?: string
           id?: string
           phone_number?: string
