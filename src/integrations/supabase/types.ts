@@ -9,6 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      automation_rules: {
+        Row: {
+          actions: Json
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          trigger_condition: string
+          trigger_type: string
+          updated_at: string
+        }
+        Insert: {
+          actions: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          trigger_condition: string
+          trigger_type: string
+          updated_at?: string
+        }
+        Update: {
+          actions?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          trigger_condition?: string
+          trigger_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contact_import_mappings: {
         Row: {
           created_at: string

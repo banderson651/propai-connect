@@ -49,15 +49,16 @@ export const AutomationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const fetchAutomationRules = async () => {
     try {
       setLoading(true);
+      // Using any type temporarily until Supabase types get updated
       const { data, error } = await supabase
         .from('automation_rules')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }) as any;
 
       if (error) throw error;
 
       if (data) {
-        const formattedRules: AutomationRule[] = data.map(rule => ({
+        const formattedRules: AutomationRule[] = data.map((rule: any) => ({
           id: rule.id,
           name: rule.name,
           description: rule.description,
@@ -84,6 +85,7 @@ export const AutomationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const createRule = async (rule: Omit<AutomationRule, 'id' | 'createdAt' | 'updatedAt'>): Promise<AutomationRule> => {
     try {
+      // Using any type temporarily until Supabase types get updated
       const { data, error } = await supabase
         .from('automation_rules')
         .insert({
@@ -95,7 +97,7 @@ export const AutomationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           is_active: rule.isActive
         })
         .select('*')
-        .single();
+        .single() as any;
 
       if (error) throw error;
 
@@ -132,6 +134,7 @@ export const AutomationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const updateRule = async (id: string, updates: Partial<AutomationRule>): Promise<boolean> => {
     try {
+      // Using any type temporarily until Supabase types get updated
       const { error } = await supabase
         .from('automation_rules')
         .update({
@@ -143,7 +146,7 @@ export const AutomationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           is_active: updates.isActive,
           updated_at: new Date().toISOString()
         })
-        .eq('id', id);
+        .eq('id', id) as any;
 
       if (error) throw error;
 
@@ -172,10 +175,11 @@ export const AutomationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const deleteRule = async (id: string): Promise<boolean> => {
     try {
+      // Using any type temporarily until Supabase types get updated
       const { error } = await supabase
         .from('automation_rules')
         .delete()
-        .eq('id', id);
+        .eq('id', id) as any;
 
       if (error) throw error;
 
@@ -200,10 +204,11 @@ export const AutomationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const toggleRuleStatus = async (id: string, isActive: boolean): Promise<boolean> => {
     try {
+      // Using any type temporarily until Supabase types get updated
       const { error } = await supabase
         .from('automation_rules')
         .update({ is_active: isActive })
-        .eq('id', id);
+        .eq('id', id) as any;
 
       if (error) throw error;
 
