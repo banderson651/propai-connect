@@ -4,25 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { DialogFooter } from '@/components/ui/dialog';
-import { Trash2 } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
+import { WhatsAppTemplate } from '@/contexts/WhatsAppContext';
 
 interface TemplateFormProps {
-  newTemplate: {
-    name: string;
-    content: string;
-    language: string;
-    category: string;
-    variables: string[];
-  };
-  setNewTemplate: React.Dispatch<React.SetStateAction<{
-    name: string;
-    content: string;
-    language: string;
-    category: string;
-    variables: string[];
-  }>>;
+  newTemplate: Omit<WhatsAppTemplate, 'id' | 'status' | 'createdAt'>;
+  setNewTemplate: React.Dispatch<React.SetStateAction<Omit<WhatsAppTemplate, 'id' | 'status' | 'createdAt'>>>;
   handleCreateTemplate: () => Promise<void>;
   handleAddVariable: () => void;
   handleVariableChange: (index: number, value: string) => void;
@@ -39,105 +26,141 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
   handleRemoveVariable,
   onClose
 }) => {
+  const languages = [
+    { value: 'en_US', label: 'English (US)' },
+    { value: 'es_LA', label: 'Spanish (Latin America)' },
+    { value: 'pt_BR', label: 'Portuguese (Brazil)' },
+    { value: 'fr_FR', label: 'French' },
+    { value: 'de_DE', label: 'German' },
+    { value: 'it_IT', label: 'Italian' },
+    { value: 'zh_CN', label: 'Chinese (Simplified)' },
+    { value: 'ja_JP', label: 'Japanese' },
+    { value: 'ko_KR', label: 'Korean' },
+  ];
+
+  const categories = [
+    { value: 'UTILITY', label: 'Utility' },
+    { value: 'MARKETING', label: 'Marketing' },
+    { value: 'AUTHENTICATION', label: 'Authentication' },
+  ];
+
   return (
     <div className="space-y-4 py-4">
+      <div className="space-y-2">
+        <label htmlFor="template-name" className="text-sm font-medium">Template Name</label>
+        <Input
+          id="template-name"
+          placeholder="e.g., Welcome Message"
+          value={newTemplate.name}
+          onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
+        />
+      </div>
+      
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="template-name">Template Name</Label>
-          <Input
-            id="template-name"
-            value={newTemplate.name}
-            onChange={(e) => setNewTemplate(prev => ({ ...prev, name: e.target.value }))}
-            placeholder="e.g. welcome_message"
-          />
+          <label htmlFor="template-language" className="text-sm font-medium">Language</label>
+          <Select
+            value={newTemplate.language}
+            onValueChange={(value) => setNewTemplate({ ...newTemplate, language: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select language" />
+            </SelectTrigger>
+            <SelectContent>
+              {languages.map((lang) => (
+                <SelectItem key={lang.value} value={lang.value}>
+                  {lang.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="template-category">Category</Label>
-          <Select 
+          <label htmlFor="template-category" className="text-sm font-medium">Category</label>
+          <Select
             value={newTemplate.category}
-            onValueChange={(value) => setNewTemplate(prev => ({ ...prev, category: value }))}
+            onValueChange={(value) => setNewTemplate({ ...newTemplate, category: value })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="UTILITY">Utility</SelectItem>
-              <SelectItem value="MARKETING">Marketing</SelectItem>
-              <SelectItem value="AUTHENTICATION">Authentication</SelectItem>
+              {categories.map((cat) => (
+                <SelectItem key={cat.value} value={cat.value}>
+                  {cat.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="template-language">Language</Label>
-        <Select 
-          value={newTemplate.language}
-          onValueChange={(value) => setNewTemplate(prev => ({ ...prev, language: value }))}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select language" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="en_US">English (US)</SelectItem>
-            <SelectItem value="es_ES">Spanish (Spain)</SelectItem>
-            <SelectItem value="pt_BR">Portuguese (Brazil)</SelectItem>
-            <SelectItem value="fr_FR">French</SelectItem>
-            <SelectItem value="de_DE">German</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="template-content">Template Content</Label>
+        <label htmlFor="template-content" className="text-sm font-medium">Content</label>
         <Textarea
           id="template-content"
+          placeholder="Enter your template content here. Use {{1}}, {{2}}, etc. for variables."
           value={newTemplate.content}
-          onChange={(e) => setNewTemplate(prev => ({ ...prev, content: e.target.value }))}
-          placeholder="Hello {{1}}, welcome to our service!"
+          onChange={(e) => setNewTemplate({ ...newTemplate, content: e.target.value })}
           rows={4}
         />
-        <p className="text-xs text-muted-foreground">
-          Use {{1}}, {{2}}, etc. as placeholders for variables
+        <p className="text-xs text-gray-500">
+          Example: "Hello {{1}}, your appointment is confirmed for {{2}}."
         </p>
       </div>
       
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label>Variables</Label>
-          <Button type="button" variant="outline" size="sm" onClick={handleAddVariable}>
+        <div className="flex justify-between items-center">
+          <label className="text-sm font-medium">Variables</label>
+          <Button 
+            type="button" 
+            variant="ghost" 
+            size="sm"
+            onClick={handleAddVariable}
+          >
+            <Plus className="h-4 w-4 mr-1" />
             Add Variable
           </Button>
         </div>
-        
         <div className="space-y-2">
           {newTemplate.variables.map((variable, index) => (
-            <div key={index} className="flex gap-2">
+            <div key={index} className="flex items-center gap-2">
               <Input
+                placeholder={`Variable ${index + 1} (e.g., name)`}
                 value={variable}
                 onChange={(e) => handleVariableChange(index, e.target.value)}
-                placeholder={`Variable ${index + 1} (e.g. name)`}
               />
               <Button 
                 type="button" 
-                variant="outline" 
+                variant="ghost" 
                 size="icon"
                 onClick={() => handleRemoveVariable(index)}
+                disabled={newTemplate.variables.length <= 1}
               >
-                <Trash2 className="h-4 w-4" />
+                <X className="h-4 w-4" />
               </Button>
             </div>
           ))}
         </div>
       </div>
-
-      <DialogFooter>
-        <Button variant="outline" onClick={onClose}>Cancel</Button>
-        <Button onClick={handleCreateTemplate} disabled={!newTemplate.name || !newTemplate.content}>
+      
+      <div className="flex justify-end gap-2 pt-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onClose}
+        >
+          Cancel
+        </Button>
+        <Button
+          type="button"
+          onClick={handleCreateTemplate}
+          disabled={!newTemplate.name || !newTemplate.content}
+        >
           Create Template
         </Button>
-      </DialogFooter>
+      </div>
     </div>
   );
 };

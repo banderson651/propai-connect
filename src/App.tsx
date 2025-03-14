@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -71,6 +70,9 @@ const App = () => (
                 {/* Automation Routes */}
                 <Route path="/automation" element={<AuthRoute><AutomationPage /></AuthRoute>} />
                 <Route path="/automation/new" element={<AuthRoute><NewRulePage /></AuthRoute>} />
+                
+                {/* WhatsApp Routes */}
+                <Route path="/settings/whatsapp" element={<AuthRoute><WhatsAppSettingsPage /></AuthRoute>} />
                 
                 <Route path="/analytics" element={<AuthRoute><Index /></AuthRoute>} />
                 <Route path="/settings" element={<AuthRoute><WhatsAppSettingsPage /></AuthRoute>} />

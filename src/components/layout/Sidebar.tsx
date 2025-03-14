@@ -24,7 +24,7 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
     { 
       icon: MessageSquare, 
       label: 'WhatsApp', 
-      path: '/settings', 
+      path: '/settings/whatsapp', 
       badge: isConnected ? 'Connected' : undefined,
       badgeColor: 'bg-green-100 text-green-800'
     },
@@ -92,4 +92,4 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
       </nav>
     </aside>
   );
-};
+}
