@@ -1,7 +1,7 @@
-
 import { EmailAccount, EmailTemplate, Campaign, EmailTestResult } from '@/types/email';
 import { mockEmailAccounts, mockEmailTemplates, mockCampaigns } from './emailMockData';
 import { v4 as uuidv4 } from 'uuid';
+import { supabase } from '@/integrations/supabase/client';
 
 // Email Accounts
 export const getEmailAccounts = (): Promise<EmailAccount[]> => {
@@ -13,13 +13,28 @@ export const getEmailAccountById = (id: string): Promise<EmailAccount | undefine
   return Promise.resolve(account);
 };
 
-export const createEmailAccount = (account: Omit<EmailAccount, 'id' | 'status' | 'lastChecked'>): Promise<EmailAccount> => {
+export const createEmailAccount = async (account: Omit<EmailAccount, 'id' | 'status' | 'lastChecked'>): Promise<EmailAccount> => {
+  // First test the connection before saving
+  const connectionResult = await testEmailConnection({
+    ...account,
+    status: 'connected',
+    lastChecked: new Date().toISOString(),
+    id: 'temp-id', // Temporary ID for the test
+  });
+
+  if (!connectionResult.success) {
+    // If connection test fails, throw an error with the message
+    throw new Error(connectionResult.message);
+  }
+  
+  // If connection is successful, create the account
   const newAccount: EmailAccount = {
     ...account,
     id: uuidv4(),
     status: 'connected',
     lastChecked: new Date().toISOString(),
   };
+  
   mockEmailAccounts.push(newAccount);
   return Promise.resolve(newAccount);
 };
@@ -40,43 +55,41 @@ export const deleteEmailAccount = (id: string): Promise<boolean> => {
   return Promise.resolve(true);
 };
 
-// Test Email Connection
-export const testEmailConnection = (account: EmailAccount): Promise<EmailTestResult> => {
-  // In a real app, this would actually test the connection to the email server
-  // For this mock implementation, we'll simulate a successful connection most of the time
-  // with occasional failures to demonstrate error handling
-  
-  return new Promise((resolve) => {
-    // Simulate network delay
-    setTimeout(() => {
-      // Randomly determine if the connection is successful (80% success rate)
-      const isSuccessful = Math.random() < 0.8;
-      
-      if (isSuccessful) {
-        resolve({
-          success: true,
-          message: 'Connection successful! Your email account is properly configured.'
-        });
-      } else {
-        // Generate a random error message
-        const errorMessages = [
-          'Authentication failed. Please check your username and password.',
-          'Unable to connect to mail server. Please verify host and port settings.',
-          'Connection timed out. The mail server is not responding.',
-          'TLS/SSL negotiation failed. Please check your security settings.'
-        ];
-        const randomError = errorMessages[Math.floor(Math.random() * errorMessages.length)];
-        
-        resolve({
-          success: false,
-          message: randomError
-        });
-      }
-    }, 1500); // Simulate a 1.5 second delay for network request
-  });
+// Test Email Connection using the Supabase Edge Function
+export const testEmailConnection = async (account: EmailAccount): Promise<EmailTestResult> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('test-email-connection', {
+      body: {
+        action: 'test-connection',
+        type: account.type,
+        host: account.host,
+        port: account.port,
+        username: account.username,
+        password: account.password,
+        email: account.email,
+        secure: account.port === 993 || account.port === 995, // Standard secure ports
+      },
+    });
+
+    if (error) {
+      console.error('Error calling test-email-connection function:', error);
+      return {
+        success: false,
+        message: `Error testing connection: ${error.message}`
+      };
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Exception in testEmailConnection:', error);
+    return {
+      success: false,
+      message: `An unexpected error occurred: ${error.message || 'Unknown error'}`
+    };
+  }
 };
 
-export const sendTestEmail = (accountId: string, recipient: string): Promise<EmailTestResult> => {
+export const sendTestEmail = async (accountId: string, recipient: string): Promise<EmailTestResult> => {
   const account = mockEmailAccounts.find(acc => acc.id === accountId);
   if (!account) {
     return Promise.resolve({
@@ -85,25 +98,37 @@ export const sendTestEmail = (accountId: string, recipient: string): Promise<Ema
     });
   }
   
-  // In a real app, this would actually send a test email
-  // For this mock implementation, we'll simulate success most of the time
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const isSuccessful = Math.random() < 0.9; // 90% success rate for test emails
-      
-      if (isSuccessful) {
-        resolve({
-          success: true,
-          message: `Test email sent to ${recipient} from ${account.email} successfully!`
-        });
-      } else {
-        resolve({
-          success: false,
-          message: 'Failed to send test email. Please check your email settings and try again.'
-        });
-      }
-    }, 2000); // Simulate a 2 second delay
-  });
+  try {
+    const { data, error } = await supabase.functions.invoke('test-email-connection', {
+      body: {
+        action: 'send-test-email',
+        type: account.type,
+        host: account.host,
+        port: account.port,
+        username: account.username,
+        password: account.password,
+        email: account.email,
+        secure: account.port === 993 || account.port === 995, // Standard secure ports
+        recipient: recipient,
+      },
+    });
+
+    if (error) {
+      console.error('Error calling send-test-email function:', error);
+      return {
+        success: false,
+        message: `Error sending test email: ${error.message}`
+      };
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Exception in sendTestEmail:', error);
+    return {
+      success: false,
+      message: `An unexpected error occurred: ${error.message || 'Unknown error'}`
+    };
+  }
 };
 
 // Email Templates

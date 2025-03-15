@@ -19,7 +19,8 @@ import {
   RefreshCw, 
   Edit, 
   Send,
-  Loader2
+  Loader2,
+  Info
 } from 'lucide-react';
 import { EmailAccount, EmailAccountType } from '@/types/email';
 import { 
@@ -41,6 +42,8 @@ const EmailAccountsPage = () => {
   const [testEmailRecipient, setTestEmailRecipient] = useState('');
   const [isTesting, setIsTesting] = useState(false);
   const [isTestingSend, setIsTestingSend] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [connectionError, setConnectionError] = useState('');
   
   const [newAccount, setNewAccount] = useState({
     name: '',
@@ -67,10 +70,15 @@ const EmailAccountsPage = () => {
       ...prev,
       [name]: name === 'port' ? Number(value) : value
     }));
+    // Clear any previous connection error when user makes changes
+    if (connectionError) setConnectionError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setConnectionError('');
+    
     try {
       await createEmailAccount(newAccount);
       setIsAddDialogOpen(false);
@@ -90,11 +98,15 @@ const EmailAccountsPage = () => {
         password: '',
       });
     } catch (error) {
+      console.error("Email connection error:", error);
+      setConnectionError(error.message || "Failed to connect to email server. Please check your settings.");
       toast({
-        title: "Error",
-        description: "Failed to add email account. Please try again.",
+        title: "Connection Failed",
+        description: error.message || "Failed to connect to email server. Please check your settings.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -116,22 +128,43 @@ const EmailAccountsPage = () => {
   };
 
   const handleRefreshAccount = async (id: string) => {
+    const account = accounts.find(acc => acc.id === id);
+    if (!account) return;
+    
     try {
-      await updateEmailAccount(id, {
-        status: 'connected',
-        lastChecked: new Date().toISOString()
-      });
+      setIsTesting(true);
+      const result = await testEmailConnection(account);
+      
+      if (result.success) {
+        await updateEmailAccount(id, {
+          status: 'connected',
+          lastChecked: new Date().toISOString()
+        });
+        toast({
+          title: "Connection Refreshed",
+          description: "The email account connection has been verified.",
+        });
+      } else {
+        await updateEmailAccount(id, {
+          status: 'error',
+          lastChecked: new Date().toISOString()
+        });
+        toast({
+          title: "Connection Failed",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
+      
       refetch();
-      toast({
-        title: "Connection Refreshed",
-        description: "The email account connection has been refreshed.",
-      });
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to refresh connection. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsTesting(false);
     }
   };
 
@@ -196,6 +229,42 @@ const EmailAccountsPage = () => {
   const openTestDialog = (account: EmailAccount) => {
     setTestingAccount(account);
     setIsTestDialogOpen(true);
+  };
+
+  // Helper function to suggest IMAP settings based on email domain
+  const suggestEmailSettings = () => {
+    if (!newAccount.email) return;
+    
+    const domain = newAccount.email.split('@')[1]?.toLowerCase();
+    if (!domain) return;
+    
+    // Common email providers
+    if (domain === 'gmail.com') {
+      setNewAccount(prev => ({
+        ...prev,
+        host: 'imap.gmail.com',
+        port: 993,
+        username: prev.email,
+      }));
+      toast({
+        title: "Gmail Detected",
+        description: "For Gmail, you may need to enable 'Less secure app access' or create an app password if you have 2FA enabled.",
+      });
+    } else if (domain === 'outlook.com' || domain === 'hotmail.com' || domain === 'live.com') {
+      setNewAccount(prev => ({
+        ...prev,
+        host: 'outlook.office365.com',
+        port: 993,
+        username: prev.email,
+      }));
+    } else if (domain === 'yahoo.com' || domain === 'ymail.com') {
+      setNewAccount(prev => ({
+        ...prev,
+        host: 'imap.mail.yahoo.com',
+        port: 993,
+        username: prev.email,
+      }));
+    }
   };
 
   // Helper function to render status badge
@@ -264,15 +333,28 @@ const EmailAccountsPage = () => {
                     <label htmlFor="email" className="text-right text-sm font-medium">
                       Email Address
                     </label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={newAccount.email}
-                      onChange={handleInputChange}
-                      className="col-span-3"
-                      required
-                    />
+                    <div className="col-span-3 relative">
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        value={newAccount.email}
+                        onChange={handleInputChange}
+                        onBlur={suggestEmailSettings}
+                        className="pr-8"
+                        required
+                      />
+                      {newAccount.email && (
+                        <button
+                          type="button"
+                          onClick={suggestEmailSettings}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                          title="Auto-detect settings"
+                        >
+                          <Info className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <label htmlFor="type" className="text-right text-sm font-medium">
@@ -299,6 +381,7 @@ const EmailAccountsPage = () => {
                       name="host"
                       value={newAccount.host}
                       onChange={handleInputChange}
+                      placeholder="e.g., imap.gmail.com"
                       className="col-span-3"
                       required
                     />
@@ -313,6 +396,7 @@ const EmailAccountsPage = () => {
                       type="number"
                       value={newAccount.port}
                       onChange={handleInputChange}
+                      placeholder="993 for IMAP, 995 for POP3"
                       className="col-span-3"
                       required
                     />
@@ -326,6 +410,7 @@ const EmailAccountsPage = () => {
                       name="username"
                       value={newAccount.username}
                       onChange={handleInputChange}
+                      placeholder="Usually your full email address"
                       className="col-span-3"
                       required
                     />
@@ -344,12 +429,33 @@ const EmailAccountsPage = () => {
                       required
                     />
                   </div>
+                  
+                  {connectionError && (
+                    <div className="col-span-4 bg-red-50 border border-red-200 rounded-md p-3 text-red-700 text-sm">
+                      <div className="flex items-start">
+                        <AlertTriangle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-medium">Connection Error:</p>
+                          <p>{connectionError}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <DialogFooter>
                   <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                     Cancel
                   </Button>
-                  <Button type="submit">Connect Account</Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Connecting...
+                      </>
+                    ) : (
+                      "Connect Account"
+                    )}
+                  </Button>
                 </DialogFooter>
               </form>
             </DialogContent>

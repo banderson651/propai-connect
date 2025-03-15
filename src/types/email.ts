@@ -1,4 +1,3 @@
-
 export type EmailAccountType = 'IMAP' | 'POP3';
 
 export type EmailConnectionStatus = 'connected' | 'disconnected' | 'error';
@@ -14,6 +13,7 @@ export interface EmailAccount {
   password: string; // Note: In a real app, this would be securely stored
   status: EmailConnectionStatus;
   lastChecked: string;
+  secure?: boolean; // Added for secure connections
 }
 
 export interface EmailTemplate {
