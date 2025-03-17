@@ -27,12 +27,133 @@ interface TemplateFormProps {
     variables: string[];
   };
   onSubmit: (values: FormValues) => void;
+  // Add the new props that are being passed from WhatsAppTemplateManager
+  newTemplate?: {
+    name: string;
+    content: string;
+    language: string;
+    category: string;
+    variables: string[];
+  };
+  setNewTemplate?: React.Dispatch<React.SetStateAction<{
+    name: string;
+    content: string;
+    language: string;
+    category: string;
+    variables: string[];
+  }>>;
+  handleCreateTemplate?: () => Promise<void>;
+  handleAddVariable?: () => void;
+  handleVariableChange?: (index: number, value: string) => void;
+  handleRemoveVariable?: (index: number) => void;
+  onClose?: () => void;
 }
 
-const TemplateForm = ({ initialValues, onSubmit }: TemplateFormProps) => {
+const TemplateForm = ({ 
+  initialValues, 
+  onSubmit,
+  newTemplate,
+  setNewTemplate,
+  handleCreateTemplate,
+  handleAddVariable,
+  handleVariableChange,
+  handleRemoveVariable,
+  onClose
+}: TemplateFormProps) => {
   const [variables, setVariables] = useState<string[]>(initialValues?.variables || []);
   const [newVariable, setNewVariable] = useState('');
 
+  // If we're using the WhatsAppTemplateManager version, use a simplified form
+  if (newTemplate && setNewTemplate) {
+    return (
+      <div className="space-y-4 py-4">
+        <div className="space-y-2">
+          <Label htmlFor="name">Template Name</Label>
+          <Input 
+            id="name" 
+            value={newTemplate.name}
+            onChange={(e) => setNewTemplate({...newTemplate, name: e.target.value})}
+            placeholder="E.g., Welcome Message" 
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="content">Message Content</Label>
+          <Textarea 
+            id="content"
+            value={newTemplate.content}
+            onChange={(e) => setNewTemplate({...newTemplate, content: e.target.value})}
+            placeholder="Use {{variableName}} for personalization"
+            className="min-h-32"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="language">Language</Label>
+          <Input 
+            id="language" 
+            value={newTemplate.language}
+            onChange={(e) => setNewTemplate({...newTemplate, language: e.target.value})}
+            placeholder="E.g., en_US" 
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="category">Category</Label>
+          <Input 
+            id="category" 
+            value={newTemplate.category}
+            onChange={(e) => setNewTemplate({...newTemplate, category: e.target.value})}
+            placeholder="E.g., UTILITY" 
+          />
+        </div>
+        
+        <div className="space-y-3">
+          <Label>Template Variables</Label>
+          {newTemplate.variables.map((variable, index) => (
+            <div key={index} className="flex gap-2">
+              <Input 
+                value={variable}
+                onChange={(e) => handleVariableChange && handleVariableChange(index, e.target.value)}
+                placeholder={`Variable ${index + 1}`}
+              />
+              <Button 
+                type="button" 
+                variant="destructive"
+                onClick={() => handleRemoveVariable && handleRemoveVariable(index)}
+              >
+                <XCircle className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+          
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={handleAddVariable}
+            className="w-full"
+          >
+            <PlusCircle className="h-4 w-4 mr-2" /> Add Variable
+          </Button>
+        </div>
+        
+        <div className="flex justify-end space-x-2 pt-4">
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button 
+            type="button" 
+            onClick={handleCreateTemplate}
+            disabled={!newTemplate.name || !newTemplate.content}
+          >
+            Create Template
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Original form implementation for other use cases
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -47,21 +168,21 @@ const TemplateForm = ({ initialValues, onSubmit }: TemplateFormProps) => {
     form.setValue('variables', variables);
   }, [variables, form]);
 
-  const handleAddVariable = () => {
+  const handleAddVariableLocal = () => {
     if (newVariable && !variables.includes(newVariable)) {
       setVariables([...variables, newVariable]);
       setNewVariable('');
     }
   };
 
-  const handleRemoveVariable = (variable: string) => {
+  const handleRemoveVariableLocal = (variable: string) => {
     setVariables(variables.filter(v => v !== variable));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      handleAddVariable();
+      handleAddVariableLocal();
     }
   };
 
@@ -125,7 +246,7 @@ const TemplateForm = ({ initialValues, onSubmit }: TemplateFormProps) => {
             />
             <Button 
               type="button" 
-              onClick={handleAddVariable}
+              onClick={handleAddVariableLocal}
               disabled={!newVariable || variables.includes(newVariable)}
             >
               <PlusCircle className="h-4 w-4 mr-1" /> Add
@@ -142,7 +263,7 @@ const TemplateForm = ({ initialValues, onSubmit }: TemplateFormProps) => {
                 <button 
                   type="button" 
                   className="ml-1 text-gray-500 hover:text-red-500"
-                  onClick={() => handleRemoveVariable(variable)}
+                  onClick={() => handleRemoveVariableLocal(variable)}
                 >
                   <XCircle className="h-4 w-4" />
                 </button>

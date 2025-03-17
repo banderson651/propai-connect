@@ -19,6 +19,8 @@ export const createEmailAccount = async (account: Omit<EmailAccount, 'id' | 'sta
   const connectionResult = await testEmailConnection({
     ...account,
     id: 'temp-id', // Temporary ID for the test
+    status: 'disconnected', // Add status for the test
+    lastChecked: new Date().toISOString() // Add lastChecked for the test
   });
 
   if (!connectionResult.success) {

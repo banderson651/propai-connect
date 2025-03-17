@@ -164,16 +164,16 @@ const EmailAccountsPage = () => {
     try {
       const result = await testEmailConnection({
         id: 'temp-id',
-        name: accountName,
+        name: accountName, // Remove this when passing to testEmailConnection
         email,
         type: accountType,
         host,
         port: numPort,
         username,
         password,
+        secure,
         status: 'disconnected',
-        lastChecked: new Date().toISOString(),
-        secure
+        lastChecked: new Date().toISOString()
       });
       
       setTestResult(result);
