@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UseFormReturn } from "react-hook-form";
-import { Omit } from "react-router-dom";
 import { Task } from "@/types/task";
 
 type TaskFormData = Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'reminders' | 'tags'>;
@@ -15,15 +14,15 @@ interface TaskFormBasicInfoProps {
 
 export const TaskFormBasicInfo = ({ form }: TaskFormBasicInfoProps) => {
   return (
-    <>
+    <div className="space-y-4">
       <FormField
         control={form.control}
         name="title"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Task Title</FormLabel>
+            <FormLabel>Title</FormLabel>
             <FormControl>
-              <Input placeholder="Enter task title" {...field} />
+              <Input placeholder="Task title" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -37,10 +36,11 @@ export const TaskFormBasicInfo = ({ form }: TaskFormBasicInfoProps) => {
           <FormItem>
             <FormLabel>Description</FormLabel>
             <FormControl>
-              <Textarea
-                placeholder="Enter task description"
-                className="resize-none"
-                {...field}
+              <Textarea 
+                placeholder="Enter task description" 
+                className="resize-none h-24" 
+                {...field} 
+                value={field.value || ''}
               />
             </FormControl>
             <FormMessage />
@@ -98,6 +98,6 @@ export const TaskFormBasicInfo = ({ form }: TaskFormBasicInfoProps) => {
           )}
         />
       </div>
-    </>
+    </div>
   );
 };

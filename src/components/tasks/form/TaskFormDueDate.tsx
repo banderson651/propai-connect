@@ -6,7 +6,6 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { UseFormReturn } from "react-hook-form";
-import { Omit } from "react-router-dom";
 import { Task } from "@/types/task";
 
 type TaskFormData = Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'reminders' | 'tags'>;
