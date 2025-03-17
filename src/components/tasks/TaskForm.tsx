@@ -34,6 +34,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getProperties } from "@/services/propertyService";
 import { getContacts } from "@/services/contactService";
 import { getCampaigns } from "@/services/email/campaignService";
+import { v4 as uuidv4 } from 'uuid';
 
 interface TaskFormProps {
   task?: Task;
@@ -45,8 +46,9 @@ export const TaskForm = ({ task, onSubmit, onCancel }: TaskFormProps) => {
   const { toast } = useToast();
   const [tags, setTags] = useState<string[]>(task?.tags || []);
   const [tagInput, setTagInput] = useState<string>("");
-  const [reminders, setReminders] = useState<Omit<TaskReminder, 'id'>[]>(
-    task?.reminders.map(r => ({ time: r.time, type: r.type })) || []
+  // Add ID to each reminder
+  const [reminders, setReminders] = useState<TaskReminder[]>(
+    task?.reminders || []
   );
   
   const { data: properties = [] } = useQuery({
@@ -93,9 +95,10 @@ export const TaskForm = ({ task, onSubmit, onCancel }: TaskFormProps) => {
   };
   
   const addReminder = () => {
-    const newReminder = {
+    const newReminder: TaskReminder = {
+      id: uuidv4(), // Generate UUID for each new reminder
       time: new Date(Date.now() + 3600000).toISOString(), // 1 hour from now
-      type: "notification" as const
+      type: "notification"
     };
     setReminders([...reminders, newReminder]);
   };
@@ -300,7 +303,7 @@ export const TaskForm = ({ task, onSubmit, onCancel }: TaskFormProps) => {
           ) : (
             <div className="space-y-2">
               {reminders.map((reminder, index) => (
-                <div key={index} className="flex items-center gap-2 rounded-md border p-3">
+                <div key={reminder.id} className="flex items-center gap-2 rounded-md border p-3">
                   <Select
                     value={reminder.type}
                     onValueChange={(value) => updateReminder(index, 'type', value)}
