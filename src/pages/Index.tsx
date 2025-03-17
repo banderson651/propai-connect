@@ -2,13 +2,14 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
-import { ArrowUpRight, Users, Building2, DollarSign, Activity } from 'lucide-react';
+import { ArrowUpRight, Users, Building2, DollarSign, Activity, CheckSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getProperties } from '@/services/propertyService';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatCurrency } from '@/lib/utils';
+import { TasksDashboard } from '@/components/tasks/TasksDashboard';
 
 const data = [
   { name: 'Jan', value: 400 },
@@ -38,6 +39,7 @@ const Index = () => {
     { label: 'Total Leads', value: '3,456', icon: Users, change: '+12.5%' },
     { label: 'Active Properties', value: properties.length.toString(), icon: Building2, change: '+5.2%' },
     { label: 'Revenue', value: '$124.5k', icon: DollarSign, change: '+8.1%' },
+    { label: 'Tasks', value: '24', icon: CheckSquare, change: '+15.3%' },
   ];
 
   const totalPropertyValue = properties.reduce((total, property) => total + property.price, 0);
@@ -57,6 +59,11 @@ const Index = () => {
                 <Users className="h-4 w-4 mr-1" /> Contacts
               </Link>
             </Button>
+            <Button asChild variant="outline">
+              <Link to="/tasks">
+                <CheckSquare className="h-4 w-4 mr-1" /> Tasks
+              </Link>
+            </Button>
             <Button asChild>
               <Link to="/properties">
                 <Building2 className="h-4 w-4 mr-1" /> Properties
@@ -65,7 +72,7 @@ const Index = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {stats.map((stat) => (
             <Card key={stat.label} className="p-6 glass-card">
               <div className="flex items-start justify-between">
@@ -107,6 +114,10 @@ const Index = () => {
             </div>
           </Card>
 
+          <TasksDashboard />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="p-6 glass-card">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Properties Overview</h2>
             <div className="mb-4">

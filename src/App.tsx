@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -28,6 +29,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import WhatsAppSettingsPage from "./pages/settings/WhatsAppSettingsPage";
 import AutomationPage from "./pages/automation/AutomationPage";
 import NewRulePage from "./pages/automation/NewRulePage";
+import TaskManagerPage from "./pages/tasks/TaskManagerPage";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +72,9 @@ const App = () => (
                 {/* Automation Routes */}
                 <Route path="/automation" element={<AuthRoute><AutomationPage /></AuthRoute>} />
                 <Route path="/automation/new" element={<AuthRoute><NewRulePage /></AuthRoute>} />
+                
+                {/* Task Routes */}
+                <Route path="/tasks" element={<AuthRoute><TaskManagerPage /></AuthRoute>} />
                 
                 {/* WhatsApp Routes */}
                 <Route path="/settings/whatsapp" element={<AuthRoute><WhatsAppSettingsPage /></AuthRoute>} />
