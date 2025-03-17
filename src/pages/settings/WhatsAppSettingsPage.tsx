@@ -4,7 +4,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { WhatsAppSetup } from '@/components/whatsapp/WhatsAppSetup';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, MessageSquare, Sections, Activity } from 'lucide-react';
+import { AlertCircle, MessageSquare, LayoutGrid, Activity } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { WhatsAppTemplateManager } from '@/components/whatsapp/WhatsAppTemplateManager';
 import { WhatsAppAnalytics } from '@/components/whatsapp/WhatsAppAnalytics';

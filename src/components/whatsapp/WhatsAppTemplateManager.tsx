@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -7,7 +6,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useWhatsApp, WhatsAppTemplate } from '@/contexts/WhatsAppContext';
 import { NotConnectedState } from './NotConnectedState';
 import { TemplateList } from './TemplateList';
-import { TemplateForm } from './TemplateForm';
+import TemplateForm from './TemplateForm';
 
 export const WhatsAppTemplateManager = () => {
   const { getTemplates, createTemplate, isConnected } = useWhatsApp();
