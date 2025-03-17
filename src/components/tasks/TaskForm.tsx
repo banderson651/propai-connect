@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Task, TaskPriority, TaskStatus, TaskReminder } from "@/types/task";
 import { useForm } from "react-hook-form";
@@ -53,12 +52,12 @@ export const TaskForm = ({ task, onSubmit, onCancel }: TaskFormProps) => {
   
   const { data: properties = [] } = useQuery({
     queryKey: ['properties-for-task-form'],
-    queryFn: () => getProperties({}),
+    queryFn: () => getProperties(),
   });
   
   const { data: contacts = [] } = useQuery({
     queryKey: ['contacts-for-task-form'],
-    queryFn: () => getContacts({}),
+    queryFn: () => getContacts(),
   });
   
   const { data: campaigns = [] } = useQuery({
