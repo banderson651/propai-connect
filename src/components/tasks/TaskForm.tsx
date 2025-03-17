@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+
+import { useState } from "react";
 import { Task, TaskPriority, TaskStatus, TaskReminder } from "@/types/task";
 import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input";
@@ -26,7 +27,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { format } from "date-fns";
-import { CalendarIcon, PlusCircle, TrashIcon, X } from "lucide-react";
+import { CalendarIcon, LinkIcon, PlusCircle, TrashIcon, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
@@ -45,7 +46,6 @@ export const TaskForm = ({ task, onSubmit, onCancel }: TaskFormProps) => {
   const { toast } = useToast();
   const [tags, setTags] = useState<string[]>(task?.tags || []);
   const [tagInput, setTagInput] = useState<string>("");
-  // Add ID to each reminder
   const [reminders, setReminders] = useState<TaskReminder[]>(
     task?.reminders || []
   );

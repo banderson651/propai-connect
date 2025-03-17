@@ -1,6 +1,6 @@
 
-import { Link } from 'react-router-dom';
-import { Home, Users, Building2, PieChart, Settings, Menu, Mail, Shield, MessageSquare, Zap, CheckSquare } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { Home, Users, Building2, PieChart, Settings, Menu, Mail, Shield, MessageSquare, Zap, CheckSquare, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWhatsApp } from '@/contexts/WhatsAppContext';
@@ -13,11 +13,13 @@ interface SidebarProps {
 export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
   const { isAdmin } = useAuth();
   const { isConnected } = useWhatsApp();
+  const location = useLocation();
   
   const menuItems = [
     { icon: Home, label: 'Dashboard', path: '/' },
     { icon: Users, label: 'Contacts', path: '/contacts' },
     { icon: CheckSquare, label: 'Tasks', path: '/tasks' },
+    { icon: Calendar, label: 'Calendar', path: '/calendar' },
     { icon: Mail, label: 'Email Campaigns', path: '/email' },
     { icon: Building2, label: 'Properties', path: '/properties' },
     { icon: Zap, label: 'Automation', path: '/automation' },
@@ -36,6 +38,12 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
   const adminItems = [
     { icon: Shield, label: 'Admin Dashboard', path: '/admin' },
   ];
+
+  const isActive = (path: string) => {
+    if (path === '/' && location.pathname === '/') return true;
+    if (path !== '/' && location.pathname.startsWith(path)) return true;
+    return false;
+  };
 
   return (
     <aside
@@ -56,7 +64,10 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
             <li key={item.path}>
               <Link
                 to={item.path}
-                className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                className={cn(
+                  "flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-100 rounded-md transition-colors",
+                  isActive(item.path) && "bg-gray-100 text-blue-600 font-medium"
+                )}
               >
                 <item.icon className="h-5 w-5" />
                 <span className="font-medium">{item.label}</span>
@@ -80,7 +91,10 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
                 <li key={item.path}>
                   <Link
                     to={item.path}
-                    className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-100 rounded-md transition-colors",
+                      isActive(item.path) && "bg-gray-100 text-blue-600 font-medium"
+                    )}
                   >
                     <item.icon className="h-5 w-5" />
                     <span className="font-medium">{item.label}</span>
