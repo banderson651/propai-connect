@@ -76,7 +76,6 @@ export const WhatsAppTemplateManager = () => {
 
   const handleCreateTemplate = async () => {
     try {
-      // Filter out empty variables
       const cleanedVariables = newTemplate.variables.filter(v => v.trim() !== '');
       
       const template = await createTemplate({
@@ -87,7 +86,6 @@ export const WhatsAppTemplateManager = () => {
       setTemplates(prev => [...prev, template]);
       setOpenDialog(false);
       
-      // Reset form
       setNewTemplate({
         name: '',
         content: '',

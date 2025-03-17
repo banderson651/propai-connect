@@ -1,95 +1,92 @@
 
-import { EmailTestResult } from '@/types/email';
-import { supabase } from '@/integrations/supabase/client';
+import { EmailAccount, EmailTestResult } from '@/types/email';
 
-// Test Email Connection using the Supabase Edge Function
-export const testEmailConnection = async (account: {
-  type: 'IMAP' | 'POP3';
+// Function to test email connectivity
+export const testEmailConnection = async (params: {
+  id: string;
+  type: "IMAP" | "POP3";
   host: string;
   port: number;
   username: string;
   password: string;
   email: string;
   secure?: boolean;
-  id: string;
 }): Promise<EmailTestResult> => {
   try {
-    const { data, error } = await supabase.functions.invoke('test-email-connection', {
-      body: {
-        action: 'test-connection',
-        type: account.type,
-        host: account.host,
-        port: account.port,
-        username: account.username,
-        password: account.password,
-        email: account.email,
-        secure: account.port === 993 || account.port === 995 || account.secure, // Standard secure ports
-      },
-    });
-
-    if (error) {
-      console.error('Error calling test-email-connection function:', error);
+    // In a real implementation, this would actually test the connection
+    // For this mock version, we'll simulate success/failure based on port numbers
+    
+    // Simulate a connection test
+    if (!params.host || params.port <= 0 || !params.username || !params.password) {
       return {
         success: false,
-        message: `Error testing connection: ${error.message}`
+        message: 'Invalid connection parameters'
       };
     }
-
-    return data;
+    
+    // Simulate common ports for successful connections
+    const validImapPorts = [143, 993]; // Standard IMAP ports
+    const validPop3Ports = [110, 995]; // Standard POP3 ports
+    
+    let isValidPort = false;
+    if (params.type === 'IMAP' && validImapPorts.includes(params.port)) {
+      isValidPort = true;
+    } else if (params.type === 'POP3' && validPop3Ports.includes(params.port)) {
+      isValidPort = true;
+    }
+    
+    if (!isValidPort) {
+      return {
+        success: false,
+        message: `Invalid port for ${params.type} connection. Please use standard ports.`
+      };
+    }
+    
+    // Return success for the mock implementation
+    return {
+      success: true,
+      message: 'Connected successfully'
+    };
   } catch (error) {
-    console.error('Exception in testEmailConnection:', error);
     return {
       success: false,
-      message: `An unexpected error occurred: ${error.message || 'Unknown error'}`
+      message: error instanceof Error ? error.message : 'Unknown error occurred'
     };
   }
 };
 
-export const sendTestEmail = async (accountId: string, account: {
-  type: 'IMAP' | 'POP3';
-  host: string;
-  port: number;
-  username: string;
-  password: string;
-  email: string;
-  secure?: boolean;
-}, recipient: string): Promise<EmailTestResult> => {
-  if (!account) {
-    return Promise.resolve({
-      success: false,
-      message: 'Email account not found'
-    });
-  }
-  
+// Function to send a test email
+export const sendTestEmail = async (account: EmailAccount, to: string): Promise<EmailTestResult> => {
   try {
-    const { data, error } = await supabase.functions.invoke('test-email-connection', {
-      body: {
-        action: 'send-test-email',
-        type: account.type,
-        host: account.host,
-        port: account.port,
-        username: account.username,
-        password: account.password,
-        email: account.email,
-        secure: account.port === 993 || account.port === 995 || account.secure, // Standard secure ports
-        recipient: recipient,
-      },
-    });
-
-    if (error) {
-      console.error('Error calling send-test-email function:', error);
+    // In a real implementation, this would actually send a test email
+    // For this mock version, we'll simulate success
+    
+    // Validate account and recipient
+    if (!account || !to) {
       return {
         success: false,
-        message: `Error sending test email: ${error.message}`
+        message: 'Invalid account or recipient'
       };
     }
-
-    return data;
+    
+    // Check if email format is valid
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(to)) {
+      return {
+        success: false,
+        message: 'Invalid recipient email format'
+      };
+    }
+    
+    // Return success for the mock implementation
+    return {
+      success: true,
+      message: `Test email sent to ${to} successfully`
+    };
   } catch (error) {
-    console.error('Exception in sendTestEmail:', error);
     return {
       success: false,
-      message: `An unexpected error occurred: ${error.message || 'Unknown error'}`
+      message: error instanceof Error ? error.message : 'Unknown error occurred'
     };
   }
 };

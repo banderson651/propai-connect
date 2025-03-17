@@ -17,10 +17,14 @@ export const getEmailAccountById = (id: string): Promise<EmailAccount | undefine
 export const createEmailAccount = async (account: Omit<EmailAccount, 'id' | 'status' | 'lastChecked'>): Promise<EmailAccount> => {
   // First test the connection before saving
   const connectionResult = await testEmailConnection({
-    ...account,
-    id: 'temp-id', // Temporary ID for the test
-    status: 'disconnected', // Add status for the test
-    lastChecked: new Date().toISOString() // Add lastChecked for the test
+    id: 'temp-id',
+    type: account.type,
+    host: account.host,
+    port: account.port,
+    username: account.username,
+    password: account.password,
+    email: account.email,
+    secure: account.secure
   });
 
   if (!connectionResult.success) {

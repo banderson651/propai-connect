@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,8 +25,7 @@ interface TemplateFormProps {
     content: string;
     variables: string[];
   };
-  onSubmit: (values: FormValues) => void;
-  // Add the new props that are being passed from WhatsAppTemplateManager
+  onSubmit?: (values: FormValues) => void;
   newTemplate?: {
     name: string;
     content: string;
@@ -63,7 +61,6 @@ const TemplateForm = ({
   const [variables, setVariables] = useState<string[]>(initialValues?.variables || []);
   const [newVariable, setNewVariable] = useState('');
 
-  // If we're using the WhatsAppTemplateManager version, use a simplified form
   if (newTemplate && setNewTemplate) {
     return (
       <div className="space-y-4 py-4">
@@ -153,7 +150,6 @@ const TemplateForm = ({
     );
   }
 
-  // Original form implementation for other use cases
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -186,9 +182,15 @@ const TemplateForm = ({
     }
   };
 
+  const handleSubmit = (data: FormValues) => {
+    if (onSubmit) {
+      onSubmit(data);
+    }
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="name"

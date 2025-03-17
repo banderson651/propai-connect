@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -51,7 +50,6 @@ const EmailAccountsPage = () => {
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   
-  // Form state
   const [accountName, setAccountName] = useState('');
   const [email, setEmail] = useState('');
   const [accountType, setAccountType] = useState<EmailAccountType>('IMAP');
@@ -164,16 +162,13 @@ const EmailAccountsPage = () => {
     try {
       const result = await testEmailConnection({
         id: 'temp-id',
-        name: accountName, // Remove this when passing to testEmailConnection
-        email,
         type: accountType,
         host,
         port: numPort,
         username,
         password,
-        secure,
-        status: 'disconnected',
-        lastChecked: new Date().toISOString()
+        email,
+        secure
       });
       
       setTestResult(result);
