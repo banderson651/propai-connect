@@ -1,166 +1,165 @@
 
-import React from 'react';
+import { useState, useEffect } from 'react';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X, Plus } from 'lucide-react';
-import { WhatsAppTemplate } from '@/contexts/WhatsAppContext';
+import { Label } from '@/components/ui/label';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage, Form } from '@/components/ui/form';
+import { PlusCircle, XCircle } from 'lucide-react';
+
+const formSchema = z.object({
+  name: z.string().min(2, 'Template name must be at least 2 characters'),
+  subject: z.string().min(2, 'Subject must be at least 2 characters'),
+  content: z.string().min(10, 'Message must be at least 10 characters'),
+  variables: z.array(z.string())
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 interface TemplateFormProps {
-  newTemplate: Omit<WhatsAppTemplate, 'id' | 'status' | 'createdAt'>;
-  setNewTemplate: React.Dispatch<React.SetStateAction<Omit<WhatsAppTemplate, 'id' | 'status' | 'createdAt'>>>;
-  handleCreateTemplate: () => Promise<void>;
-  handleAddVariable: () => void;
-  handleVariableChange: (index: number, value: string) => void;
-  handleRemoveVariable: (index: number) => void;
-  onClose: () => void;
+  initialValues?: {
+    name: string;
+    subject: string;
+    content: string;
+    variables: string[];
+  };
+  onSubmit: (values: FormValues) => void;
 }
 
-export const TemplateForm: React.FC<TemplateFormProps> = ({
-  newTemplate,
-  setNewTemplate,
-  handleCreateTemplate,
-  handleAddVariable,
-  handleVariableChange,
-  handleRemoveVariable,
-  onClose
-}) => {
-  const languages = [
-    { value: 'en_US', label: 'English (US)' },
-    { value: 'es_LA', label: 'Spanish (Latin America)' },
-    { value: 'pt_BR', label: 'Portuguese (Brazil)' },
-    { value: 'fr_FR', label: 'French' },
-    { value: 'de_DE', label: 'German' },
-    { value: 'it_IT', label: 'Italian' },
-    { value: 'zh_CN', label: 'Chinese (Simplified)' },
-    { value: 'ja_JP', label: 'Japanese' },
-    { value: 'ko_KR', label: 'Korean' },
-  ];
+const TemplateForm = ({ initialValues, onSubmit }: TemplateFormProps) => {
+  const [variables, setVariables] = useState<string[]>(initialValues?.variables || []);
+  const [newVariable, setNewVariable] = useState('');
 
-  const categories = [
-    { value: 'UTILITY', label: 'Utility' },
-    { value: 'MARKETING', label: 'Marketing' },
-    { value: 'AUTHENTICATION', label: 'Authentication' },
-  ];
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: initialValues?.name || '',
+      subject: initialValues?.subject || '',
+      content: initialValues?.content || '',
+      variables: initialValues?.variables || []
+    }
+  });
+
+  useEffect(() => {
+    form.setValue('variables', variables);
+  }, [variables, form]);
+
+  const handleAddVariable = () => {
+    if (newVariable && !variables.includes(newVariable)) {
+      setVariables([...variables, newVariable]);
+      setNewVariable('');
+    }
+  };
+
+  const handleRemoveVariable = (variable: string) => {
+    setVariables(variables.filter(v => v !== variable));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddVariable();
+    }
+  };
 
   return (
-    <div className="space-y-4 py-4">
-      <div className="space-y-2">
-        <label htmlFor="template-name" className="text-sm font-medium">Template Name</label>
-        <Input
-          id="template-name"
-          placeholder="e.g., Welcome Message"
-          value={newTemplate.name}
-          onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Template Name</FormLabel>
+              <FormControl>
+                <Input placeholder="E.g., Welcome Message" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label htmlFor="template-language" className="text-sm font-medium">Language</label>
-          <Select
-            value={newTemplate.language}
-            onValueChange={(value) => setNewTemplate({ ...newTemplate, language: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select language" />
-            </SelectTrigger>
-            <SelectContent>
-              {languages.map((lang) => (
-                <SelectItem key={lang.value} value={lang.value}>
-                  {lang.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="space-y-2">
-          <label htmlFor="template-category" className="text-sm font-medium">Category</label>
-          <Select
-            value={newTemplate.category}
-            onValueChange={(value) => setNewTemplate({ ...newTemplate, category: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((cat) => (
-                <SelectItem key={cat.value} value={cat.value}>
-                  {cat.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      
-      <div className="space-y-2">
-        <label htmlFor="template-content" className="text-sm font-medium">Content</label>
-        <Textarea
-          id="template-content"
-          placeholder="Enter your template content here. Use {{1}}, {{2}}, etc. for variables."
-          value={newTemplate.content}
-          onChange={(e) => setNewTemplate({ ...newTemplate, content: e.target.value })}
-          rows={4}
+
+        <FormField
+          control={form.control}
+          name="subject"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Subject Line</FormLabel>
+              <FormControl>
+                <Input placeholder="E.g., Welcome to our service" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-        <p className="text-xs text-gray-500">
-          Example: "Hello {{1}}, your appointment is confirmed for {{2}}."
-        </p>
-      </div>
-      
-      <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <label className="text-sm font-medium">Variables</label>
-          <Button 
-            type="button" 
-            variant="ghost" 
-            size="sm"
-            onClick={handleAddVariable}
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            Add Variable
-          </Button>
-        </div>
-        <div className="space-y-2">
-          {newTemplate.variables.map((variable, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <Input
-                placeholder={`Variable ${index + 1} (e.g., name)`}
-                value={variable}
-                onChange={(e) => handleVariableChange(index, e.target.value)}
-              />
-              <Button 
-                type="button" 
-                variant="ghost" 
-                size="icon"
-                onClick={() => handleRemoveVariable(index)}
-                disabled={newTemplate.variables.length <= 1}
+
+        <FormField
+          control={form.control}
+          name="content"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Message Content</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="Use {{variableName}} for personalization"
+                  className="min-h-32"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="space-y-3">
+          <Label>Template Variables</Label>
+          <div className="flex gap-2">
+            <Input 
+              value={newVariable}
+              onChange={(e) => setNewVariable(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Add variable (e.g., firstName)"
+            />
+            <Button 
+              type="button" 
+              onClick={handleAddVariable}
+              disabled={!newVariable || variables.includes(newVariable)}
+            >
+              <PlusCircle className="h-4 w-4 mr-1" /> Add
+            </Button>
+          </div>
+
+          <div className="flex flex-wrap gap-2 mt-2">
+            {variables.map((variable, index) => (
+              <div 
+                key={index}
+                className="bg-gray-100 rounded-full px-3 py-1 flex items-center text-sm"
               >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
+                {variable}
+                <button 
+                  type="button" 
+                  className="ml-1 text-gray-500 hover:text-red-500"
+                  onClick={() => handleRemoveVariable(variable)}
+                >
+                  <XCircle className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+            {variables.length === 0 && (
+              <p className="text-sm text-gray-500">No variables added yet</p>
+            )}
+          </div>
         </div>
-      </div>
-      
-      <div className="flex justify-end gap-2 pt-4">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onClose}
-        >
-          Cancel
+
+        <Button type="submit" className="w-full mt-4">
+          Save Template
         </Button>
-        <Button
-          type="button"
-          onClick={handleCreateTemplate}
-          disabled={!newTemplate.name || !newTemplate.content}
-        >
-          Create Template
-        </Button>
-      </div>
-    </div>
+      </form>
+    </Form>
   );
 };
+
+export default TemplateForm;
