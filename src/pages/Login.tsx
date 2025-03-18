@@ -5,30 +5,52 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building2, LogIn } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const loginSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { login, isAuthenticated } = useAuth();
+  const { signIn, isAuthenticated, isLoading: authLoading } = useAuth();
+
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
 
   // If already logged in, redirect to dashboard
-  if (isAuthenticated) {
+  if (isAuthenticated && !authLoading) {
     return <Navigate to="/" />;
   }
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async (values: LoginFormValues) => {
     setIsLoading(true);
     
     try {
-      const success = await login(email, password);
+      const { error } = await signIn(values.email, values.password);
       
-      if (success) {
+      if (error) {
+        toast({
+          title: "Login failed",
+          description: error.message || "Invalid email or password.",
+          variant: "destructive",
+        });
+      } else {
         toast({
           title: "Login successful",
           description: "Welcome back to PropAI!",
@@ -36,23 +58,21 @@ const Login = () => {
         
         // The redirect will happen automatically via the isAuthenticated check above
         navigate('/');
-      } else {
-        toast({
-          title: "Login failed",
-          description: "Invalid email or password. Try using the demo accounts.",
-          variant: "destructive",
-        });
       }
     } catch (error) {
       toast({
         title: "Login error",
-        description: "An unexpected error occurred. Please try again.",
+        description: error instanceof Error ? error.message : "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (authLoading) {
+    return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -67,54 +87,70 @@ const Login = () => {
             Enter your email below to access your account
           </CardDescription>
         </CardHeader>
-        <form onSubmit={handleLogin}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">Email</label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="name@example.com"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleLogin)}>
+            <CardContent className="space-y-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="email"
+                        placeholder="name@example.com"
+                        required
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label htmlFor="password" className="text-sm font-medium">Password</label>
-                <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-800">
-                  Forgot password?
-                </Link>
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Password</FormLabel>
+                      <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-800">
+                        Forgot password?
+                      </Link>
+                    </div>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="password"
+                        required
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                <p className="text-sm text-blue-800 font-medium">Test with these or register a new account:</p>
+                <p className="text-xs text-blue-700 mt-1">Email: user@propai.com / Pass: demouser123</p>
+                <p className="text-xs text-blue-700">Email: admin@propai.com / Pass: demoadmin123</p>
               </div>
-              <Input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            
-            <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
-              <p className="text-sm text-blue-800 font-medium">Demo Accounts:</p>
-              <p className="text-xs text-blue-700 mt-1">User: user@propai.com / demouser123</p>
-              <p className="text-xs text-blue-700">Admin: admin@propai.com / demoadmin123</p>
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col">
-            <Button className="w-full mb-4" type="submit" disabled={isLoading}>
-              {isLoading ? 'Signing in...' : 'Sign in'}
-              {!isLoading && <LogIn className="ml-2 h-4 w-4" />}
-            </Button>
-            <p className="text-sm text-center text-gray-600">
-              Don't have an account?{' '}
-              <Link to="/register" className="text-blue-600 hover:text-blue-800 font-medium">
-                Sign up
-              </Link>
-            </p>
-          </CardFooter>
-        </form>
+            </CardContent>
+            <CardFooter className="flex flex-col">
+              <Button className="w-full mb-4" type="submit" disabled={isLoading}>
+                {isLoading ? 'Signing in...' : 'Sign in'}
+                {!isLoading && <LogIn className="ml-2 h-4 w-4" />}
+              </Button>
+              <p className="text-sm text-center text-gray-600">
+                Don't have an account?{' '}
+                <Link to="/register" className="text-blue-600 hover:text-blue-800 font-medium">
+                  Sign up
+                </Link>
+              </p>
+            </CardFooter>
+          </form>
+        </Form>
       </Card>
     </div>
   );

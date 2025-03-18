@@ -146,6 +146,57 @@ export type Database = {
         }
         Relationships: []
       }
+      email_accounts: {
+        Row: {
+          created_at: string
+          email: string
+          host: string
+          id: string
+          last_checked: string | null
+          name: string
+          password: string
+          port: number
+          secure: boolean | null
+          status: string | null
+          type: string
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          host: string
+          id?: string
+          last_checked?: string | null
+          name: string
+          password: string
+          port: number
+          secure?: boolean | null
+          status?: string | null
+          type: string
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          host?: string
+          id?: string
+          last_checked?: string | null
+          name?: string
+          password?: string
+          port?: number
+          secure?: boolean | null
+          status?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
       interactions: {
         Row: {
           contact_id: string
@@ -186,6 +237,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string | null
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id: string
+          name?: string | null
+          role?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string | null
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       whatsapp_config: {
         Row: {

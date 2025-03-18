@@ -5,6 +5,7 @@ export type EmailConnectionStatus = 'connected' | 'disconnected' | 'error';
 
 export interface EmailAccount {
   id: string;
+  user_id: string;
   name: string;
   email: string;
   type: EmailAccountType;
@@ -15,6 +16,9 @@ export interface EmailAccount {
   status: EmailConnectionStatus;
   lastChecked: string;
   secure?: boolean; // Added for secure connections
+  created_at?: string;
+  updated_at?: string;
+  last_checked?: string;
 }
 
 export interface EmailTemplate {

@@ -1,9 +1,12 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { Session, User } from '@supabase/supabase-js';
 
 // Define user type
-type User = {
+type AuthUser = {
+  id: string;
   email: string;
   name: string;
   role: 'user' | 'admin';
@@ -11,11 +14,14 @@ type User = {
 
 // Define auth context type
 type AuthContextType = {
-  user: User;
-  login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  user: AuthUser;
+  session: Session | null;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, name: string) => Promise<{ error: Error | null }>;
+  signOut: () => Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isLoading: boolean;
 };
 
 // Create context
@@ -23,57 +29,132 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Provider component
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User>(null);
+  const [user, setUser] = useState<AuthUser>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const navigate = useNavigate();
-  
-  // Check if user is already logged in
+
+  // Set up auth state listener
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Error parsing user from localStorage', error);
-        localStorage.removeItem('user');
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, currentSession) => {
+        if (currentSession) {
+          setSession(currentSession);
+          // Fetch user profile from the profiles table
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', currentSession.user.id)
+            .single();
+
+          if (profile) {
+            setUser({
+              id: currentSession.user.id,
+              email: profile.email,
+              name: profile.name || '',
+              role: profile.role as 'user' | 'admin',
+            });
+          } else {
+            // If no profile found, use basic info from auth
+            setUser({
+              id: currentSession.user.id,
+              email: currentSession.user.email || '',
+              name: currentSession.user.email?.split('@')[0] || '',
+              role: 'user',
+            });
+          }
+        } else {
+          setSession(null);
+          setUser(null);
+        }
+        setIsLoading(false);
       }
-    }
-  }, []);
-  
-  // Login function
-  const login = async (email: string, password: string): Promise<boolean> => {
-    // This is a demo implementation, in a real app this would call an API
-    if ((email === 'user@propai.com' && password === 'demouser123') || 
-        (email === 'admin@propai.com' && password === 'demoadmin123')) {
-      const isAdmin = email === 'admin@propai.com';
-      const userData = { 
-        email, 
-        role: isAdmin ? 'admin' : 'user' as 'admin' | 'user',
-        name: isAdmin ? 'Admin User' : 'Demo User'
-      };
+    );
+
+    // Initial session check
+    const initializeAuth = async () => {
+      const { data: { session: initialSession } } = await supabase.auth.getSession();
       
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-      return true;
-    }
-    return false;
+      if (initialSession) {
+        setSession(initialSession);
+        // Fetch user profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', initialSession.user.id)
+          .single();
+
+        if (profile) {
+          setUser({
+            id: initialSession.user.id,
+            email: profile.email,
+            name: profile.name || '',
+            role: profile.role as 'user' | 'admin',
+          });
+        } else {
+          // If no profile found, use basic info from auth
+          setUser({
+            id: initialSession.user.id,
+            email: initialSession.user.email || '',
+            name: initialSession.user.email?.split('@')[0] || '',
+            role: 'user',
+          });
+        }
+      }
+      
+      setIsLoading(false);
+    };
+
+    initializeAuth();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // Sign in function
+  const signIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    
+    return { error };
   };
-  
-  // Logout function
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+
+  // Sign up function
+  const signUp = async (email: string, password: string, name: string) => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name
+        }
+      }
+    });
+    
+    return { error };
+  };
+
+  // Sign out function
+  const signOut = async () => {
+    await supabase.auth.signOut();
     navigate('/login');
   };
-  
+
   // Context value
   const value = {
     user,
-    login,
-    logout,
+    session,
+    signIn,
+    signUp,
+    signOut,
     isAuthenticated: !!user,
-    isAdmin: user?.role === 'admin'
+    isAdmin: user?.role === 'admin',
+    isLoading,
   };
-  
+
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 

@@ -5,30 +5,74 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building2, UserPlus } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const registerSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+});
+
+type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const Register = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signUp, isAuthenticated, isLoading: authLoading } = useAuth();
 
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
+  const form = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+    },
+  });
+
+  // If already logged in, redirect to dashboard
+  if (isAuthenticated && !authLoading) {
+    return navigate('/');
+  }
+
+  const handleRegister = async (values: RegisterFormValues) => {
     setIsLoading(true);
     
-    // Simulate registration process (would be an API call in a real app)
-    setTimeout(() => {
+    try {
+      const { error } = await signUp(values.email, values.password, values.name);
+      
+      if (error) {
+        toast({
+          title: "Registration failed",
+          description: error.message || "Failed to create account.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Registration successful",
+          description: "Please check your email to confirm your account.",
+        });
+        navigate('/login');
+      }
+    } catch (error) {
       toast({
-        title: "Registration successful",
-        description: "Your account has been created. You can now log in.",
+        title: "Registration error",
+        description: error instanceof Error ? error.message : "An unexpected error occurred.",
+        variant: "destructive",
       });
-      navigate('/login');
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
+
+  if (authLoading) {
+    return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -43,56 +87,79 @@ const Register = () => {
             Enter your information below to create your account
           </CardDescription>
         </CardHeader>
-        <form onSubmit={handleRegister}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-medium">Full Name</label>
-              <Input
-                id="name"
-                placeholder="John Doe"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleRegister)}>
+            <CardContent className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="John Doe"
+                        required
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">Email</label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="name@example.com"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="email"
+                        placeholder="name@example.com"
+                        required
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">Password</label>
-              <Input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="password"
+                        required
+                      />
+                    </FormControl>
+                    <FormMessage />
+                    <p className="text-xs text-gray-500">
+                      Password must be at least 6 characters long
+                    </p>
+                  </FormItem>
+                )}
               />
-              <p className="text-xs text-gray-500">
-                Password must be at least 8 characters long
+            </CardContent>
+            <CardFooter className="flex flex-col">
+              <Button className="w-full mb-4" type="submit" disabled={isLoading}>
+                {isLoading ? 'Creating account...' : 'Create account'}
+                {!isLoading && <UserPlus className="ml-2 h-4 w-4" />}
+              </Button>
+              <p className="text-sm text-center text-gray-600">
+                Already have an account?{' '}
+                <Link to="/login" className="text-blue-600 hover:text-blue-800 font-medium">
+                  Sign in
+                </Link>
               </p>
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col">
-            <Button className="w-full mb-4" type="submit" disabled={isLoading}>
-              {isLoading ? 'Creating account...' : 'Create account'}
-              {!isLoading && <UserPlus className="ml-2 h-4 w-4" />}
-            </Button>
-            <p className="text-sm text-center text-gray-600">
-              Already have an account?{' '}
-              <Link to="/login" className="text-blue-600 hover:text-blue-800 font-medium">
-                Sign in
-              </Link>
-            </p>
-          </CardFooter>
-        </form>
+            </CardFooter>
+          </form>
+        </Form>
       </Card>
     </div>
   );
