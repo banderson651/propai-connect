@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Task, TaskStatus } from "@/types/task";
 import { TaskCard } from "./TaskCard";
@@ -28,7 +27,6 @@ export const TaskList = ({ tasks, onEditTask, onDeleteTask, onChangeTaskStatus, 
   const [tagFilter, setTagFilter] = useState<string>("");
   const [view, setView] = useState<"grid" | "list">("grid");
   
-  // Save filters to localStorage
   useEffect(() => {
     const filters = {
       searchTerm,
@@ -42,7 +40,6 @@ export const TaskList = ({ tasks, onEditTask, onDeleteTask, onChangeTaskStatus, 
     localStorage.setItem('taskFilters', JSON.stringify(filters));
   }, [searchTerm, statusFilter, priorityFilter, dateFilter, assigneeFilter, tagFilter, view]);
   
-  // Load filters from localStorage
   useEffect(() => {
     const savedFilters = localStorage.getItem('taskFilters');
     if (savedFilters) {
@@ -58,26 +55,20 @@ export const TaskList = ({ tasks, onEditTask, onDeleteTask, onChangeTaskStatus, 
   }, []);
   
   const filteredTasks = tasks.filter(task => {
-    // Text search
     const matchesSearch = !searchTerm || 
       task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (task.description && task.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
       task.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    // Status filter
     const matchesStatus = !statusFilter || task.status === statusFilter;
     
-    // Priority filter
     const matchesPriority = !priorityFilter || task.priority === priorityFilter;
     
-    // Date filter
     const matchesDate = !dateFilter || 
       (task.dueDate && isSameDay(new Date(task.dueDate), dateFilter));
     
-    // Assignee filter (simplified for now)
     const matchesAssignee = !assigneeFilter || task.assignedTo === assigneeFilter;
     
-    // Tag filter
     const matchesTag = !tagFilter || 
       task.tags.some(tag => tag.toLowerCase() === tagFilter.toLowerCase());
     
@@ -93,7 +84,6 @@ export const TaskList = ({ tasks, onEditTask, onDeleteTask, onChangeTaskStatus, 
     setTagFilter("");
   };
   
-  // Extract all unique tags from tasks
   const allTags = [...new Set(tasks.flatMap(task => task.tags))];
 
   return (
@@ -138,7 +128,7 @@ export const TaskList = ({ tasks, onEditTask, onDeleteTask, onChangeTaskStatus, 
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Statuses</SelectItem>
+            <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="todo">To Do</SelectItem>
             <SelectItem value="in-progress">In Progress</SelectItem>
             <SelectItem value="review">Review</SelectItem>
@@ -152,7 +142,7 @@ export const TaskList = ({ tasks, onEditTask, onDeleteTask, onChangeTaskStatus, 
             <SelectValue placeholder="Priority" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Priorities</SelectItem>
+            <SelectItem value="all">All Priorities</SelectItem>
             <SelectItem value="low">Low</SelectItem>
             <SelectItem value="medium">Medium</SelectItem>
             <SelectItem value="high">High</SelectItem>
@@ -183,7 +173,7 @@ export const TaskList = ({ tasks, onEditTask, onDeleteTask, onChangeTaskStatus, 
               <SelectValue placeholder="Tag" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Tags</SelectItem>
+              <SelectItem value="all">All Tags</SelectItem>
               {allTags.map(tag => (
                 <SelectItem key={tag} value={tag}>{tag}</SelectItem>
               ))}

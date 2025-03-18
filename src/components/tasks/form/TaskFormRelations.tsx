@@ -27,7 +27,8 @@ export const TaskFormRelations = ({ form, properties, contacts, campaigns }: Tas
             <FormLabel>Related Contact</FormLabel>
             <Select 
               onValueChange={field.onChange} 
-              value={field.value || ""}
+              value={field.value}
+              defaultValue="_none"
             >
               <FormControl>
                 <SelectTrigger>
@@ -56,7 +57,8 @@ export const TaskFormRelations = ({ form, properties, contacts, campaigns }: Tas
             <FormLabel>Related Property</FormLabel>
             <Select 
               onValueChange={field.onChange} 
-              value={field.value || ""}
+              value={field.value}
+              defaultValue="_none"
             >
               <FormControl>
                 <SelectTrigger>
@@ -85,7 +87,8 @@ export const TaskFormRelations = ({ form, properties, contacts, campaigns }: Tas
             <FormLabel>Related Campaign</FormLabel>
             <Select 
               onValueChange={field.onChange} 
-              value={field.value || ""}
+              value={field.value}
+              defaultValue="_none"
             >
               <FormControl>
                 <SelectTrigger>
