@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,14 +31,16 @@ import {
   Loader2, 
   Check, 
   AlertTriangle,
-  RefreshCw
+  RefreshCw,
+  Send
 } from 'lucide-react';
 import { EmailAccount, EmailAccountType } from '@/types/email';
 import { 
   getEmailAccounts, 
   createEmailAccount, 
   deleteEmailAccount, 
-  testEmailConnection 
+  testEmailConnection,
+  sendTestEmail
 } from '@/services/emailService';
 import { Link } from 'react-router-dom';
 
@@ -47,6 +50,10 @@ const EmailAccountsPage = () => {
   const [activeTab, setActiveTab] = useState('accounts');
   
   const [isAddAccountOpen, setIsAddAccountOpen] = useState(false);
+  const [isSendTestEmailOpen, setIsSendTestEmailOpen] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState<EmailAccount | null>(null);
+  const [testEmailRecipient, setTestEmailRecipient] = useState('');
+  const [isSendingTestEmail, setIsSendingTestEmail] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   
@@ -182,10 +189,66 @@ const EmailAccountsPage = () => {
     }
   };
   
+  const handleSendTestEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedAccount) {
+      toast({
+        title: "Error",
+        description: "No account selected for sending test email.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!testEmailRecipient) {
+      toast({
+        title: "Missing Recipient",
+        description: "Please enter a recipient email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsSendingTestEmail(true);
+    
+    try {
+      const result = await sendTestEmail(selectedAccount, testEmailRecipient);
+      
+      if (result.success) {
+        toast({
+          title: "Test Email Sent",
+          description: result.message,
+        });
+        setIsSendTestEmailOpen(false);
+      } else {
+        toast({
+          title: "Failed to Send Test Email",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Unknown error sending test email",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingTestEmail(false);
+    }
+  };
+  
   const handleDeleteAccount = (id: string) => {
     if (window.confirm("Are you sure you want to delete this email account?")) {
       deleteMutation.mutate(id);
     }
+  };
+
+  const openSendTestEmailDialog = (account: EmailAccount) => {
+    setSelectedAccount(account);
+    setTestEmailRecipient('');
+    setIsSendTestEmailOpen(true);
   };
   
   const getStatusColor = (status: string) => {
@@ -264,6 +327,10 @@ const EmailAccountsPage = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => openSendTestEmailDialog(account)}>
+                            <Send className="h-4 w-4 mr-2 text-blue-500" />
+                            <span>Send Test Email</span>
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleDeleteAccount(account.id)}>
                             <Trash className="h-4 w-4 mr-2 text-red-500" />
                             <span className="text-red-500">Delete Account</span>
@@ -303,6 +370,7 @@ const EmailAccountsPage = () => {
         </TabsContent>
       </Tabs>
       
+      {/* Add Account Dialog */}
       <Dialog open={isAddAccountOpen} onOpenChange={setIsAddAccountOpen}>
         <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
@@ -466,6 +534,61 @@ const EmailAccountsPage = () => {
                   </>
                 ) : (
                   'Add Account'
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Send Test Email Dialog */}
+      <Dialog open={isSendTestEmailOpen} onOpenChange={setIsSendTestEmailOpen}>
+        <DialogContent className="sm:max-w-[450px]">
+          <DialogHeader>
+            <DialogTitle>Send Test Email</DialogTitle>
+            <DialogDescription>
+              Send a test email to verify your account connectivity.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleSendTestEmail}>
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="from-account">From Account</Label>
+                <div className="bg-gray-100 px-3 py-2 rounded-md border border-gray-200">
+                  {selectedAccount?.email}
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="recipient">Recipient Email</Label>
+                <Input
+                  id="recipient"
+                  type="email"
+                  value={testEmailRecipient}
+                  onChange={(e) => setTestEmailRecipient(e.target.value)}
+                  placeholder="recipient@example.com"
+                  required
+                />
+                <p className="text-xs text-gray-500">Enter the email address where you'd like to receive the test email.</p>
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button 
+                type="submit" 
+                disabled={isSendingTestEmail || !testEmailRecipient}
+              >
+                {isSendingTestEmail ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-1" />
+                    Send Test Email
+                  </>
                 )}
               </Button>
             </DialogFooter>
