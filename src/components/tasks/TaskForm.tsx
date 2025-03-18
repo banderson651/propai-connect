@@ -52,17 +52,22 @@ export const TaskForm = ({ task, onSubmit, onCancel }: TaskFormProps) => {
       dueDate: task?.dueDate || undefined,
       assignedTo: task?.assignedTo || "current-user",
       createdBy: "current-user",
-      relatedPropertyId: task?.relatedPropertyId || undefined,
-      relatedContactId: task?.relatedContactId || undefined,
-      relatedCampaignId: task?.relatedCampaignId || undefined,
+      relatedPropertyId: task?.relatedPropertyId || "_none",
+      relatedContactId: task?.relatedContactId || "_none",
+      relatedCampaignId: task?.relatedCampaignId || "_none",
       relatedAutomationId: task?.relatedAutomationId || undefined,
       completedAt: task?.completedAt || undefined
     },
   });
   
   const handleSubmit = form.handleSubmit((data) => {
+    // Process form data before submission
     const taskData = {
       ...data,
+      // Convert "_none" values to undefined
+      relatedPropertyId: data.relatedPropertyId === "_none" ? undefined : data.relatedPropertyId,
+      relatedContactId: data.relatedContactId === "_none" ? undefined : data.relatedContactId,
+      relatedCampaignId: data.relatedCampaignId === "_none" ? undefined : data.relatedCampaignId,
       tags,
       reminders,
     };
