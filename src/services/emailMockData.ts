@@ -98,7 +98,7 @@ export const mockCampaigns: Campaign[] = [
     id: uuidv4(),
     name: 'Welcome Sequence for Q2 Leads',
     status: 'running',
-    emailAccountId: mockEmailAccounts[0].id,
+    emailAccountId: emailAccounts[0].id,
     templateId: mockEmailTemplates[0].id,
     contactIds: ['id1', 'id2', 'id3'], // Will link to real IDs in a full implementation
     sendingRate: 20, // 20 emails per hour
@@ -122,7 +122,7 @@ export const mockCampaigns: Campaign[] = [
     id: uuidv4(),
     name: 'April Property Updates',
     status: 'completed',
-    emailAccountId: mockEmailAccounts[1].id,
+    emailAccountId: emailAccounts[1].id,
     templateId: mockEmailTemplates[1].id,
     contactIds: ['id4', 'id5', 'id6'], // Will link to real IDs in a full implementation
     sendingRate: 30, // 30 emails per hour
@@ -146,7 +146,7 @@ export const mockCampaigns: Campaign[] = [
     id: uuidv4(),
     name: 'Follow-up with Interested Buyers',
     status: 'draft',
-    emailAccountId: mockEmailAccounts[0].id,
+    emailAccountId: emailAccounts[0].id,
     templateId: mockEmailTemplates[2].id,
     contactIds: ['id7', 'id8'], // Will link to real IDs in a full implementation
     sendingRate: 10, // 10 emails per hour
