@@ -8,7 +8,7 @@ import { getProperties } from "@/services/propertyService";
 import { getContacts } from "@/services/contactService";
 import { getCampaigns } from "@/services/email/campaignService";
 
-// Import new component files
+// Import component files
 import { TaskFormBasicInfo } from "./form/TaskFormBasicInfo";
 import { TaskFormDueDate } from "./form/TaskFormDueDate";
 import { TaskFormTags } from "./form/TaskFormTags";

@@ -1,52 +1,20 @@
 
-import { useState, useEffect } from "react";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getContacts } from "@/services/contactService";
-import { getProperties } from "@/services/propertyService";
-import { getCampaigns } from "@/services/email/campaignService";
 import { UseFormReturn } from "react-hook-form";
 import { Task } from "@/types/task";
+import { Contact } from "@/types/contact";
 
 type TaskFormData = Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'reminders' | 'tags'>;
 
 interface TaskFormRelationsProps {
   form: UseFormReturn<TaskFormData>;
+  properties: { id: string; title: string }[];
+  contacts: Contact[];
+  campaigns: { id: string; name: string }[];
 }
 
-export const TaskFormRelations = ({ form }: TaskFormRelationsProps) => {
-  const [contacts, setContacts] = useState<{ id: string; name: string }[]>([]);
-  const [properties, setProperties] = useState<{ id: string; title: string }[]>([]);
-  const [campaigns, setCampaigns] = useState<{ id: string; name: string }[]>([]);
-  
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const contactsData = await getContacts();
-        setContacts(contactsData.map(c => ({ 
-          id: c.id, 
-          name: `${c.firstName} ${c.lastName}` 
-        })));
-        
-        const propertiesData = await getProperties();
-        setProperties(propertiesData.map(p => ({ 
-          id: p.id, 
-          title: p.title 
-        })));
-        
-        const campaignsData = await getCampaigns();
-        setCampaigns(campaignsData.map(c => ({ 
-          id: c.id, 
-          name: c.name 
-        })));
-      } catch (error) {
-        console.error("Error fetching relation data:", error);
-      }
-    };
-    
-    fetchData();
-  }, []);
-  
+export const TaskFormRelations = ({ form, properties, contacts, campaigns }: TaskFormRelationsProps) => {
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Related Items</h3>
