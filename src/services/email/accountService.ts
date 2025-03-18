@@ -1,4 +1,3 @@
-
 import { EmailAccount, EmailTestResult } from '@/types/email';
 import { supabase } from '@/integrations/supabase/client';
 import { testEmailConnection } from './emailUtils';
@@ -14,7 +13,10 @@ export const getEmailAccounts = async (): Promise<EmailAccount[]> => {
     throw new Error('Failed to fetch email accounts');
   }
   
-  return data;
+  return data.map(account => ({
+    ...account,
+    lastChecked: account.last_checked
+  }));
 };
 
 export const getEmailAccountById = async (id: string): Promise<EmailAccount | undefined> => {
@@ -29,11 +31,13 @@ export const getEmailAccountById = async (id: string): Promise<EmailAccount | un
     return undefined;
   }
   
-  return data;
+  return data ? {
+    ...data,
+    lastChecked: data.last_checked
+  } : undefined;
 };
 
 export const createEmailAccount = async (account: Omit<EmailAccount, 'id' | 'status' | 'lastChecked' | 'user_id'>): Promise<EmailAccount> => {
-  // First test the connection before saving
   const connectionResult = await testEmailConnection({
     id: 'temp-id',
     type: account.type,
@@ -46,18 +50,15 @@ export const createEmailAccount = async (account: Omit<EmailAccount, 'id' | 'sta
   });
 
   if (!connectionResult.success) {
-    // If connection test fails, throw an error with the message
     throw new Error(connectionResult.message);
   }
   
-  // Get the current user's ID from Supabase
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) {
     throw new Error('Authentication required to create an email account');
   }
   
-  // If connection is successful, create the account
   const { data, error } = await supabase
     .from('email_accounts')
     .insert([{
@@ -74,7 +75,6 @@ export const createEmailAccount = async (account: Omit<EmailAccount, 'id' | 'sta
     throw new Error('Failed to create email account');
   }
   
-  // Format the response to match our EmailAccount type
   return {
     ...data,
     lastChecked: data.last_checked,
@@ -82,12 +82,19 @@ export const createEmailAccount = async (account: Omit<EmailAccount, 'id' | 'sta
 };
 
 export const updateEmailAccount = async (id: string, updates: Partial<EmailAccount>): Promise<EmailAccount | undefined> => {
+  const dbUpdates = {
+    ...updates,
+    last_checked: updates.lastChecked || updates.last_checked,
+    updated_at: new Date().toISOString(),
+  };
+
+  if ('lastChecked' in dbUpdates) {
+    delete dbUpdates.lastChecked;
+  }
+
   const { data, error } = await supabase
     .from('email_accounts')
-    .update({
-      ...updates,
-      updated_at: new Date().toISOString(),
-    })
+    .update(dbUpdates)
     .eq('id', id)
     .select()
     .single();
@@ -97,11 +104,10 @@ export const updateEmailAccount = async (id: string, updates: Partial<EmailAccou
     return undefined;
   }
   
-  // Format the response to match our EmailAccount type
   return {
     ...data,
-    lastChecked: data.last_checked,
-  } as unknown as EmailAccount;
+    lastChecked: data.last_checked
+  };
 };
 
 export const deleteEmailAccount = async (id: string): Promise<boolean> => {
@@ -118,6 +124,5 @@ export const deleteEmailAccount = async (id: string): Promise<boolean> => {
   return true;
 };
 
-// Test Email functionality moved to emailUtils.ts
 export { testEmailConnection } from './emailUtils';
 export { sendTestEmail } from './emailUtils';

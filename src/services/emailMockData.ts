@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 export const mockEmailAccounts: EmailAccount[] = [
   {
     id: uuidv4(),
+    user_id: uuidv4(), // Adding the required user_id field
     name: 'Work Email',
     email: 'john.doe@propai.com',
     type: 'IMAP',
@@ -18,6 +19,7 @@ export const mockEmailAccounts: EmailAccount[] = [
   },
   {
     id: uuidv4(),
+    user_id: uuidv4(), // Adding the required user_id field
     name: 'Marketing Email',
     email: 'marketing@propai.com',
     type: 'IMAP',
@@ -30,6 +32,7 @@ export const mockEmailAccounts: EmailAccount[] = [
   },
   {
     id: uuidv4(),
+    user_id: uuidv4(), // Adding the required user_id field
     name: 'Gmail Account',
     email: 'johndoe.personal@gmail.com',
     type: 'IMAP',

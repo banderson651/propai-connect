@@ -17,7 +17,7 @@ interface TopBarProps {
 }
 
 export const TopBar = ({ onMenuClick }: TopBarProps) => {
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
 
   return (
     <header className="h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between">
@@ -60,7 +60,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
               <User className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={logout}>
+            <DropdownMenuItem onClick={signOut}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Logout</span>
             </DropdownMenuItem>

@@ -19,6 +19,7 @@ type AuthContextType = {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, name: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  logout: () => Promise<void>; // Add this alias for backward compatibility
   isAuthenticated: boolean;
   isAdmin: boolean;
   isLoading: boolean;
@@ -150,6 +151,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signIn,
     signUp,
     signOut,
+    logout: signOut, // Add logout as an alias for backward compatibility
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
     isLoading,

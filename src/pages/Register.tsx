@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,7 +37,12 @@ const Register = () => {
 
   // If already logged in, redirect to dashboard
   if (isAuthenticated && !authLoading) {
-    return navigate('/');
+    return <Navigate to="/" />;
+  }
+
+  // If auth is loading, show loading state
+  if (authLoading) {
+    return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
   }
 
   const handleRegister = async (values: RegisterFormValues) => {
@@ -69,10 +74,6 @@ const Register = () => {
       setIsLoading(false);
     }
   };
-
-  if (authLoading) {
-    return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
