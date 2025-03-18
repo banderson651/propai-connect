@@ -1,4 +1,5 @@
-import { EmailAccount, EmailTestResult } from '@/types/email';
+
+import { EmailAccount, EmailAccountType, EmailTestResult } from '@/types/email';
 import { supabase } from '@/integrations/supabase/client';
 import { testEmailConnection } from './emailUtils';
 
@@ -15,7 +16,9 @@ export const getEmailAccounts = async (): Promise<EmailAccount[]> => {
   
   return data.map(account => ({
     ...account,
-    lastChecked: account.last_checked
+    lastChecked: account.last_checked,
+    type: account.type as EmailAccountType, // Ensure proper type casting
+    status: account.status as 'connected' | 'disconnected' | 'error'
   }));
 };
 
@@ -33,7 +36,9 @@ export const getEmailAccountById = async (id: string): Promise<EmailAccount | un
   
   return data ? {
     ...data,
-    lastChecked: data.last_checked
+    lastChecked: data.last_checked,
+    type: data.type as EmailAccountType,
+    status: data.status as 'connected' | 'disconnected' | 'error'
   } : undefined;
 };
 
@@ -78,7 +83,9 @@ export const createEmailAccount = async (account: Omit<EmailAccount, 'id' | 'sta
   return {
     ...data,
     lastChecked: data.last_checked,
-  } as unknown as EmailAccount;
+    type: data.type as EmailAccountType,
+    status: data.status as 'connected' | 'disconnected' | 'error'
+  };
 };
 
 export const updateEmailAccount = async (id: string, updates: Partial<EmailAccount>): Promise<EmailAccount | undefined> => {
@@ -106,7 +113,9 @@ export const updateEmailAccount = async (id: string, updates: Partial<EmailAccou
   
   return {
     ...data,
-    lastChecked: data.last_checked
+    lastChecked: data.last_checked,
+    type: data.type as EmailAccountType,
+    status: data.status as 'connected' | 'disconnected' | 'error'
   };
 };
 

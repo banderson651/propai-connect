@@ -60,9 +60,10 @@ const Register = () => {
       } else {
         toast({
           title: "Registration successful",
-          description: "Please check your email to confirm your account.",
+          description: "Your account has been created. You can now log in.",
         });
-        navigate('/login');
+        // Navigate to login page with the email pre-filled
+        navigate('/login', { state: { email: values.email } });
       }
     } catch (error) {
       toast({

@@ -19,7 +19,7 @@ type AuthContextType = {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, name: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
-  logout: () => Promise<void>; // Add this alias for backward compatibility
+  logout: () => Promise<void>; // Alias for signOut
   isAuthenticated: boolean;
   isAdmin: boolean;
   isLoading: boolean;
@@ -39,6 +39,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
+        console.log("Auth state changed:", event, currentSession?.user?.id);
+        
         if (currentSession) {
           setSession(currentSession);
           // Fetch user profile from the profiles table
@@ -115,25 +117,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Sign in function
   const signIn = async (email: string, password: string) => {
+    console.log("Attempting to sign in with:", email);
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+    
+    if (error) {
+      console.error("Sign in error:", error);
+    }
     
     return { error };
   };
 
   // Sign up function
   const signUp = async (email: string, password: string, name: string) => {
+    console.log("Attempting to sign up with:", email);
+    
+    // For easier testing, we'll use email confirmation bypass
+    // In production, you should enable email confirmation
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           name
-        }
+        },
+        emailRedirectTo: window.location.origin + '/login'
       }
     });
+    
+    if (error) {
+      console.error("Sign up error:", error);
+    }
     
     return { error };
   };

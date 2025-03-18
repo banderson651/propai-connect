@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
-import { Link, useNavigate, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,16 +22,27 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { signIn, isAuthenticated, isLoading: authLoading } = useAuth();
+
+  // Get email from location state (if redirected from registration)
+  const emailFromRegistration = location.state?.email;
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
+      email: emailFromRegistration || '',
       password: '',
     },
   });
+
+  // Update form if email from registration changes
+  useEffect(() => {
+    if (emailFromRegistration) {
+      form.setValue('email', emailFromRegistration);
+    }
+  }, [emailFromRegistration, form]);
 
   // If already logged in, redirect to dashboard
   if (isAuthenticated && !authLoading) {
@@ -45,6 +56,7 @@ const Login = () => {
       const { error } = await signIn(values.email, values.password);
       
       if (error) {
+        console.error("Login error:", error);
         toast({
           title: "Login failed",
           description: error.message || "Invalid email or password.",
@@ -60,6 +72,7 @@ const Login = () => {
         navigate('/');
       }
     } catch (error) {
+      console.error("Unexpected login error:", error);
       toast({
         title: "Login error",
         description: error instanceof Error ? error.message : "An unexpected error occurred. Please try again.",
@@ -132,7 +145,7 @@ const Login = () => {
               />
               
               <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
-                <p className="text-sm text-blue-800 font-medium">Test with these or register a new account:</p>
+                <p className="text-sm text-blue-800 font-medium">Test with these or use your registered account:</p>
                 <p className="text-xs text-blue-700 mt-1">Email: user@propai.com / Pass: demouser123</p>
                 <p className="text-xs text-blue-700">Email: admin@propai.com / Pass: demoadmin123</p>
               </div>

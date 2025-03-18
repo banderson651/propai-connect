@@ -1,51 +1,51 @@
-
-import { EmailAccount, EmailTemplate, Campaign } from '@/types/email';
 import { v4 as uuidv4 } from 'uuid';
+import { EmailAccount, EmailTemplate, Campaign } from '@/types/email';
 
-// Mock Email Accounts
-export const mockEmailAccounts: EmailAccount[] = [
+export const emailAccounts: EmailAccount[] = [
   {
     id: uuidv4(),
-    user_id: uuidv4(), // Adding the required user_id field
-    name: 'Work Email',
-    email: 'john.doe@propai.com',
-    type: 'IMAP',
-    host: 'imap.propai.com',
-    port: 993,
-    username: 'john.doe@propai.com',
-    password: '**********',
-    status: 'connected',
-    lastChecked: new Date().toISOString(),
-  },
-  {
-    id: uuidv4(),
-    user_id: uuidv4(), // Adding the required user_id field
-    name: 'Marketing Email',
-    email: 'marketing@propai.com',
-    type: 'IMAP',
-    host: 'imap.propai.com',
-    port: 993,
-    username: 'marketing@propai.com',
-    password: '**********',
-    status: 'connected',
-    lastChecked: new Date().toISOString(),
-  },
-  {
-    id: uuidv4(),
-    user_id: uuidv4(), // Adding the required user_id field
-    name: 'Gmail Account',
-    email: 'johndoe.personal@gmail.com',
+    user_id: '12345', // Mock user ID
+    name: 'Work Gmail',
+    email: 'propaimarketing@gmail.com',
     type: 'IMAP',
     host: 'imap.gmail.com',
     port: 993,
-    username: 'johndoe.personal@gmail.com',
-    password: '**********',
+    username: 'propaimarketing@gmail.com',
+    password: 'app-password-here',
+    status: 'connected',
+    lastChecked: new Date().toISOString(),
+    secure: true
+  },
+  {
+    id: uuidv4(),
+    user_id: '12345', // Mock user ID
+    name: 'Office 365',
+    email: 'marketing@propai.com',
+    type: 'IMAP',
+    host: 'outlook.office365.com',
+    port: 993,
+    username: 'marketing@propai.com',
+    password: 'password123',
+    status: 'connected',
+    lastChecked: new Date().toISOString(),
+    secure: true
+  },
+  {
+    id: uuidv4(),
+    user_id: '12345', // Mock user ID
+    name: 'Yahoo Mail',
+    email: 'propai.realestate@yahoo.com',
+    type: 'IMAP',
+    host: 'imap.mail.yahoo.com',
+    port: 993,
+    username: 'propai.realestate@yahoo.com',
+    password: 'password123',
     status: 'error',
     lastChecked: new Date().toISOString(),
-  },
+    secure: true
+  }
 ];
 
-// Mock Email Templates
 export const mockEmailTemplates: EmailTemplate[] = [
   {
     id: uuidv4(),
@@ -93,7 +93,6 @@ export const mockEmailTemplates: EmailTemplate[] = [
   },
 ];
 
-// Mock Campaigns
 export const mockCampaigns: Campaign[] = [
   {
     id: uuidv4(),
