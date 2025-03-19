@@ -3,6 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
+import { toast } from '@/components/ui/use-toast';
 
 // Define user type
 type AuthUser = {
@@ -37,28 +38,56 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Set up auth state listener
   useEffect(() => {
+    // Set a timeout to prevent infinite loading states
+    const loadingTimeout = setTimeout(() => {
+      if (isLoading) {
+        console.log("Auth loading timed out - forcing loading state to complete");
+        setIsLoading(false);
+      }
+    }, 5000); // 5 second timeout as a fallback
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         console.log("Auth state changed:", event, currentSession?.user?.id);
         
         if (currentSession) {
           setSession(currentSession);
-          // Fetch user profile from the profiles table
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', currentSession.user.id)
-            .single();
+          try {
+            // Fetch user profile from the profiles table
+            const { data: profile, error } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', currentSession.user.id)
+              .single();
 
-          if (profile) {
-            setUser({
-              id: currentSession.user.id,
-              email: profile.email,
-              name: profile.name || '',
-              role: profile.role as 'user' | 'admin',
-            });
-          } else {
-            // If no profile found, use basic info from auth
+            if (error) {
+              console.error("Error fetching profile:", error);
+              // If profile error, still use basic auth info instead of getting stuck
+              setUser({
+                id: currentSession.user.id,
+                email: currentSession.user.email || '',
+                name: currentSession.user.email?.split('@')[0] || '',
+                role: 'user',
+              });
+            } else if (profile) {
+              setUser({
+                id: currentSession.user.id,
+                email: profile.email,
+                name: profile.name || '',
+                role: profile.role as 'user' | 'admin',
+              });
+            } else {
+              // If no profile found, use basic info from auth
+              setUser({
+                id: currentSession.user.id,
+                email: currentSession.user.email || '',
+                name: currentSession.user.email?.split('@')[0] || '',
+                role: 'user',
+              });
+            }
+          } catch (error) {
+            console.error("Unexpected error in auth state change:", error);
+            // Still set basic user info if there's an error
             setUser({
               id: currentSession.user.id,
               email: currentSession.user.email || '',
@@ -76,41 +105,74 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Initial session check
     const initializeAuth = async () => {
-      const { data: { session: initialSession } } = await supabase.auth.getSession();
-      
-      if (initialSession) {
-        setSession(initialSession);
-        // Fetch user profile
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', initialSession.user.id)
-          .single();
-
-        if (profile) {
-          setUser({
-            id: initialSession.user.id,
-            email: profile.email,
-            name: profile.name || '',
-            role: profile.role as 'user' | 'admin',
-          });
-        } else {
-          // If no profile found, use basic info from auth
-          setUser({
-            id: initialSession.user.id,
-            email: initialSession.user.email || '',
-            name: initialSession.user.email?.split('@')[0] || '',
-            role: 'user',
-          });
+      try {
+        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Error getting session:", error);
+          setIsLoading(false);
+          return;
         }
+        
+        if (initialSession) {
+          setSession(initialSession);
+          try {
+            // Fetch user profile
+            const { data: profile, error: profileError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', initialSession.user.id)
+              .single();
+
+            if (profileError) {
+              console.error("Error fetching profile:", profileError);
+              // Use basic auth info if profile fetch fails
+              setUser({
+                id: initialSession.user.id,
+                email: initialSession.user.email || '',
+                name: initialSession.user.email?.split('@')[0] || '',
+                role: 'user',
+              });
+            } else if (profile) {
+              setUser({
+                id: initialSession.user.id,
+                email: profile.email,
+                name: profile.name || '',
+                role: profile.role as 'user' | 'admin',
+              });
+            } else {
+              // If no profile found, use basic info from auth
+              setUser({
+                id: initialSession.user.id,
+                email: initialSession.user.email || '',
+                name: initialSession.user.email?.split('@')[0] || '',
+                role: 'user',
+              });
+            }
+          } catch (err) {
+            console.error("Unexpected error in initial auth:", err);
+            // Still set basic user info
+            setUser({
+              id: initialSession.user.id,
+              email: initialSession.user.email || '',
+              name: initialSession.user.email?.split('@')[0] || '',
+              role: 'user',
+            });
+          }
+        }
+        
+        // Always complete loading, even if there's an error
+        setIsLoading(false);
+      } catch (e) {
+        console.error("Critical auth initialization error:", e);
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     };
 
     initializeAuth();
 
     return () => {
+      clearTimeout(loadingTimeout);
       subscription.unsubscribe();
     };
   }, []);
@@ -118,46 +180,85 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Sign in function
   const signIn = async (email: string, password: string) => {
     console.log("Attempting to sign in with:", email);
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    
-    if (error) {
-      console.error("Sign in error:", error);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        console.error("Sign in error:", error);
+        toast({
+          title: "Sign in failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else if (data.user) {
+        toast({
+          title: "Sign in successful",
+          description: `Welcome back, ${data.user.email?.split('@')[0] || 'User'}!`,
+        });
+      }
+      
+      return { error };
+    } catch (error) {
+      console.error("Unexpected sign in error:", error);
+      return { error: error as Error };
     }
-    
-    return { error };
   };
 
   // Sign up function
   const signUp = async (email: string, password: string, name: string) => {
     console.log("Attempting to sign up with:", email);
     
-    // For easier testing, we'll use email confirmation bypass
-    // In production, you should enable email confirmation
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name
-        },
-        emailRedirectTo: window.location.origin + '/login'
+    try {
+      // For easier testing, we'll use email confirmation bypass
+      // In production, you should enable email confirmation
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name
+          },
+          emailRedirectTo: window.location.origin + '/login'
+        }
+      });
+      
+      if (error) {
+        console.error("Sign up error:", error);
+        toast({
+          title: "Sign up failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else if (data.user) {
+        toast({
+          title: "Sign up successful",
+          description: "Your account has been created. You can now sign in.",
+        });
       }
-    });
-    
-    if (error) {
-      console.error("Sign up error:", error);
+      
+      return { error };
+    } catch (error) {
+      console.error("Unexpected sign up error:", error);
+      return { error: error as Error };
     }
-    
-    return { error };
   };
 
   // Sign out function
   const signOut = async () => {
-    await supabase.auth.signOut();
-    navigate('/login');
+    try {
+      await supabase.auth.signOut();
+      navigate('/login');
+    } catch (error) {
+      console.error("Sign out error:", error);
+      toast({
+        title: "Sign out failed",
+        description: "There was an error signing out. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Context value

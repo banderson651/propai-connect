@@ -8,30 +8,32 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { WhatsAppProvider } from "./contexts/WhatsAppContext";
 import { AutomationProvider } from "./contexts/AutomationContext";
 import { AuthRoute } from "./components/auth/AuthRoute";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import Landing from "./pages/Landing";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import ContactsPage from "./pages/contacts/ContactsPage";
-import ContactDetailPage from "./pages/contacts/ContactDetailPage";
-import NewContactPage from "./pages/contacts/NewContactPage";
-import EmailCampaignsPage from "./pages/email/EmailCampaignsPage";
-import EmailAccountsPage from "./pages/email/EmailAccountsPage";
-import CampaignDetailPage from "./pages/email/CampaignDetailPage";
-import NewCampaignPage from "./pages/email/NewCampaignPage";
-import EmailTemplatesPage from "./pages/email/EmailTemplatesPage";
-import PropertiesPage from "./pages/properties/PropertiesPage";
-import PropertyDetailPage from "./pages/properties/PropertyDetailPage";
-import NewPropertyPage from "./pages/properties/NewPropertyPage";
-import PublicPropertyPage from "./pages/properties/PublicPropertyPage";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import WhatsAppSettingsPage from "./pages/settings/WhatsAppSettingsPage";
-import AutomationPage from "./pages/automation/AutomationPage";
-import NewRulePage from "./pages/automation/NewRulePage";
-import TaskManagerPage from "./pages/tasks/TaskManagerPage";
-import { Suspense } from "react";
+import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
+
+// Lazy load pages to improve initial load time
+const Index = lazy(() => import("./pages/Index"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Landing = lazy(() => import("./pages/Landing"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const ContactsPage = lazy(() => import("./pages/contacts/ContactsPage"));
+const ContactDetailPage = lazy(() => import("./pages/contacts/ContactDetailPage"));
+const NewContactPage = lazy(() => import("./pages/contacts/NewContactPage"));
+const EmailCampaignsPage = lazy(() => import("./pages/email/EmailCampaignsPage"));
+const EmailAccountsPage = lazy(() => import("./pages/email/EmailAccountsPage"));
+const CampaignDetailPage = lazy(() => import("./pages/email/CampaignDetailPage"));
+const NewCampaignPage = lazy(() => import("./pages/email/NewCampaignPage"));
+const EmailTemplatesPage = lazy(() => import("./pages/email/EmailTemplatesPage"));
+const PropertiesPage = lazy(() => import("./pages/properties/PropertiesPage"));
+const PropertyDetailPage = lazy(() => import("./pages/properties/PropertyDetailPage"));
+const NewPropertyPage = lazy(() => import("./pages/properties/NewPropertyPage"));
+const PublicPropertyPage = lazy(() => import("./pages/properties/PublicPropertyPage"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const WhatsAppSettingsPage = lazy(() => import("./pages/settings/WhatsAppSettingsPage"));
+const AutomationPage = lazy(() => import("./pages/automation/AutomationPage"));
+const NewRulePage = lazy(() => import("./pages/automation/NewRulePage"));
+const TaskManagerPage = lazy(() => import("./pages/tasks/TaskManagerPage"));
 
 // Configure the query client with better error handling and retries
 const queryClient = new QueryClient({
@@ -45,9 +47,9 @@ const queryClient = new QueryClient({
 });
 
 const LoadingFallback = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-    <span className="ml-2 text-lg font-playfair">Loading PropAI...</span>
+  <div className="flex flex-col items-center justify-center min-h-screen">
+    <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+    <span className="text-lg font-playfair">Loading PropAI...</span>
   </div>
 );
 
@@ -57,10 +59,10 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Suspense fallback={<LoadingFallback />}>
-          <AuthProvider>
-            <WhatsAppProvider>
-              <AutomationProvider>
+        <AuthProvider>
+          <WhatsAppProvider>
+            <AutomationProvider>
+              <Suspense fallback={<LoadingFallback />}>
                 <Routes>
                   {/* Public routes */}
                   <Route path="/landing" element={<Landing />} />
@@ -115,10 +117,10 @@ const App = () => (
                   {/* Catch all route */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-              </AutomationProvider>
-            </WhatsAppProvider>
-          </AuthProvider>
-        </Suspense>
+              </Suspense>
+            </AutomationProvider>
+          </WhatsAppProvider>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

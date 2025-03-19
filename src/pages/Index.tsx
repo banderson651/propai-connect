@@ -10,6 +10,7 @@ import { getProperties } from '@/services/propertyService';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatCurrency } from '@/lib/utils';
 import { TasksDashboard } from '@/components/tasks/TasksDashboard';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const data = [
   { name: 'Jan', value: 400 },
@@ -44,15 +45,49 @@ const Index = () => {
 
   const totalPropertyValue = properties.reduce((total, property) => total + property.price, 0);
 
-  if (isLoading) {
-    return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-[80vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          <span className="ml-3 font-playfair text-xl">Loading dashboard data...</span>
+  const renderSkeleton = () => (
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton className="h-10 w-64 mb-2" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-10 w-32" />
+          </div>
         </div>
-      </DashboardLayout>
-    );
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} className="p-6">
+              <div className="flex items-start justify-between">
+                <Skeleton className="h-16 w-24" />
+                <Skeleton className="h-10 w-10 rounded-full" />
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="p-6">
+            <Skeleton className="h-8 w-64 mb-4" />
+            <Skeleton className="h-[300px] w-full" />
+          </Card>
+
+          <Card className="p-6">
+            <Skeleton className="h-8 w-64 mb-4" />
+            <Skeleton className="h-[300px] w-full" />
+          </Card>
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+
+  if (isLoading) {
+    return renderSkeleton();
   }
 
   return (
