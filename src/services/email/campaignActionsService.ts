@@ -1,6 +1,6 @@
 
 import { Campaign } from '@/types/email';
-import { mockCampaigns, mockEmailAccounts, mockEmailTemplates } from '../emailMockData';
+import { mockCampaigns, emailAccounts, mockEmailTemplates } from '../emailMockData';
 import { v4 as uuidv4 } from 'uuid';
 
 // Campaign Actions
@@ -86,7 +86,7 @@ export const getAllSentEmails = (): Promise<any[]> => {
 
 // Simulate sending emails for a campaign
 const simulateCampaignEmails = (campaign: Campaign) => {
-  const emailAccount = mockEmailAccounts.find(account => account.id === campaign.emailAccountId);
+  const emailAccount = emailAccounts.find(account => account.id === campaign.emailAccountId);
   const template = mockEmailTemplates.find(template => template.id === campaign.templateId);
   
   if (!emailAccount || !template) return;
