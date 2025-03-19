@@ -30,7 +30,7 @@ const userActivityData = [
 const Index = () => {
   const { user, isAdmin } = useAuth();
   
-  const { data: properties = [] } = useQuery({
+  const { data: properties = [], isLoading } = useQuery({
     queryKey: ['properties-dashboard'],
     queryFn: () => getProperties({}),
   });
@@ -44,13 +44,24 @@ const Index = () => {
 
   const totalPropertyValue = properties.reduce((total, property) => total + property.price, 0);
 
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-[80vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <span className="ml-3 font-playfair text-xl">Loading dashboard data...</span>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-6 animate-in">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
-            <p className="text-sm text-gray-500 mt-1">Welcome back, {user?.name || 'User'}</p>
+            <h1 className="text-3xl font-playfair font-semibold text-gray-900">Dashboard</h1>
+            <p className="text-sm text-gray-500 mt-1 font-inter">Welcome back, {user?.name || 'User'}</p>
           </div>
           
           <div className="flex gap-2">
@@ -78,7 +89,7 @@ const Index = () => {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-500">{stat.label}</p>
-                  <h3 className="text-2xl font-semibold text-gray-900 mt-1">{stat.value}</h3>
+                  <h3 className="text-2xl font-playfair font-semibold text-gray-900 mt-1">{stat.value}</h3>
                 </div>
                 <div className="h-10 w-10 bg-blue-50 rounded-full flex items-center justify-center">
                   <stat.icon className="h-5 w-5 text-blue-500" />
@@ -94,7 +105,7 @@ const Index = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="p-6 glass-card">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Lead Generation Overview</h2>
+            <h2 className="text-xl font-playfair font-semibold text-gray-900 mb-4">Lead Generation Overview</h2>
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data}>
@@ -119,24 +130,24 @@ const Index = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="p-6 glass-card">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Properties Overview</h2>
+            <h2 className="text-xl font-playfair font-semibold text-gray-900 mb-4">Properties Overview</h2>
             <div className="mb-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-gray-500">Total Portfolio Value</p>
-                <h3 className="text-xl font-semibold">{formatCurrency(totalPropertyValue)}</h3>
+                <h3 className="text-xl font-playfair font-semibold">{formatCurrency(totalPropertyValue)}</h3>
               </div>
             </div>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-sm text-gray-500">Available</p>
-                  <h4 className="text-lg font-semibold">
+                  <h4 className="text-lg font-playfair font-semibold">
                     {properties.filter(p => p.status === 'available').length}
                   </h4>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-sm text-gray-500">Pending</p>
-                  <h4 className="text-lg font-semibold">
+                  <h4 className="text-lg font-playfair font-semibold">
                     {properties.filter(p => p.status === 'pending').length}
                   </h4>
                 </div>
@@ -151,7 +162,7 @@ const Index = () => {
         {isAdmin && (
           <Card className="p-6 glass-card">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">User Activity</h2>
+              <h2 className="text-xl font-playfair font-semibold text-gray-900">User Activity</h2>
               <Button variant="outline" size="sm" asChild>
                 <Link to="/admin/users">
                   <Activity className="h-4 w-4 mr-1" /> View All Users

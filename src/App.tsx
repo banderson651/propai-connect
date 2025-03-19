@@ -30,8 +30,26 @@ import WhatsAppSettingsPage from "./pages/settings/WhatsAppSettingsPage";
 import AutomationPage from "./pages/automation/AutomationPage";
 import NewRulePage from "./pages/automation/NewRulePage";
 import TaskManagerPage from "./pages/tasks/TaskManagerPage";
+import { Suspense } from "react";
+import { Loader2 } from "lucide-react";
 
-const queryClient = new QueryClient();
+// Configure the query client with better error handling and retries
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
+
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    <span className="ml-2 text-lg font-playfair">Loading PropAI...</span>
+  </div>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -39,66 +57,68 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AuthProvider>
-          <WhatsAppProvider>
-            <AutomationProvider>
-              <Routes>
-                {/* Public routes */}
-                <Route path="/landing" element={<Landing />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/properties/public/:slug" element={<PublicPropertyPage />} />
-                
-                {/* Root path redirect - public users go to landing, authenticated to dashboard */}
-                <Route 
-                  path="/" 
-                  element={
-                    <AuthRoute>
-                      <Index />
-                    </AuthRoute>
-                  } 
-                />
-                
-                {/* Protected routes */}
-                <Route path="/contacts" element={<AuthRoute><ContactsPage /></AuthRoute>} />
-                <Route path="/contacts/:id" element={<AuthRoute><ContactDetailPage /></AuthRoute>} />
-                <Route path="/contacts/new" element={<AuthRoute><NewContactPage /></AuthRoute>} />
-                
-                {/* Property Routes */}
-                <Route path="/properties" element={<AuthRoute><PropertiesPage /></AuthRoute>} />
-                <Route path="/properties/:id" element={<AuthRoute><PropertyDetailPage /></AuthRoute>} />
-                <Route path="/properties/new" element={<AuthRoute><NewPropertyPage /></AuthRoute>} />
-                
-                {/* Automation Routes */}
-                <Route path="/automation" element={<AuthRoute><AutomationPage /></AuthRoute>} />
-                <Route path="/automation/new" element={<AuthRoute><NewRulePage /></AuthRoute>} />
-                
-                {/* Task Routes */}
-                <Route path="/tasks" element={<AuthRoute><TaskManagerPage /></AuthRoute>} />
-                
-                {/* WhatsApp Routes */}
-                <Route path="/settings/whatsapp" element={<AuthRoute><WhatsAppSettingsPage /></AuthRoute>} />
-                
-                <Route path="/analytics" element={<AuthRoute><Index /></AuthRoute>} />
-                <Route path="/settings" element={<AuthRoute><WhatsAppSettingsPage /></AuthRoute>} />
-                
-                {/* Email Campaign Routes */}
-                <Route path="/email" element={<AuthRoute><EmailCampaignsPage /></AuthRoute>} />
-                <Route path="/email/accounts" element={<AuthRoute><EmailAccountsPage /></AuthRoute>} />
-                <Route path="/email/campaigns/:id" element={<AuthRoute><CampaignDetailPage /></AuthRoute>} />
-                <Route path="/email/campaigns/new" element={<AuthRoute><NewCampaignPage /></AuthRoute>} />
-                <Route path="/email/templates" element={<AuthRoute><EmailTemplatesPage /></AuthRoute>} />
-                
-                {/* Admin Routes */}
-                <Route path="/admin" element={<AuthRoute requireAdmin={true}><AdminDashboard /></AuthRoute>} />
-                <Route path="/admin/users" element={<AuthRoute requireAdmin={true}><AdminDashboard /></AuthRoute>} />
-                
-                {/* Catch all route */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </AutomationProvider>
-          </WhatsAppProvider>
-        </AuthProvider>
+        <Suspense fallback={<LoadingFallback />}>
+          <AuthProvider>
+            <WhatsAppProvider>
+              <AutomationProvider>
+                <Routes>
+                  {/* Public routes */}
+                  <Route path="/landing" element={<Landing />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/properties/public/:slug" element={<PublicPropertyPage />} />
+                  
+                  {/* Root path redirect - public users go to landing, authenticated to dashboard */}
+                  <Route 
+                    path="/" 
+                    element={
+                      <AuthRoute>
+                        <Index />
+                      </AuthRoute>
+                    } 
+                  />
+                  
+                  {/* Protected routes */}
+                  <Route path="/contacts" element={<AuthRoute><ContactsPage /></AuthRoute>} />
+                  <Route path="/contacts/:id" element={<AuthRoute><ContactDetailPage /></AuthRoute>} />
+                  <Route path="/contacts/new" element={<AuthRoute><NewContactPage /></AuthRoute>} />
+                  
+                  {/* Property Routes */}
+                  <Route path="/properties" element={<AuthRoute><PropertiesPage /></AuthRoute>} />
+                  <Route path="/properties/:id" element={<AuthRoute><PropertyDetailPage /></AuthRoute>} />
+                  <Route path="/properties/new" element={<AuthRoute><NewPropertyPage /></AuthRoute>} />
+                  
+                  {/* Automation Routes */}
+                  <Route path="/automation" element={<AuthRoute><AutomationPage /></AuthRoute>} />
+                  <Route path="/automation/new" element={<AuthRoute><NewRulePage /></AuthRoute>} />
+                  
+                  {/* Task Routes */}
+                  <Route path="/tasks" element={<AuthRoute><TaskManagerPage /></AuthRoute>} />
+                  
+                  {/* WhatsApp Routes */}
+                  <Route path="/settings/whatsapp" element={<AuthRoute><WhatsAppSettingsPage /></AuthRoute>} />
+                  
+                  <Route path="/analytics" element={<AuthRoute><Index /></AuthRoute>} />
+                  <Route path="/settings" element={<AuthRoute><WhatsAppSettingsPage /></AuthRoute>} />
+                  
+                  {/* Email Campaign Routes */}
+                  <Route path="/email" element={<AuthRoute><EmailCampaignsPage /></AuthRoute>} />
+                  <Route path="/email/accounts" element={<AuthRoute><EmailAccountsPage /></AuthRoute>} />
+                  <Route path="/email/campaigns/:id" element={<AuthRoute><CampaignDetailPage /></AuthRoute>} />
+                  <Route path="/email/campaigns/new" element={<AuthRoute><NewCampaignPage /></AuthRoute>} />
+                  <Route path="/email/templates" element={<AuthRoute><EmailTemplatesPage /></AuthRoute>} />
+                  
+                  {/* Admin Routes */}
+                  <Route path="/admin" element={<AuthRoute requireAdmin={true}><AdminDashboard /></AuthRoute>} />
+                  <Route path="/admin/users" element={<AuthRoute requireAdmin={true}><AdminDashboard /></AuthRoute>} />
+                  
+                  {/* Catch all route */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </AutomationProvider>
+            </WhatsAppProvider>
+          </AuthProvider>
+        </Suspense>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
