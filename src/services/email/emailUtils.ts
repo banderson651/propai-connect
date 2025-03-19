@@ -87,7 +87,7 @@ export const sendTestEmail = async (account: EmailAccount, to: string): Promise<
       toast({
         title: "Email sent",
         description: `Test email was sent to ${to}`,
-        variant: "success",
+        variant: "default", // Changed from "success" to "default"
       });
       
       return {
@@ -128,7 +128,7 @@ export const sendTestEmail = async (account: EmailAccount, to: string): Promise<
     toast({
       title: "Success",
       description: `Email sent to ${to}`,
-      variant: "success",
+      variant: "default", // Changed from "success" to "default"
     });
     
     return data as EmailTestResult;
