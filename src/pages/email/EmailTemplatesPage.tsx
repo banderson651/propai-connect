@@ -2,7 +2,7 @@ import React from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getEmailTemplates } from '@/services/emailService';
+import { getEmailTemplates } from '@/services/email';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, FileText, Edit, Trash } from 'lucide-react';

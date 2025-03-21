@@ -1,5 +1,4 @@
-
-import { Campaign } from '@/types/email';
+import { Campaign, CampaignStatus } from '@/types/email';
 import { mockCampaigns } from '../emailMockData';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -53,4 +52,44 @@ export const deleteCampaign = (id: string): Promise<boolean> => {
   
   mockCampaigns.splice(index, 1);
   return Promise.resolve(true);
+};
+
+// Campaign Actions
+export const startCampaign = async (id: string): Promise<Campaign | undefined> => {
+  const campaign = await getCampaignById(id);
+  if (!campaign) return undefined;
+
+  return updateCampaign(id, {
+    status: 'running' as CampaignStatus,
+    startedAt: new Date().toISOString(),
+  });
+};
+
+export const pauseCampaign = async (id: string): Promise<Campaign | undefined> => {
+  const campaign = await getCampaignById(id);
+  if (!campaign) return undefined;
+
+  return updateCampaign(id, {
+    status: 'paused' as CampaignStatus,
+  });
+};
+
+export const resumeCampaign = async (id: string): Promise<Campaign | undefined> => {
+  const campaign = await getCampaignById(id);
+  if (!campaign) return undefined;
+
+  return updateCampaign(id, {
+    status: 'running' as CampaignStatus,
+    startedAt: new Date().toISOString(),
+  });
+};
+
+export const stopCampaign = async (id: string): Promise<Campaign | undefined> => {
+  const campaign = await getCampaignById(id);
+  if (!campaign) return undefined;
+
+  return updateCampaign(id, {
+    status: 'completed' as CampaignStatus,
+    completedAt: new Date().toISOString(),
+  });
 };

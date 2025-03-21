@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { PlusCircle, MessageSquare } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { useWhatsApp, WhatsAppTemplate } from '@/contexts/WhatsAppContext';
+import { useToast } from '@/hooks/use-toast';
+import { useWhatsApp } from '@/contexts/WhatsAppContext';
+import { WhatsAppTemplate } from '@/types/whatsapp';
 import { NotConnectedState } from './NotConnectedState';
 import { TemplateList } from './TemplateList';
 import TemplateForm from './TemplateForm';
@@ -18,7 +19,7 @@ export const WhatsAppTemplateManager = () => {
     name: '',
     content: '',
     language: 'en_US',
-    category: 'UTILITY',
+    category: 'UTILITY' as const,
     variables: [''] 
   });
 

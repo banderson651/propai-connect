@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, Copy, CheckCircle2, Clock, AlertCircle, MoreHorizontal } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { WhatsAppTemplate } from '@/contexts/WhatsAppContext';
+import { WhatsAppTemplate } from '@/types/whatsapp';
 
 interface TemplateCardProps {
   template: WhatsAppTemplate;

@@ -1,17 +1,20 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { WhatsAppProvider } from "./contexts/WhatsAppContext";
 import { AutomationProvider } from "./contexts/AutomationContext";
 import { AuthRoute } from "./components/auth/AuthRoute";
+import { PublicRoute } from "./components/auth/PublicRoute";
 import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import WhatsAppPage from '@/pages/whatsapp/WhatsAppPage';
 
-// Lazy load pages to improve initial load time
+// Lazy load all pages including Analytics
 const Index = lazy(() => import("./pages/Index"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Landing = lazy(() => import("./pages/Landing"));
@@ -34,6 +37,8 @@ const WhatsAppSettingsPage = lazy(() => import("./pages/settings/WhatsAppSetting
 const AutomationPage = lazy(() => import("./pages/automation/AutomationPage"));
 const NewRulePage = lazy(() => import("./pages/automation/NewRulePage"));
 const TaskManagerPage = lazy(() => import("./pages/tasks/TaskManagerPage"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const Settings = lazy(() => import('@/pages/Settings'));
 
 // Configure the query client with better error handling and retries
 const queryClient = new QueryClient({
@@ -54,33 +59,24 @@ const LoadingFallback = () => (
 );
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
         <AuthProvider>
           <WhatsAppProvider>
             <AutomationProvider>
-              <Suspense fallback={<LoadingFallback />}>
+              <Suspense fallback={<LoadingSpinner />}>
                 <Routes>
                   {/* Public routes */}
-                  <Route path="/landing" element={<Landing />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
+                  <Route path="/" element={<PublicRoute><Landing /></PublicRoute>} />
+                  <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+                  <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
                   <Route path="/properties/public/:slug" element={<PublicPropertyPage />} />
                   
-                  {/* Root path redirect - public users go to landing, authenticated to dashboard */}
-                  <Route 
-                    path="/" 
-                    element={
-                      <AuthRoute>
-                        <Index />
-                      </AuthRoute>
-                    } 
-                  />
-                  
                   {/* Protected routes */}
+                  <Route path="/dashboard" element={<AuthRoute><Index /></AuthRoute>} />
                   <Route path="/contacts" element={<AuthRoute><ContactsPage /></AuthRoute>} />
                   <Route path="/contacts/:id" element={<AuthRoute><ContactDetailPage /></AuthRoute>} />
                   <Route path="/contacts/new" element={<AuthRoute><NewContactPage /></AuthRoute>} />
@@ -99,9 +95,13 @@ const App = () => (
                   
                   {/* WhatsApp Routes */}
                   <Route path="/settings/whatsapp" element={<AuthRoute><WhatsAppSettingsPage /></AuthRoute>} />
+                  <Route path="/whatsapp" element={<AuthRoute><WhatsAppPage /></AuthRoute>} />
                   
-                  <Route path="/analytics" element={<AuthRoute><Index /></AuthRoute>} />
-                  <Route path="/settings" element={<AuthRoute><WhatsAppSettingsPage /></AuthRoute>} />
+                  {/* Analytics Route */}
+                  <Route path="/analytics" element={<AuthRoute><Analytics /></AuthRoute>} />
+                  
+                  {/* Settings Route */}
+                  <Route path="/settings/*" element={<AuthRoute><Settings /></AuthRoute>} />
                   
                   {/* Email Campaign Routes */}
                   <Route path="/email" element={<AuthRoute><EmailCampaignsPage /></AuthRoute>} />
@@ -111,8 +111,8 @@ const App = () => (
                   <Route path="/email/templates" element={<AuthRoute><EmailTemplatesPage /></AuthRoute>} />
                   
                   {/* Admin Routes */}
-                  <Route path="/admin" element={<AuthRoute requireAdmin={true}><AdminDashboard /></AuthRoute>} />
-                  <Route path="/admin/users" element={<AuthRoute requireAdmin={true}><AdminDashboard /></AuthRoute>} />
+                  <Route path="/admin" element={<AuthRoute adminOnly><AdminDashboard /></AuthRoute>} />
+                  <Route path="/admin/users" element={<AuthRoute adminOnly><AdminDashboard /></AuthRoute>} />
                   
                   {/* Catch all route */}
                   <Route path="*" element={<NotFound />} />
@@ -121,9 +121,9 @@ const App = () => (
             </AutomationProvider>
           </WhatsAppProvider>
         </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

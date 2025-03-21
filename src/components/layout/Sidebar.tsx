@@ -1,6 +1,5 @@
-
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Users, Building2, PieChart, Settings, Menu, Mail, Shield, MessageSquare, Zap, CheckSquare, Calendar } from 'lucide-react';
+import { Home, Users, Building2, PieChart, Settings, Menu, Mail, Shield, MessageSquare, Zap, CheckSquare, Calendar, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWhatsApp } from '@/contexts/WhatsAppContext';
@@ -16,14 +15,14 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
   const location = useLocation();
   
   const menuItems = [
-    { icon: Home, label: 'Dashboard', path: '/' },
+    { icon: Home, label: 'Dashboard', path: '/dashboard' },
     { icon: Users, label: 'Contacts', path: '/contacts' },
     { icon: CheckSquare, label: 'Tasks', path: '/tasks' },
     { icon: Calendar, label: 'Calendar', path: '/calendar' },
     { icon: Mail, label: 'Email Campaigns', path: '/email' },
     { icon: Building2, label: 'Properties', path: '/properties' },
     { icon: Zap, label: 'Automation', path: '/automation' },
-    { icon: PieChart, label: 'Analytics', path: '/analytics' },
+    { icon: BarChart3, label: 'Analytics', path: '/analytics' },
     { 
       icon: MessageSquare, 
       label: 'WhatsApp', 
@@ -40,8 +39,8 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
   ];
 
   const isActive = (path: string) => {
-    if (path === '/' && location.pathname === '/') return true;
-    if (path !== '/' && location.pathname.startsWith(path)) return true;
+    if (path === '/dashboard' && location.pathname === '/') return true;
+    if (path !== '/dashboard' && location.pathname.startsWith(path)) return true;
     return false;
   };
 

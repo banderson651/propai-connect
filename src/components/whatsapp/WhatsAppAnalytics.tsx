@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { WhatsAppAnalytics as WhatsAppAnalyticsType, useWhatsApp } from '@/contexts/WhatsAppContext';
+import { useWhatsApp } from '@/contexts/WhatsAppContext';
+import { WhatsAppAnalytics as WhatsAppAnalyticsType } from '@/types/whatsapp';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { Activity, BarChart2, CheckCheck, AlertCircle, Clock, MessageSquare } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 export const WhatsAppAnalytics = () => {
   const { getAnalytics, isConnected } = useWhatsApp();

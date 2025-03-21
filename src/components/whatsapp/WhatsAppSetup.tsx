@@ -1,18 +1,20 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2, Check, Phone, AlertCircle, Facebook } from 'lucide-react';
 import { useWhatsApp } from '@/contexts/WhatsAppContext';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { WhatsAppConfig } from '@/types/whatsapp';
 
 export const WhatsAppSetup = () => {
   const { isConnected, connectWhatsApp, disconnectWhatsApp, phoneNumber, verifyConnection, connectWithFacebook } = useWhatsApp();
   const { toast } = useToast();
-  const [apiKey, setApiKey] = useState('');
-  const [phone, setPhone] = useState('');
+  const [config, setConfig] = useState<Partial<WhatsAppConfig>>({
+    phoneNumber: '',
+    apiKey: '',
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'verified' | 'unverified' | 'failed' | null>(null);
@@ -27,10 +29,10 @@ export const WhatsAppSetup = () => {
   const handleConnect = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!apiKey || !phone) return;
+    if (!config.apiKey || !config.phoneNumber) return;
     
     setIsLoading(true);
-    const connected = await connectWhatsApp(apiKey, phone);
+    const connected = await connectWhatsApp(config.apiKey, config.phoneNumber);
     setIsLoading(false);
     
     if (connected) {
@@ -184,8 +186,8 @@ export const WhatsAppSetup = () => {
                 <Input 
                   id="whatsapp-phone" 
                   placeholder="+1234567890" 
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  value={config.phoneNumber}
+                  onChange={(e) => setConfig(prev => ({ ...prev, phoneNumber: e.target.value }))}
                   required
                 />
               </div>
@@ -198,8 +200,8 @@ export const WhatsAppSetup = () => {
                   id="whatsapp-api" 
                   placeholder="Enter your API key" 
                   type="password"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
+                  value={config.apiKey}
+                  onChange={(e) => setConfig(prev => ({ ...prev, apiKey: e.target.value }))}
                   required
                 />
               </div>
@@ -207,7 +209,7 @@ export const WhatsAppSetup = () => {
               <Button
                 type="submit"
                 onClick={handleConnect}
-                disabled={isLoading || !apiKey || !phone}
+                disabled={isLoading || !config.apiKey || !config.phoneNumber}
                 className="w-full"
               >
                 {isLoading ? (

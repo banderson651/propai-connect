@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { MessageSquare } from 'lucide-react';
-import { WhatsAppTemplate } from '@/contexts/WhatsAppContext';
+import { WhatsAppTemplate } from '@/types/whatsapp';
 import { TemplateCard } from './TemplateCard';
 
 interface TemplateListProps {

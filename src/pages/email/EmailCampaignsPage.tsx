@@ -1,7 +1,6 @@
-
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,11 +14,12 @@ import {
   Clock, 
   PlayCircle, 
   PauseCircle, 
-  StopCircle 
+  StopCircle, 
+  Loader2 
 } from 'lucide-react';
 import { Campaign } from '@/types/email';
-import { getCampaigns, startCampaign, pauseCampaign, resumeCampaign, stopCampaign } from '@/services/emailService';
-import { useToast } from '@/hooks/use-toast';
+import { getCampaigns, startCampaign, pauseCampaign, resumeCampaign, stopCampaign } from '@/services/email/campaignService';
+import { useToast } from '@/components/ui/use-toast';
 
 const EmailCampaignsPage = () => {
   const navigate = useNavigate();

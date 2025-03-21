@@ -1,11 +1,11 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Send, User, AlertCircle } from 'lucide-react';
-import { useWhatsApp, WhatsAppMessage } from '@/contexts/WhatsAppContext';
+import { useWhatsApp } from '@/contexts/WhatsAppContext';
 import { Contact } from '@/types/contact';
+import { WhatsAppMessage } from '@/types/whatsapp';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface WhatsAppChatProps {
@@ -55,6 +55,7 @@ export const WhatsAppChat: React.FC<WhatsAppChatProps> = ({ contact }) => {
       content: message,
       timestamp: new Date().toISOString(),
       direction: 'outgoing',
+      status: 'sending'
     };
 
     setMessages([...messages, newMessage]);
@@ -64,8 +65,12 @@ export const WhatsAppChat: React.FC<WhatsAppChatProps> = ({ contact }) => {
     const success = await sendMessage(contact.phone, message);
     
     if (!success) {
-      // If sending failed, mark the message as failed or remove it
-      setMessages(prev => prev.filter(msg => msg.id !== newMessage.id));
+      // If sending failed, mark the message as failed
+      setMessages(prev => prev.map(msg => 
+        msg.id === newMessage.id 
+          ? { ...msg, status: 'failed' }
+          : msg
+      ));
     } else {
       // Refresh messages to get the server-generated ID
       await loadMessages();
@@ -135,13 +140,29 @@ export const WhatsAppChat: React.FC<WhatsAppChatProps> = ({ contact }) => {
                   }`}
                 >
                   <p>{msg.content}</p>
-                  <p className={`text-xs mt-1 ${
-                    msg.direction === 'outgoing' 
-                      ? 'text-primary-foreground/70' 
-                      : 'text-gray-500'
-                  }`}>
-                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </p>
+                  <div className="flex items-center justify-between mt-1">
+                    <p className={`text-xs ${
+                      msg.direction === 'outgoing' 
+                        ? 'text-primary-foreground/70' 
+                        : 'text-gray-500'
+                    }`}>
+                      {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                    {msg.direction === 'outgoing' && (
+                      <span className={`text-xs ml-2 ${
+                        msg.status === 'sent' ? 'text-primary-foreground/70' :
+                        msg.status === 'delivered' ? 'text-primary-foreground/90' :
+                        msg.status === 'read' ? 'text-primary-foreground' :
+                        'text-red-400'
+                      }`}>
+                        {msg.status === 'sending' ? 'Sending...' :
+                         msg.status === 'sent' ? 'Sent' :
+                         msg.status === 'delivered' ? 'Delivered' :
+                         msg.status === 'read' ? 'Read' :
+                         'Failed'}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

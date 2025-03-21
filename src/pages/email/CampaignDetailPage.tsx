@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -20,9 +19,16 @@ import {
   Server
 } from 'lucide-react';
 import { Campaign } from '@/types/email';
-import { getCampaignById, startCampaign, pauseCampaign, resumeCampaign, stopCampaign, deleteCampaign } from '@/services/emailService';
-import { getEmailAccountById } from '@/services/emailService';
-import { getEmailTemplateById } from '@/services/emailService';
+import { 
+  getCampaignById, 
+  startCampaign, 
+  pauseCampaign, 
+  resumeCampaign, 
+  stopCampaign, 
+  deleteCampaign,
+  getEmailAccountById,
+  getEmailTemplateById 
+} from '@/services/email';
 import { useToast } from '@/hooks/use-toast';
 
 const CampaignDetailPage = () => {

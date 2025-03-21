@@ -15,7 +15,7 @@ import {
   Clock, 
   Plus
 } from 'lucide-react';
-import { getEmailAccounts, getEmailTemplates, createCampaign } from '@/services/emailService';
+import { getEmailAccounts, getEmailTemplates, createCampaign } from '@/services/email';
 import { useToast } from '@/hooks/use-toast';
 
 const NewCampaignPage = () => {

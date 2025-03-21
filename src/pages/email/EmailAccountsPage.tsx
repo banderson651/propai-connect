@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,7 +40,7 @@ import {
   deleteEmailAccount, 
   testEmailConnection,
   sendTestEmail
-} from '@/services/emailService';
+} from '@/services/email';
 import { Link } from 'react-router-dom';
 
 const EmailAccountsPage = () => {
