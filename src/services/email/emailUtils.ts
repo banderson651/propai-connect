@@ -1,6 +1,5 @@
-
 import { EmailAccount, EmailTestResult } from '@/types/email';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { toast } from '@/components/ui/use-toast';
 
 // Function to test email connectivity
@@ -87,7 +86,7 @@ export const sendTestEmail = async (account: EmailAccount, to: string): Promise<
       toast({
         title: "Email sent",
         description: `Test email was sent to ${to}`,
-        variant: "default", // Changed from "success" to "default"
+        variant: "default",
       });
       
       return {
@@ -128,7 +127,7 @@ export const sendTestEmail = async (account: EmailAccount, to: string): Promise<
     toast({
       title: "Success",
       description: `Email sent to ${to}`,
-      variant: "default", // Changed from "success" to "default"
+      variant: "default",
     });
     
     return data as EmailTestResult;

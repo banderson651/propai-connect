@@ -1,9 +1,17 @@
-// Re-export all email services
-export * from './accountService';
-export * from './templateService';
-export * from './campaignService';
-export * from './emailUtils';
+// Export types
+export * from '@/types/email';
 
-// Export the email service
-export { EmailService } from './emailService';
-export { default as emailService } from './emailService';
+// Export email service
+export { EmailService, default as emailService } from './emailService';
+
+// Export account service
+export * from './accountService';
+
+// Export template service
+export * from './templateService';
+
+// Export campaign service
+export * from './campaignService';
+
+// Export utilities
+export * from './emailUtils';

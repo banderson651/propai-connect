@@ -16,7 +16,7 @@ export const getEmailAccounts = async (): Promise<EmailAccount[]> => {
   return data.map(account => ({
     ...account,
     lastChecked: account.last_checked,
-    type: account.type as EmailAccountType, // Ensure proper type casting
+    type: account.type as EmailAccountType,
     status: account.status as 'connected' | 'disconnected' | 'error'
   }));
 };
@@ -132,5 +132,4 @@ export const deleteEmailAccount = async (id: string): Promise<boolean> => {
   return true;
 };
 
-export { testEmailConnection } from './emailUtils';
-export { sendTestEmail } from './emailUtils';
+export { testEmailConnection, sendTestEmail } from './emailUtils';

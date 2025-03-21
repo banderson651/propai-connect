@@ -18,7 +18,7 @@ import {
   Loader2 
 } from 'lucide-react';
 import { Campaign } from '@/types/email';
-import { getCampaigns, startCampaign, pauseCampaign, resumeCampaign, stopCampaign } from '@/services/email/campaignService';
+import { getCampaigns, startCampaign, pauseCampaign, resumeCampaign, stopCampaign } from '@/services/email';
 import { useToast } from '@/components/ui/use-toast';
 
 const EmailCampaignsPage = () => {

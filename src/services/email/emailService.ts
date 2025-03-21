@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import type { Transporter } from 'nodemailer';
 import { supabase } from '@/lib/supabase';
 
 interface EmailConfig {
@@ -19,7 +19,7 @@ interface EmailOptions {
 }
 
 export class EmailService {
-  private transporter: nodemailer.Transporter | null = null;
+  private transporter: Transporter | null = null;
 
   async initialize() {
     try {
@@ -34,6 +34,9 @@ export class EmailService {
       if (!settings) {
         throw new Error('Email settings not configured');
       }
+
+      // Dynamically import nodemailer
+      const nodemailer = await import('nodemailer');
 
       // Create transporter
       this.transporter = nodemailer.createTransport({
@@ -88,6 +91,8 @@ export class EmailService {
   }
 }
 
-// Create and export a singleton instance
+// Create singleton instance
 const emailService = new EmailService();
+
+// Export the instance as default
 export default emailService; 

@@ -31,7 +31,9 @@ import {
   Check, 
   AlertTriangle,
   RefreshCw,
-  Send
+  Send,
+  Mailbox,
+  Server
 } from 'lucide-react';
 import { EmailAccount, EmailAccountType } from '@/types/email';
 import { 
@@ -250,345 +252,287 @@ const EmailAccountsPage = () => {
     setIsSendTestEmailOpen(true);
   };
   
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'connected': return 'text-green-500';
-      case 'disconnected': return 'text-gray-500';
-      case 'error': return 'text-red-500';
-      default: return 'text-gray-500';
-    }
-  };
-  
   return (
     <DashboardLayout>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Email Management</h1>
-          <p className="text-sm text-gray-500 mt-1">Connect and manage your email accounts for campaigns</p>
+          <h1 className="text-2xl font-semibold text-gray-900">Email Accounts</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage your email integrations</p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => setIsAddAccountOpen(true)}>
-            <Plus className="h-4 w-4 mr-1" /> Add Email Account
-          </Button>
-        </div>
+        <Button onClick={() => setIsAddAccountOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" /> Add Email Account
+        </Button>
       </div>
-      
-      <Tabs 
-        defaultValue="accounts" 
-        value={activeTab} 
-        onValueChange={setActiveTab}
-        className="space-y-4"
-      >
-        <TabsList className="grid grid-cols-3 gap-2 w-full max-w-md">
-          <TabsTrigger value="accounts">Email Accounts</TabsTrigger>
-          <TabsTrigger value="templates">
-            <Link to="/email/templates" className="flex w-full h-full items-center justify-center">
-              Templates
-            </Link>
-          </TabsTrigger>
-          <TabsTrigger value="campaigns">
-            <Link to="/email" className="flex w-full h-full items-center justify-center">
-              Campaigns
-            </Link>
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="accounts" className="space-y-4">
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Gmail Integration Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mailbox className="h-5 w-5 text-red-500" /> Gmail Integration
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-500 mb-4">
+              Connect your Gmail account for seamless email integration.
+            </p>
+            <Button className="w-full" variant="outline">
+              Connect Gmail
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* IMAP/POP3 Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Server className="h-5 w-5 text-blue-500" /> IMAP/POP3
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-500 mb-4">
+              Add any email account using IMAP or POP3 protocol.
+            </p>
+            <Button className="w-full" variant="outline" onClick={() => setIsAddAccountOpen(true)}>
+              Add Account
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Third-party Integrations Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-green-500" /> Third-party Services
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-500 mb-4">
+              Connect with popular email service providers.
+            </p>
+            <Button className="w-full" variant="outline">
+              View Integrations
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Connected Accounts List */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Connected Accounts</CardTitle>
+        </CardHeader>
+        <CardContent>
           {isLoading ? (
-            <div className="text-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-400" />
-              <p className="mt-2 text-gray-500">Loading email accounts...</p>
+            <div className="flex justify-center items-center h-32">
+              <Loader2 className="h-8 w-8 animate-spin" />
             </div>
           ) : accounts.length === 0 ? (
-            <Card className="text-center py-12">
-              <CardContent className="pt-6">
-                <Mail className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">No Email Accounts</h3>
-                <p className="text-gray-500 mb-4">
-                  Connect your email accounts to start creating campaigns.
-                </p>
-                <Button onClick={() => setIsAddAccountOpen(true)}>
-                  <Plus className="h-4 w-4 mr-1" /> Add Email Account
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="text-center py-8">
+              <Mail className="h-12 w-12 mx-auto text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No email accounts</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Get started by adding your first email account.
+              </p>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {accounts.map((account: EmailAccount) => (
-                <Card key={account.id} className="overflow-hidden">
-                  <CardHeader className="p-5 pb-0">
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg truncate">{account.name}</CardTitle>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => openSendTestEmailDialog(account)}>
-                            <Send className="h-4 w-4 mr-2 text-blue-500" />
-                            <span>Send Test Email</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDeleteAccount(account.id)}>
-                            <Trash className="h-4 w-4 mr-2 text-red-500" />
-                            <span className="text-red-500">Delete Account</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+            <div className="space-y-4">
+              {accounts.map((account) => (
+                <div
+                  key={account.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className={`h-3 w-3 rounded-full ${
+                      account.status === 'connected' ? 'bg-green-500' :
+                      account.status === 'disconnected' ? 'bg-red-500' :
+                      'bg-yellow-500'
+                    }`} />
+                    <div>
+                      <h3 className="font-medium">{account.name}</h3>
+                      <p className="text-sm text-gray-500">{account.email}</p>
                     </div>
-                  </CardHeader>
-                  <CardContent className="p-5">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-500">Email:</span>
-                        <span className="text-sm font-medium truncate max-w-[180px]">{account.email}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-500">Type:</span>
-                        <span className="text-sm font-medium">{account.type}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-500">Status:</span>
-                        <span className={`text-sm font-medium ${getStatusColor(account.status)}`}>
-                          {account.status.charAt(0).toUpperCase() + account.status.slice(1)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-500">Last Checked:</span>
-                        <span className="text-sm">
-                          {new Date(account.lastChecked).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => openSendTestEmailDialog(account)}>
+                        <Send className="h-4 w-4 mr-2" /> Send Test Email
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleDeleteAccount(account.id)}>
+                        <Trash className="h-4 w-4 mr-2" /> Delete Account
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               ))}
             </div>
           )}
-        </TabsContent>
-      </Tabs>
-      
+        </CardContent>
+      </Card>
+
       {/* Add Account Dialog */}
       <Dialog open={isAddAccountOpen} onOpenChange={setIsAddAccountOpen}>
-        <DialogContent className="sm:max-w-[550px]">
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Add Email Account</DialogTitle>
             <DialogDescription>
-              Connect your email account to send campaigns.
+              Add a new email account using IMAP or POP3 protocol.
             </DialogDescription>
           </DialogHeader>
-          
-          <form onSubmit={handleAddAccount}>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="account-name">Account Name</Label>
-                  <Input
-                    id="account-name"
-                    value={accountName}
-                    onChange={(e) => setAccountName(e.target.value)}
-                    placeholder="My Email Account"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Account Type</Label>
-                <div className="flex gap-4">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="imap"
-                      value="IMAP"
-                      checked={accountType === 'IMAP'}
-                      onChange={() => setAccountType('IMAP')}
-                    />
-                    <Label htmlFor="imap">IMAP</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="pop3"
-                      value="POP3"
-                      checked={accountType === 'POP3'}
-                      onChange={() => setAccountType('POP3')}
-                    />
-                    <Label htmlFor="pop3">POP3</Label>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="host">Host Server</Label>
-                  <Input
-                    id="host"
-                    value={host}
-                    onChange={(e) => setHost(e.target.value)}
-                    placeholder="mail.example.com"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="port">Port</Label>
-                  <Input
-                    id="port"
-                    value={port}
-                    onChange={(e) => setPort(e.target.value)}
-                    placeholder={accountType === 'IMAP' ? "993" : "110"}
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
-                  <Input
-                    id="username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="username or email"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-2 pt-2">
-                <Switch 
-                  id="secure" 
-                  checked={secure}
-                  onCheckedChange={setSecure}
-                />
-                <Label htmlFor="secure">Use secure connection (SSL/TLS)</Label>
-              </div>
-              
+          <form onSubmit={handleAddAccount} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="accountName">Account Name</Label>
+              <Input
+                id="accountName"
+                value={accountName}
+                onChange={(e) => setAccountName(e.target.value)}
+                placeholder="My Work Email"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="example@domain.com"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="accountType">Account Type</Label>
+              <select
+                id="accountType"
+                value={accountType}
+                onChange={(e) => setAccountType(e.target.value as EmailAccountType)}
+                className="w-full p-2 border rounded-md"
+              >
+                <option value="IMAP">IMAP</option>
+                <option value="POP3">POP3</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="host">Server Host</Label>
+              <Input
+                id="host"
+                value={host}
+                onChange={(e) => setHost(e.target.value)}
+                placeholder="imap.domain.com"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="port">Port</Label>
+              <Input
+                id="port"
+                type="number"
+                value={port}
+                onChange={(e) => setPort(e.target.value)}
+                placeholder="993"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="username"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="secure"
+                checked={secure}
+                onCheckedChange={setSecure}
+              />
+              <Label htmlFor="secure">Use SSL/TLS</Label>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={testConnection}
+                disabled={isTesting}
+              >
+                {isTesting ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Check className="h-4 w-4 mr-2" />
+                )}
+                Test Connection
+              </Button>
               {testResult && (
-                <div className={`p-3 rounded-md ${testResult.success ? 'bg-green-50' : 'bg-red-50'}`}>
-                  <div className="flex items-center">
-                    {testResult.success ? (
-                      <Check className="h-5 w-5 text-green-500 mr-2" />
-                    ) : (
-                      <AlertTriangle className="h-5 w-5 text-red-500 mr-2" />
-                    )}
-                    <p className={`text-sm ${testResult.success ? 'text-green-700' : 'text-red-700'}`}>
-                      {testResult.message}
-                    </p>
-                  </div>
+                <div className={`text-sm ${
+                  testResult.success ? 'text-green-500' : 'text-red-500'
+                }`}>
+                  {testResult.message}
                 </div>
               )}
             </div>
-            
-            <DialogFooter className="flex space-x-2 justify-end">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={testConnection}
-                disabled={isTesting || !host || !port || !username || !password}
-              >
-                {isTesting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                    Testing...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-1" />
-                    Test Connection
-                  </>
-                )}
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsAddAccountOpen(false)}>
+                Cancel
               </Button>
-              <Button 
-                type="submit" 
-                disabled={createMutation.isPending || !testResult?.success || !accountName || !email}
-              >
-                {createMutation.isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                    Adding...
-                  </>
-                ) : (
-                  'Add Account'
-                )}
+              <Button type="submit" disabled={!testResult?.success}>
+                Add Account
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
-      
+
       {/* Send Test Email Dialog */}
       <Dialog open={isSendTestEmailOpen} onOpenChange={setIsSendTestEmailOpen}>
-        <DialogContent className="sm:max-w-[450px]">
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Send Test Email</DialogTitle>
             <DialogDescription>
-              Send a test email to verify your account connectivity.
+              Send a test email to verify the account configuration.
             </DialogDescription>
           </DialogHeader>
-          
-          <form onSubmit={handleSendTestEmail}>
-            <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="from-account">From Account</Label>
-                <div className="bg-gray-100 px-3 py-2 rounded-md border border-gray-200">
-                  {selectedAccount?.email}
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="recipient">Recipient Email</Label>
-                <Input
-                  id="recipient"
-                  type="email"
-                  value={testEmailRecipient}
-                  onChange={(e) => setTestEmailRecipient(e.target.value)}
-                  placeholder="recipient@example.com"
-                  required
-                />
-                <p className="text-xs text-gray-500">Enter the email address where you'd like to receive the test email.</p>
-              </div>
+          <form onSubmit={handleSendTestEmail} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="testEmailRecipient">Recipient Email</Label>
+              <Input
+                id="testEmailRecipient"
+                type="email"
+                value={testEmailRecipient}
+                onChange={(e) => setTestEmailRecipient(e.target.value)}
+                placeholder="recipient@example.com"
+                required
+              />
             </div>
-            
             <DialogFooter>
-              <Button 
-                type="submit" 
-                disabled={isSendingTestEmail || !testEmailRecipient}
-              >
+              <Button type="button" variant="outline" onClick={() => setIsSendTestEmailOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSendingTestEmail}>
                 {isSendingTestEmail ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                    Sending...
-                  </>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
-                  <>
-                    <Send className="h-4 w-4 mr-1" />
-                    Send Test Email
-                  </>
+                  <Send className="h-4 w-4 mr-2" />
                 )}
+                Send Test Email
               </Button>
             </DialogFooter>
           </form>
