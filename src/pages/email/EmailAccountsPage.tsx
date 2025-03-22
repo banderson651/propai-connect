@@ -66,6 +66,11 @@ const EmailAccountsPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [secure, setSecure] = useState(true);
+  const [smtpHost, setSmtpHost] = useState('');
+  const [smtpPort, setSmtpPort] = useState('');
+  const [smtpUsername, setSmtpUsername] = useState('');
+  const [smtpPassword, setSmtpPassword] = useState('');
+  const [smtpSecure, setSmtpSecure] = useState(true);
   
   const { data: accounts = [], isLoading } = useQuery({
     queryKey: ['emailAccounts'],
@@ -120,6 +125,11 @@ const EmailAccountsPage = () => {
     setPassword('');
     setSecure(true);
     setTestResult(null);
+    setSmtpHost('');
+    setSmtpPort('');
+    setSmtpUsername('');
+    setSmtpPassword('');
+    setSmtpSecure(true);
   };
   
   const handleAddAccount = async (e: React.FormEvent) => {
@@ -135,10 +145,12 @@ const EmailAccountsPage = () => {
     }
     
     const numPort = parseInt(port, 10);
-    if (isNaN(numPort)) {
+    const numSmtpPort = parseInt(smtpPort, 10);
+    
+    if (isNaN(numPort) || isNaN(numSmtpPort)) {
       toast({
         title: "Invalid Port",
-        description: "Please enter a valid port number.",
+        description: "Please enter valid port numbers.",
         variant: "destructive",
       });
       return;
@@ -152,7 +164,12 @@ const EmailAccountsPage = () => {
       port: numPort,
       username,
       password,
-      secure
+      secure,
+      smtp_host: smtpHost,
+      smtp_port: numSmtpPort,
+      smtp_username: smtpUsername,
+      smtp_password: smtpPassword,
+      smtp_secure: smtpSecure
     });
   };
   
@@ -243,6 +260,52 @@ const EmailAccountsPage = () => {
   const handleDeleteAccount = (id: string) => {
     if (window.confirm("Are you sure you want to delete this email account?")) {
       deleteMutation.mutate(id);
+    }
+  };
+
+  const handleAccountClick = (account: EmailAccount) => {
+    setSelectedAccount(account);
+    setIsSendTestEmailOpen(true);
+  };
+
+  const handleTestExistingConnection = async (account: EmailAccount) => {
+    setIsTesting(true);
+    setTestResult(null);
+    
+    try {
+      const result = await testEmailConnection({
+        id: account.id,
+        type: account.type,
+        host: account.host,
+        port: account.port,
+        username: account.username,
+        password: account.password,
+        email: account.email,
+        secure: account.secure
+      });
+      
+      setTestResult(result);
+      
+      if (result.success) {
+        toast({
+          title: "Connection Test Successful",
+          description: result.message,
+        });
+      } else {
+        toast({
+          title: "Connection Test Failed",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsTesting(false);
     }
   };
 
@@ -377,96 +440,154 @@ const EmailAccountsPage = () => {
 
       {/* Add Account Dialog */}
       <Dialog open={isAddAccountOpen} onOpenChange={setIsAddAccountOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Email Account</DialogTitle>
             <DialogDescription>
-              Add a new email account using IMAP or POP3 protocol.
+              Add a new email account to send campaigns.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAddAccount} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="accountName">Account Name</Label>
-              <Input
-                id="accountName"
-                value={accountName}
-                onChange={(e) => setAccountName(e.target.value)}
-                placeholder="My Work Email"
-                required
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="accountName">Account Name</Label>
+                <Input
+                  id="accountName"
+                  value={accountName}
+                  onChange={(e) => setAccountName(e.target.value)}
+                  placeholder="My Work Email"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="example@domain.com"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="accountType">Account Type</Label>
+                <select
+                  id="accountType"
+                  value={accountType}
+                  onChange={(e) => setAccountType(e.target.value as EmailAccountType)}
+                  className="w-full p-2 border rounded-md"
+                >
+                  <option value="IMAP">IMAP</option>
+                  <option value="POP3">POP3</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="host">Server Host</Label>
+                <Input
+                  id="host"
+                  value={host}
+                  onChange={(e) => setHost(e.target.value)}
+                  placeholder="imap.domain.com"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="port">Port</Label>
+                <Input
+                  id="port"
+                  type="number"
+                  value={port}
+                  onChange={(e) => setPort(e.target.value)}
+                  placeholder="993"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="username"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="secure"
+                  checked={secure}
+                  onCheckedChange={setSecure}
+                />
+                <Label htmlFor="secure">Use SSL/TLS</Label>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="example@domain.com"
-                required
-              />
+
+            <div className="space-y-4 pt-4 border-t">
+              <h3 className="text-lg font-medium">SMTP Settings (Outgoing Mail)</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="smtpHost">SMTP Server</Label>
+                  <Input
+                    id="smtpHost"
+                    value={smtpHost}
+                    onChange={(e) => setSmtpHost(e.target.value)}
+                    placeholder="smtp.example.com"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="smtpPort">SMTP Port</Label>
+                  <Input
+                    id="smtpPort"
+                    type="number"
+                    value={smtpPort}
+                    onChange={(e) => setSmtpPort(e.target.value)}
+                    placeholder="587"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="smtpUsername">SMTP Username</Label>
+                  <Input
+                    id="smtpUsername"
+                    value={smtpUsername}
+                    onChange={(e) => setSmtpUsername(e.target.value)}
+                    placeholder="username@example.com"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="smtpPassword">SMTP Password</Label>
+                  <Input
+                    id="smtpPassword"
+                    type="password"
+                    value={smtpPassword}
+                    onChange={(e) => setSmtpPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="smtpSecure"
+                    checked={smtpSecure}
+                    onCheckedChange={setSmtpSecure}
+                  />
+                  <Label htmlFor="smtpSecure">Use SSL/TLS</Label>
+                </div>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="accountType">Account Type</Label>
-              <select
-                id="accountType"
-                value={accountType}
-                onChange={(e) => setAccountType(e.target.value as EmailAccountType)}
-                className="w-full p-2 border rounded-md"
-              >
-                <option value="IMAP">IMAP</option>
-                <option value="POP3">POP3</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="host">Server Host</Label>
-              <Input
-                id="host"
-                value={host}
-                onChange={(e) => setHost(e.target.value)}
-                placeholder="imap.domain.com"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="port">Port</Label>
-              <Input
-                id="port"
-                type="number"
-                value={port}
-                onChange={(e) => setPort(e.target.value)}
-                placeholder="993"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="username"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="secure"
-                checked={secure}
-                onCheckedChange={setSecure}
-              />
-              <Label htmlFor="secure">Use SSL/TLS</Label>
-            </div>
+
             <div className="flex justify-end space-x-2">
               <Button
                 type="button"

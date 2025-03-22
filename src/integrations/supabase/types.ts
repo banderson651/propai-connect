@@ -162,6 +162,11 @@ export type Database = {
           updated_at: string
           user_id: string
           username: string
+          smtp_host: string | null
+          smtp_port: number | null
+          smtp_secure: boolean | null
+          smtp_username: string | null
+          smtp_password: string | null
         }
         Insert: {
           created_at?: string
@@ -178,6 +183,11 @@ export type Database = {
           updated_at?: string
           user_id: string
           username: string
+          smtp_host?: string | null
+          smtp_port?: number | null
+          smtp_secure?: boolean | null
+          smtp_username?: string | null
+          smtp_password?: string | null
         }
         Update: {
           created_at?: string
@@ -194,6 +204,11 @@ export type Database = {
           updated_at?: string
           user_id?: string
           username?: string
+          smtp_host?: string | null
+          smtp_port?: number | null
+          smtp_secure?: boolean | null
+          smtp_username?: string | null
+          smtp_password?: string | null
         }
         Relationships: []
       }

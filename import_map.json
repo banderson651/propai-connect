@@ -1,0 +1,7 @@
+{
+  "imports": {
+    "http/": "https://deno.land/std@0.190.0/http/",
+    "smtp/": "https://deno.land/x/smtp@v0.7.0/",
+    "imap/": "https://deno.land/x/imap@v0.1.0/"
+  }
+} 

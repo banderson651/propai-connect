@@ -1,165 +1,133 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { ImapFlow } from "npm:imapflow@1.0.162";
-import { SMTPClient } from "npm:emailjs@4.0.3";
+import { SmtpClient } from "https://deno.land/x/smtp@v0.7.0/mod.ts";
+import { ImapClient } from "https://deno.land/x/imap@v0.1.0/mod.ts";
+import { EmailAccountService } from "../services/EmailAccountService.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface EmailConnectionConfig {
-  type: "IMAP" | "POP3";
+interface TestEmailConfig {
+  type: 'IMAP' | 'SMTP';
   host: string;
   port: number;
   username: string;
   password: string;
-  email: string;
   secure: boolean;
-}
-
-interface TestEmailConfig extends EmailConnectionConfig {
-  recipient?: string;
 }
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    const { action, ...config }: { action: "test-connection" | "send-test-email" } & TestEmailConfig = await req.json();
-    
-    if (action === "test-connection") {
-      const result = await testConnection(config);
-      return new Response(JSON.stringify(result), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    } else if (action === "send-test-email" && config.recipient) {
-      const result = await sendTestEmail(config);
-      return new Response(JSON.stringify(result), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    } else {
-      return new Response(
-        JSON.stringify({ success: false, message: "Invalid action specified" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+    const { config } = await req.json();
+
+    if (!config || !config.type || !config.host || !config.port || !config.username || !config.password) {
+      throw new Error("Missing required configuration");
     }
+
+    const emailService = EmailAccountService.getInstance();
+    const results = await emailService.testConnection(config);
+    return new Response(JSON.stringify(results), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
   } catch (error) {
-    console.error("Error processing request:", error);
     return new Response(
       JSON.stringify({
         success: false,
-        message: `Error: ${error.message || "Unknown error occurred"}`,
+        message: error instanceof Error ? error.message : "Unknown error occurred",
       }),
       {
-        status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
       }
     );
   }
 });
 
-async function testConnection(config: EmailConnectionConfig) {
-  // For now we only support IMAP, POP3 would require different library
+async function testConnection(config: TestEmailConfig) {
   if (config.type === "IMAP") {
-    try {
-      const client = new ImapFlow({
-        host: config.host,
-        port: config.port,
-        secure: config.secure,
-        auth: {
-          user: config.username,
-          pass: config.password,
-        },
-        logger: false,
-        // Timeout after 10 seconds - normal connections should be fast
-        timeout: 10000,
-      });
-
-      // Connect and immediately disconnect to verify credentials
-      await client.connect();
-      await client.logout();
-      
-      return {
-        success: true,
-        message: "Connection successful! Your IMAP email account is properly configured."
-      };
-    } catch (error) {
-      console.error("IMAP connection error:", error);
-      
-      let errorMessage = "Unable to connect to mail server.";
-      if (error.message.includes("auth")) {
-        errorMessage = "Authentication failed. Please check your username and password.";
-      } else if (error.message.includes("timeout")) {
-        errorMessage = "Connection timed out. The mail server is not responding.";
-      } else if (error.message.includes("certificate")) {
-        errorMessage = "TLS/SSL negotiation failed. Please check your security settings.";
-      }
-      
-      return {
-        success: false,
-        message: errorMessage
-      };
-    }
+    return testImapConnection(config);
   } else {
-    return {
-      success: false,
-      message: "POP3 connections are currently not supported. Please use IMAP instead."
-    };
+    return testSmtpConnection(config);
   }
 }
 
-async function sendTestEmail(config: TestEmailConfig) {
-  if (!config.recipient) {
-    return {
-      success: false,
-      message: "Recipient email address is required."
-    };
-  }
+async function testImapConnection(config: TestEmailConfig) {
+  const client = new ImapClient({
+    host: config.host,
+    port: config.port,
+    secure: config.secure,
+    auth: {
+      user: config.username,
+      pass: config.password,
+    },
+  });
 
   try {
-    const smtpClient = new SMTPClient({
-      user: config.username,
-      password: config.password,
-      host: config.host.replace('imap.', 'smtp.'), // Convert IMAP to SMTP server
-      port: 587, // Default SMTP port
-      tls: true,
-      timeout: 10000,
-    });
-
-    const message = {
-      from: config.email,
-      to: config.recipient,
-      subject: "PropAI Test Email",
-      text: "This is a test email from PropAI to verify your email server configuration.",
-      html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px;">
-          <h2 style="color: #4F46E5;">PropAI Test Email</h2>
-          <p>This is a test email sent from PropAI to verify your email server configuration.</p>
-          <p>If you received this email, your email settings are correctly configured!</p>
-          <hr style="border: none; border-top: 1px solid #eaeaea; margin: 20px 0;">
-          <p style="color: #666; font-size: 12px;">Sent from PropAI - Real Estate Automation Platform</p>
-        </div>
-      `,
-    };
-
-    await smtpClient.sendAsync(message);
-
+    await client.connect();
+    await client.login();
+    await client.logout();
     return {
       success: true,
-      message: `Test email sent to ${config.recipient} from ${config.email} successfully!`
+      message: "IMAP connection successful",
+      details: {
+        type: "IMAP",
+        host: config.host,
+        port: config.port,
+      },
     };
   } catch (error) {
-    console.error("SMTP error:", error);
-    return {
-      success: false,
-      message: `Failed to send test email: ${error.message || "Unknown error"}`
-    };
+    throw new Error(`IMAP connection failed: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
+
+async function testSmtpConnection(config: TestEmailConfig) {
+  const client = new SmtpClient({
+    host: config.host,
+    port: config.port,
+    secure: config.secure,
+    auth: {
+      user: config.username,
+      pass: config.password,
+    },
+  });
+
+  try {
+    await client.connect();
+    await client.auth();
+    await client.quit();
+    return {
+      success: true,
+      message: "SMTP connection successful",
+      details: {
+        type: "SMTP",
+        host: config.host,
+        port: config.port,
+      },
+    };
+  } catch (error) {
+    throw new Error(`SMTP connection failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+  }
+}
+
+const account = {
+  email: "user@example.com",
+  display_name: "User Name",
+  imap_host: "imap.example.com",
+  imap_port: 993,
+  imap_username: "user@example.com",
+  imap_password: "password",
+  imap_secure: true,
+  smtp_host: "smtp.example.com",
+  smtp_port: 587,
+  smtp_username: "user@example.com",
+  smtp_password: "password",
+  smtp_secure: true,
+  is_default: true
+};

@@ -78,24 +78,7 @@ export const sendTestEmail = async (account: EmailAccount, to: string): Promise<
       description: `Sending email to ${to}...`,
     });
     
-    // For demo purposes, simulate success after a short delay
-    if (process.env.NODE_ENV === 'development' || window.location.hostname.includes('lovableproject')) {
-      // Return mock success after a delay for demo environments
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      toast({
-        title: "Email sent",
-        description: `Test email was sent to ${to}`,
-        variant: "default",
-      });
-      
-      return {
-        success: true,
-        message: `Test email successfully sent to ${to} (simulated in demo mode)`
-      };
-    }
-    
-    // In production, call actual API
+    // Call Supabase Edge Function to send test email
     const { data, error } = await supabase.functions.invoke('test-email-connection', {
       body: {
         action: 'send-test-email',

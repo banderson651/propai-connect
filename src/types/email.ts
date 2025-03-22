@@ -1,4 +1,3 @@
-
 export type EmailAccountType = 'IMAP' | 'POP3';
 
 export type EmailConnectionStatus = 'connected' | 'disconnected' | 'error';
@@ -6,19 +5,94 @@ export type EmailConnectionStatus = 'connected' | 'disconnected' | 'error';
 export interface EmailAccount {
   id: string;
   user_id: string;
-  name: string;
   email: string;
-  type: EmailAccountType;
+  display_name?: string;
+  created_at: string;
+  updated_at: string;
+  
+  // IMAP Settings
+  imap_host: string;
+  imap_port: number;
+  imap_username: string;
+  imap_password: string;
+  imap_secure: boolean;
+  
+  // SMTP Settings
+  smtp_host: string;
+  smtp_port: number;
+  smtp_username: string;
+  smtp_password: string;
+  smtp_secure: boolean;
+  
+  // Additional Settings
+  is_default: boolean;
+  is_active: boolean;
+  last_sync_at?: string;
+  sync_frequency: number;
+  max_emails_per_sync: number;
+}
+
+export interface EmailAccountCreate {
+  email: string;
+  display_name?: string;
+  
+  // IMAP Settings
+  imap_host: string;
+  imap_port: number;
+  imap_username: string;
+  imap_password: string;
+  imap_secure: boolean;
+  
+  // SMTP Settings
+  smtp_host: string;
+  smtp_port: number;
+  smtp_username: string;
+  smtp_password: string;
+  smtp_secure: boolean;
+  
+  // Additional Settings
+  is_default?: boolean;
+  is_active?: boolean;
+  sync_frequency?: number;
+  max_emails_per_sync?: number;
+}
+
+export interface EmailAccountUpdate {
+  display_name?: string;
+  imap_host?: string;
+  imap_port?: number;
+  imap_username?: string;
+  imap_password?: string;
+  imap_secure?: boolean;
+  smtp_host?: string;
+  smtp_port?: number;
+  smtp_username?: string;
+  smtp_password?: string;
+  smtp_secure?: boolean;
+  is_default?: boolean;
+  is_active?: boolean;
+  sync_frequency?: number;
+  max_emails_per_sync?: number;
+}
+
+export interface EmailTestConfig {
+  type: 'IMAP' | 'SMTP';
   host: string;
   port: number;
   username: string;
-  password: string; // Note: In a real app, this would be securely stored
-  status: EmailConnectionStatus;
-  lastChecked?: string; // Matching the frontend property
-  last_checked?: string; // Matching the database property
-  secure?: boolean;
-  created_at?: string;
-  updated_at?: string;
+  password: string;
+  secure: boolean;
+}
+
+export interface EmailTestResult {
+  success: boolean;
+  message: string;
+  details?: {
+    type: 'IMAP' | 'SMTP';
+    host: string;
+    port: number;
+    error?: string;
+  };
 }
 
 export interface EmailTemplate {
@@ -57,9 +131,4 @@ export interface Campaign {
   createdAt: string;
   updatedAt: string;
   stats: CampaignStats;
-}
-
-export interface EmailTestResult {
-  success: boolean;
-  message: string;
 }
