@@ -39,6 +39,7 @@ const NewRulePage = lazy(() => import("./pages/automation/NewRulePage"));
 const TaskManagerPage = lazy(() => import("./pages/tasks/TaskManagerPage"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const Settings = lazy(() => import('@/pages/Settings'));
+const CalendarPage = lazy(() => import("./pages/calendar/CalendarPage"));
 
 // Configure the query client with better error handling and retries
 const queryClient = new QueryClient({
@@ -77,6 +78,7 @@ const App = () => (
                   
                   {/* Protected routes */}
                   <Route path="/dashboard" element={<AuthRoute><Index /></AuthRoute>} />
+                  <Route path="/calendar" element={<AuthRoute><CalendarPage /></AuthRoute>} />
                   <Route path="/contacts" element={<AuthRoute><ContactsPage /></AuthRoute>} />
                   <Route path="/contacts/:id" element={<AuthRoute><ContactDetailPage /></AuthRoute>} />
                   <Route path="/contacts/new" element={<AuthRoute><NewContactPage /></AuthRoute>} />

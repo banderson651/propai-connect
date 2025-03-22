@@ -74,7 +74,7 @@ const Index = () => {
       title: 'Calendar',
       description: 'View your schedule',
       icon: Calendar,
-      href: '/calendar',
+      href: '/dashboard/calendar',
       color: 'text-pink-600',
       bgColor: 'bg-pink-50',
     },
