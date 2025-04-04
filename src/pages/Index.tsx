@@ -1,193 +1,129 @@
-import { useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, Users, Mail, Calendar, CheckSquare, BarChart3, MessageSquare } from 'lucide-react';
+import { DashboardNav } from '@/components/dashboard/DashboardNav';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ActivityTimeline } from '@/components/dashboard/ActivityTimeline';
+import { TasksDashboard } from '@/components/tasks/TasksDashboard';
+import { Building2, Calendar, CheckSquare, MailOpen, MessageSquare, PlusCircle, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
-const Index = () => {
-  const { user, isAdmin } = useAuth();
+export default function Index() {
   const navigate = useNavigate();
-  const [stats, setStats] = useState({
-    properties: 0,
-    contacts: 0,
-    tasks: 0,
-    emails: 0,
-    whatsapp: 0,
-  });
+  const { user } = useAuth();
+  const displayName = user?.email ? user.email.split('@')[0] : 'User';
 
-  useEffect(() => {
-    // Fetch dashboard stats here
-    // This is a placeholder for actual data fetching
-    setStats({
-      properties: 5,
-      contacts: 12,
-      tasks: 8,
-      emails: 3,
-      whatsapp: 15,
-    });
-  }, []);
-
-  const quickActions = [
-    {
-      title: 'Properties',
-      description: 'Manage your property listings',
-      icon: Building2,
-      href: '/properties',
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-50',
-    },
-    {
-      title: 'Contacts',
-      description: 'View and manage contacts',
-      icon: Users,
-      href: '/contacts',
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-    },
-    {
-      title: 'Tasks',
-      description: 'Track your tasks and deadlines',
-      icon: CheckSquare,
-      href: '/tasks',
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-    },
-    {
-      title: 'Email Campaigns',
-      description: 'Manage your email campaigns',
-      icon: Mail,
-      href: '/email',
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
-    },
-    {
-      title: 'WhatsApp',
-      description: 'Manage WhatsApp communications',
-      icon: MessageSquare,
-      href: '/whatsapp',
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-    },
-    {
-      title: 'Calendar',
-      description: 'View your schedule',
-      icon: Calendar,
-      href: '/dashboard/calendar',
-      color: 'text-pink-600',
-      bgColor: 'bg-pink-50',
-    },
-    {
-      title: 'Analytics',
-      description: 'View your performance metrics',
-      icon: BarChart3,
-      href: '/analytics',
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-50',
-    },
+  // Mock statistics
+  const stats = [
+    { id: 1, name: 'Properties', value: '24', icon: Building2, color: 'text-blue-500' },
+    { id: 2, name: 'Contacts', value: '142', icon: User, color: 'text-green-500' },
+    { id: 3, name: 'Active Tasks', value: '8', icon: CheckSquare, color: 'text-amber-500' },
+    { id: 4, name: 'Meetings Today', value: '3', icon: Calendar, color: 'text-purple-500' },
+    { id: 5, name: 'Email Campaigns', value: '5', icon: MailOpen, color: 'text-rose-500' },
+    { id: 6, name: 'WhatsApp Messages', value: '28', icon: MessageSquare, color: 'text-teal-500' },
   ];
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">Welcome back, {user?.email?.split('@')[0]}</h1>
-          <p className="text-slate-600 mt-2">Here's what's happening with your properties today.</p>
+    <DashboardLayout pageTitle="Dashboard">
+      <div className="space-y-6">
+        <div className="flex flex-col space-y-2">
+          <h1 className="text-2xl md:text-3xl font-bold">Welcome back, {displayName}!</h1>
+          <p className="text-muted-foreground">
+            Here's what's happening with your properties today.
+          </p>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <Card className="border-slate-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">Total Properties</CardTitle>
-              <Building2 className="h-4 w-4 text-indigo-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-slate-900">{stats.properties}</div>
-              <p className="text-xs text-slate-500">Active listings</p>
-            </CardContent>
-          </Card>
-          <Card className="border-slate-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">Contacts</CardTitle>
-              <Users className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-slate-900">{stats.contacts}</div>
-              <p className="text-xs text-slate-500">Total contacts</p>
-            </CardContent>
-          </Card>
-          <Card className="border-slate-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">Tasks</CardTitle>
-              <CheckSquare className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-slate-900">{stats.tasks}</div>
-              <p className="text-xs text-slate-500">Pending tasks</p>
-            </CardContent>
-          </Card>
-          <Card className="border-slate-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">Email Campaigns</CardTitle>
-              <Mail className="h-4 w-4 text-orange-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-slate-900">{stats.emails}</div>
-              <p className="text-xs text-slate-500">Active campaigns</p>
-            </CardContent>
-          </Card>
-          <Card className="border-slate-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">WhatsApp Messages</CardTitle>
-              <MessageSquare className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-slate-900">{stats.whatsapp}</div>
-              <p className="text-xs text-slate-500">Today's messages</p>
-            </CardContent>
-          </Card>
+        <DashboardNav />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {stats.map((stat) => (
+            <Card key={stat.id} className="shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">{stat.name}</CardTitle>
+                <stat.icon className={cn("h-5 w-5", stat.color)} />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stat.value}</div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
-        {/* Quick Actions */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-slate-900 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {quickActions.map((action) => (
-              <Card
-                key={action.title}
-                className="cursor-pointer hover:shadow-md transition-shadow border-slate-200"
-                onClick={() => navigate(action.href)}
-              >
-                <CardHeader>
-                  <div className="flex items-center space-x-4">
-                    <div className={`p-2 rounded-lg ${action.bgColor}`}>
-                      <action.icon className={`h-6 w-6 ${action.color}`} />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg text-slate-900">{action.title}</CardTitle>
-                      <p className="text-sm text-slate-500">{action.description}</p>
-                    </div>
-                  </div>
-                </CardHeader>
-              </Card>
-            ))}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <TasksDashboard limit={5} />
+            <div className="mt-4 flex justify-end">
+              <Button onClick={() => navigate('/tasks')}>
+                View All Tasks
+              </Button>
+            </div>
+          </div>
+          
+          <div className="lg:col-span-1">
+            <ActivityTimeline />
           </div>
         </div>
-
-        {/* Recent Activity */}
-        <div>
-          <h2 className="text-xl font-semibold text-slate-900 mb-4">Recent Activity</h2>
-          <Card className="border-slate-200">
-            <CardContent className="p-6">
-              <p className="text-slate-500 text-center">No recent activity to display</p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div className="space-y-1">
+                <CardTitle>Quick Actions</CardTitle>
+                <CardDescription>Common tasks you can perform</CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={() => navigate('/contacts/new')}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add New Contact
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={() => navigate('/properties/new')}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add New Property
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={() => navigate('/tasks')}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Create Task
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={() => navigate('/email/campaigns/new')}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Start Email Campaign
+              </Button>
             </CardContent>
+          </Card>
+          
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <CardTitle>Upcoming Deadlines</CardTitle>
+              <CardDescription>Tasks and activities due soon</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground text-sm">Coming soon...</p>
+            </CardContent>
+            <CardFooter>
+              <Button variant="ghost" size="sm">
+                View calendar
+              </Button>
+            </CardFooter>
           </Card>
         </div>
       </div>
     </DashboardLayout>
   );
-};
-
-export default Index;
+}

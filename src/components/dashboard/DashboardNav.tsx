@@ -42,7 +42,7 @@ export function DashboardNav() {
   const location = useLocation();
   
   return (
-    <nav className="space-y-1">
+    <nav className="flex flex-wrap md:flex-nowrap md:space-x-2 gap-2">
       {navigation.map((item) => {
         const isActive = location.pathname === item.href || 
                          location.pathname.startsWith(`${item.href}/`);
@@ -51,17 +51,13 @@ export function DashboardNav() {
             key={item.name}
             to={item.href}
             className={cn(
-              "flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors",
+              "flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors grow md:grow-0",
               isActive 
-                ? "bg-indigo-50 text-indigo-600" 
-                : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                ? "bg-primary text-primary-foreground" 
+                : "bg-card hover:bg-muted text-foreground border"
             )}
           >
-            <item.icon className={cn(
-              "mr-3 h-5 w-5",
-              isActive ? "text-indigo-500" : "text-gray-400"
-            )} 
-            aria-hidden="true" />
+            <item.icon className="mr-2 h-5 w-5" aria-hidden="true" />
             {item.name}
           </Link>
         );

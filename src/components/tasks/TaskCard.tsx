@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 interface TaskCardProps {
   task: Task;
@@ -27,7 +28,11 @@ export const TaskCard = ({ task, onEdit, onDelete, onStatusChange }: TaskCardPro
   const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed' && task.status !== 'canceled';
   
   return (
-    <Card className={`mb-4 ${isOverdue ? 'border-red-300 shadow-sm' : ''}`}>
+    <Card className={cn(
+      "mb-4 transition-all hover:shadow-md",
+      isOverdue ? 'border-red-300 dark:border-red-800' : '',
+      task.status === 'completed' && 'opacity-75'
+    )}>
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <h3 className="text-lg font-semibold line-clamp-2">{task.title}</h3>
@@ -62,7 +67,7 @@ export const TaskCard = ({ task, onEdit, onDelete, onStatusChange }: TaskCardPro
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   onClick={() => onDelete(task.id)}
-                  className="text-red-600"
+                  className="text-destructive"
                 >
                   Delete
                 </DropdownMenuItem>
@@ -76,9 +81,9 @@ export const TaskCard = ({ task, onEdit, onDelete, onStatusChange }: TaskCardPro
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="flex items-center text-xs text-gray-500">
+                  <div className="flex items-center text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3 mr-1" />
-                    <span className={isOverdue ? 'text-red-500 font-medium' : ''}>
+                    <span className={isOverdue ? 'text-destructive font-medium' : ''}>
                       {isOverdue ? 'Overdue: ' : 'Due: '}
                       {formatDistanceToNow(new Date(task.dueDate), { addSuffix: true })}
                     </span>
@@ -93,25 +98,25 @@ export const TaskCard = ({ task, onEdit, onDelete, onStatusChange }: TaskCardPro
         </div>
       </CardHeader>
       <CardContent className="py-2">
-        {task.description && <p className="text-sm text-gray-600 mb-2 line-clamp-2">{task.description}</p>}
+        {task.description && <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{task.description}</p>}
         
         <div className="space-y-2">
           {task.relatedPropertyId && (
-            <div className="flex items-center text-xs text-gray-500">
+            <div className="flex items-center text-xs text-muted-foreground">
               <MapPin className="h-3 w-3 mr-1" />
               <span>Connected to property</span>
             </div>
           )}
           
           {task.relatedContactId && (
-            <div className="flex items-center text-xs text-gray-500">
+            <div className="flex items-center text-xs text-muted-foreground">
               <User className="h-3 w-3 mr-1" />
               <span>Connected to contact</span>
             </div>
           )}
           
           {task.relatedCampaignId && (
-            <div className="flex items-center text-xs text-gray-500">
+            <div className="flex items-center text-xs text-muted-foreground">
               <MessageSquare className="h-3 w-3 mr-1" />
               <span>Connected to campaign</span>
             </div>
@@ -121,7 +126,7 @@ export const TaskCard = ({ task, onEdit, onDelete, onStatusChange }: TaskCardPro
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="flex items-center text-xs text-gray-500">
+                  <div className="flex items-center text-xs text-muted-foreground">
                     <Bell className="h-3 w-3 mr-1" />
                     <span>{task.reminders.length} reminder{task.reminders.length > 1 ? 's' : ''}</span>
                   </div>
@@ -140,7 +145,7 @@ export const TaskCard = ({ task, onEdit, onDelete, onStatusChange }: TaskCardPro
           )}
           
           {task.assignedTo && (
-            <div className="flex items-center text-xs text-gray-500">
+            <div className="flex items-center text-xs text-muted-foreground">
               <User className="h-3 w-3 mr-1" />
               <span>Assigned to: {task.assignedTo === 'current-user' ? 'You' : task.assignedTo}</span>
             </div>
@@ -158,7 +163,7 @@ export const TaskCard = ({ task, onEdit, onDelete, onStatusChange }: TaskCardPro
         )}
       </CardContent>
       <CardFooter className="pt-2 flex justify-between">
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-muted-foreground">
           Created {formatDistanceToNow(new Date(task.createdAt), { addSuffix: true })}
         </div>
         <div className="flex space-x-2">

@@ -9,6 +9,9 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
+    
+    --sidebar: 215 100% 10%;
+    --sidebar-foreground: 0 0% 100%;
 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -16,7 +19,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 221 83% 53%;
+    --primary: 172 75% 40%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -33,9 +36,50 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221 83% 53%;
+    --ring: 172 75% 40%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
+    
+    --timeline-line: 220 13% 91%;
+    --timeline-dot: 50 100% 50%;
+    --timeline-dot-border: 0 0% 100%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    
+    --sidebar: 215 100% 8%;
+    --sidebar-foreground: 0 0% 100%;
+
+    --card: 222.2 84% 9.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 172 75% 40%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+    
+    --timeline-line: 217.2 32.6% 17.5%;
+    --timeline-dot: 50 100% 50%;
+    --timeline-dot-border: 222.2 84% 9.9%;
   }
 
   * {
@@ -63,5 +107,38 @@
       opacity: 1;
       transform: translateY(0);
     }
+  }
+  
+  .timeline-container {
+    @apply relative pl-10;
+  }
+  
+  .timeline-line {
+    @apply absolute left-3 top-0 bottom-0 w-px bg-timeline-line;
+  }
+  
+  .timeline-dot {
+    @apply absolute left-3 top-2 w-6 h-6 -ml-[11px] rounded-full border-4 flex items-center justify-center;
+    @apply border-timeline-dotBorder bg-timeline-dot;
+  }
+  
+  .timeline-dot-empty {
+    @apply bg-transparent border-2 border-timeline-dot;
+  }
+  
+  .timeline-dot-muted {
+    @apply bg-muted;
+  }
+  
+  .timeline-content {
+    @apply mb-8 ml-2;
+  }
+  
+  .timeline-date {
+    @apply text-sm text-muted-foreground mb-2;
+  }
+  
+  .timeline-card {
+    @apply p-4 bg-card border rounded-lg shadow-sm;
   }
 }
