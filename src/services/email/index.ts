@@ -29,6 +29,9 @@ import {
   deleteEmailTemplate
 } from './templateService';
 
+import { sendTestEmail } from './emailUtils';
+import emailService from './emailService';
+
 export {
   // Campaign services
   getCampaigns,
@@ -48,11 +51,15 @@ export {
   deleteEmailAccount,
   getEmailAccounts,
   testEmailConnection,
+  sendTestEmail,
   
   // Template services
   getEmailTemplateById,
   getEmailTemplates,
   createEmailTemplate,
   updateEmailTemplate,
-  deleteEmailTemplate
+  deleteEmailTemplate,
+  
+  // Email service instance
+  emailService
 };

@@ -159,7 +159,7 @@ const EmailAccountsPage = () => {
     createMutation.mutate({
       name: accountName,
       email,
-      type: accountType,
+      type: accountType as EmailAccountType,
       host,
       port: numPort,
       username,
@@ -169,7 +169,9 @@ const EmailAccountsPage = () => {
       smtp_port: numSmtpPort,
       smtp_username: smtpUsername,
       smtp_password: smtpPassword,
-      smtp_secure: smtpSecure
+      smtp_secure: smtpSecure,
+      is_default: false,
+      is_active: true
     });
   };
   
@@ -187,9 +189,8 @@ const EmailAccountsPage = () => {
     try {
       const testAccount: Partial<EmailAccount> = {
         id: 'temp-id',
-        user_id: '',
         name: accountName,
-        type: accountType,
+        type: accountType as EmailAccountType,
         host,
         port: numPort,
         username,
@@ -200,7 +201,9 @@ const EmailAccountsPage = () => {
         smtp_port: parseInt(smtpPort, 10),
         smtp_username: smtpUsername,
         smtp_password: smtpPassword,
-        smtp_secure: smtpSecure
+        smtp_secure: smtpSecure,
+        is_default: false,
+        is_active: true
       };
       
       const result = await testEmailConnection(testAccount as EmailAccount);
@@ -329,7 +332,6 @@ const EmailAccountsPage = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Gmail Integration Card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -346,7 +348,6 @@ const EmailAccountsPage = () => {
           </CardContent>
         </Card>
 
-        {/* IMAP/POP3 Card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -363,7 +364,6 @@ const EmailAccountsPage = () => {
           </CardContent>
         </Card>
 
-        {/* Third-party Integrations Card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -381,7 +381,6 @@ const EmailAccountsPage = () => {
         </Card>
       </div>
 
-      {/* Connected Accounts List */}
       <Card className="mt-6">
         <CardHeader>
           <CardTitle>Connected Accounts</CardTitle>
@@ -408,8 +407,8 @@ const EmailAccountsPage = () => {
                 >
                   <div className="flex items-center space-x-4">
                     <div className={`h-3 w-3 rounded-full ${
-                      account.status === 'connected' ? 'bg-green-500' :
-                      account.status === 'disconnected' ? 'bg-red-500' :
+                      account.status === 'active' || account.status === 'connected' ? 'bg-green-500' :
+                      account.status === 'inactive' || account.status === 'disconnected' ? 'bg-red-500' :
                       'bg-yellow-500'
                     }`} />
                     <div>
@@ -439,7 +438,6 @@ const EmailAccountsPage = () => {
         </CardContent>
       </Card>
 
-      {/* Add Account Dialog */}
       <Dialog open={isAddAccountOpen} onOpenChange={setIsAddAccountOpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -623,7 +621,6 @@ const EmailAccountsPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Send Test Email Dialog */}
       <Dialog open={isSendTestEmailOpen} onOpenChange={setIsSendTestEmailOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>

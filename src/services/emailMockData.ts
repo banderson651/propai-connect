@@ -1,3 +1,4 @@
+
 import { EmailAccount, EmailTemplate, Campaign } from '@/types/email';
 
 // Campaigns mock data
@@ -9,6 +10,11 @@ export const mockCampaigns: Campaign[] = [
     createdAt: '2023-03-01T08:00:00Z',
     startedAt: '2023-03-01T09:00:00Z',
     completedAt: '2023-03-01T09:15:00Z',
+    emailAccountId: '1',
+    templateId: '1',
+    subject: 'March Newsletter for Real Estate',
+    contactIds: ['1', '2', '3', '4'],
+    sendingRate: 50,
     stats: {
       sent: 150,
       delivered: 145,
@@ -24,6 +30,11 @@ export const mockCampaigns: Campaign[] = [
     status: 'running',
     createdAt: '2023-03-05T10:00:00Z',
     startedAt: '2023-03-05T10:30:00Z',
+    emailAccountId: '1',
+    templateId: '2',
+    subject: 'New Properties Available in Your Area',
+    contactIds: ['5', '6', '7'],
+    sendingRate: 30,
     stats: {
       sent: 75,
       delivered: 73,
@@ -38,6 +49,11 @@ export const mockCampaigns: Campaign[] = [
     name: 'Client Appreciation',
     status: 'scheduled',
     createdAt: '2023-03-07T14:00:00Z',
+    emailAccountId: '2',
+    templateId: '3',
+    subject: 'Thank You for Your Business',
+    contactIds: ['8', '9', '10', '11'],
+    sendingRate: 60,
     stats: {
       sent: 0,
       delivered: 0,
@@ -52,6 +68,11 @@ export const mockCampaigns: Campaign[] = [
     name: 'Spring Open House',
     status: 'draft',
     createdAt: '2023-03-10T11:00:00Z',
+    emailAccountId: '2',
+    templateId: '4',
+    subject: 'You\'re Invited: Spring Open House Event',
+    contactIds: ['12', '13', '14', '15', '16'],
+    sendingRate: 40,
     stats: {
       sent: 0,
       delivered: 0,
@@ -63,136 +84,106 @@ export const mockCampaigns: Campaign[] = [
   }
 ];
 
-// Email accounts mock data
+// For demonstration purposes, we can add mock data for email accounts and templates
 export const mockEmailAccounts: EmailAccount[] = [
   {
     id: '1',
-    user_id: 'user-1',
     name: 'Work Email',
-    email: 'work@example.com',
-    type: 'IMAP',
-    host: 'imap.example.com',
+    email: 'john.doe@company.com',
+    type: 'imap',
+    host: 'imap.company.com',
     port: 993,
-    username: 'work@example.com',
+    username: 'john.doe',
     password: 'password123',
-    secure: true,
-    smtp_host: 'smtp.example.com',
-    smtp_port: 587,
-    smtp_username: 'work@example.com',
-    smtp_password: 'password123',
-    smtp_secure: true,
-    status: 'connected',
-    last_checked: '2024-02-20T10:30:00.000Z',
-    display_name: 'Work Email Account',
+    security: 'ssl',
+    status: 'active',
     is_default: true,
     is_active: true,
-    imap_host: 'imap.example.com',
+    created_at: '2023-01-01T00:00:00Z',
+    updated_at: '2023-01-01T00:00:00Z',
+    display_name: 'John Doe',
+    imap_host: 'imap.company.com',
     imap_port: 993,
-    imap_username: 'work@example.com',
+    imap_username: 'john.doe',
     imap_password: 'password123',
     imap_secure: true,
-    last_sync_at: '2024-02-20T10:30:00.000Z',
-    sync_frequency: 15,
-    max_emails_per_sync: 100
+    smtp_host: 'smtp.company.com',
+    smtp_port: 587,
+    smtp_username: 'john.doe',
+    smtp_password: 'password123',
+    smtp_secure: true,
+    sync_frequency: 5,
+    max_emails_per_sync: 100,
+    last_sync_at: '2023-03-01T10:00:00Z'
   },
   {
     id: '2',
-    user_id: 'user-1',
-    name: 'Personal Email',
-    email: 'personal@gmail.com',
-    type: 'IMAP',
-    host: 'imap.gmail.com',
-    port: 993,
-    username: 'personal@gmail.com',
-    password: 'gmail-password',
-    secure: true,
-    smtp_host: 'smtp.gmail.com',
-    smtp_port: 587,
-    smtp_username: 'personal@gmail.com',
-    smtp_password: 'gmail-password',
-    smtp_secure: true,
-    status: 'connected',
-    last_checked: '2024-02-20T09:45:00.000Z',
-    display_name: 'Personal Gmail',
+    name: 'Personal Gmail',
+    email: 'john.personal@gmail.com',
+    type: 'gmail',
+    status: 'active',
     is_default: false,
     is_active: true,
-    imap_host: 'imap.gmail.com',
-    imap_port: 993,
-    imap_username: 'personal@gmail.com',
-    imap_password: 'gmail-password',
-    imap_secure: true,
-    last_sync_at: '2024-02-20T09:45:00.000Z',
-    sync_frequency: 30,
-    max_emails_per_sync: 50
+    created_at: '2023-02-01T00:00:00Z',
+    updated_at: '2023-02-01T00:00:00Z',
+    display_name: 'John Personal',
+    smtp_host: 'smtp.gmail.com',
+    smtp_port: 587,
+    smtp_username: 'john.personal@gmail.com',
+    smtp_password: 'app_password',
+    smtp_secure: true,
+    sync_frequency: 15,
+    max_emails_per_sync: 200,
+    last_sync_at: '2023-03-02T10:00:00Z'
   },
   {
     id: '3',
-    user_id: 'user-1',
-    name: 'Marketing Email',
-    email: 'marketing@company.com',
-    type: 'IMAP',
-    host: 'imap.company.com',
-    port: 993,
-    username: 'marketing@company.com',
-    password: 'marketing-password',
-    secure: true,
-    smtp_host: 'smtp.company.com',
-    smtp_port: 587,
-    smtp_username: 'marketing@company.com',
-    smtp_password: 'marketing-password',
-    smtp_secure: true,
-    status: 'error',
-    last_checked: '2024-02-19T15:20:00.000Z',
-    display_name: 'Marketing Account',
+    name: 'Business Outlook',
+    email: 'john.business@outlook.com',
+    type: 'outlook',
+    status: 'inactive',
     is_default: false,
     is_active: false,
-    imap_host: 'imap.company.com',
-    imap_port: 993,
-    imap_username: 'marketing@company.com',
-    imap_password: 'marketing-password',
-    imap_secure: true,
-    last_sync_at: '2024-02-19T15:20:00.000Z',
-    sync_frequency: 60,
-    max_emails_per_sync: 200
+    created_at: '2023-03-01T00:00:00Z',
+    updated_at: '2023-03-01T00:00:00Z',
+    display_name: 'John Business',
+    sync_frequency: 30,
+    max_emails_per_sync: 50
   }
 ];
 
-// Email templates mock data
+// Mock email templates
 export const mockEmailTemplates: EmailTemplate[] = [
   {
     id: '1',
-    user_id: 'user-1',
-    name: 'Welcome Email',
-    subject: 'Welcome to our platform!',
-    content: '<p>Dear {{name}},</p><p>Welcome to our platform! We\'re excited to have you on board.</p><p>Best regards,<br>The Team</p>',
-    created_at: '2024-01-15T00:00:00.000Z',
-    updated_at: '2024-01-15T00:00:00.000Z',
-    variables: ['name']
+    name: 'Welcome Template',
+    subject: 'Welcome to Our Service',
+    body: '<p>Welcome to our service! We\'re glad to have you on board.</p>',
+    content: '<p>Welcome to our service! We\'re glad to have you on board.</p>',
+    created_at: '2023-01-15T00:00:00Z',
+    updated_at: '2023-01-15T00:00:00Z'
   },
   {
     id: '2',
-    user_id: 'user-1',
-    name: 'Monthly Newsletter',
-    subject: 'Your Monthly Newsletter - {{month}}',
-    content: '<h1>Newsletter - {{month}}</h1><p>Dear {{name}},</p><p>Here\'s what\'s new this month:</p><ul><li>Feature 1</li><li>Feature 2</li><li>Feature 3</li></ul><p>Regards,<br>The Newsletter Team</p>',
-    created_at: '2024-01-20T00:00:00.000Z',
-    updated_at: '2024-02-01T00:00:00.000Z',
-    variables: ['name', 'month']
+    name: 'Property Listing',
+    subject: 'New Property Listing: {{propertyName}}',
+    body: '<p>Check out this new listing: {{propertyDetails}}</p>',
+    content: '<p>Check out this new listing: {{propertyDetails}}</p>',
+    created_at: '2023-02-10T00:00:00Z',
+    updated_at: '2023-02-10T00:00:00Z'
   },
   {
     id: '3',
-    user_id: 'user-1',
-    name: 'Password Reset',
-    subject: 'Reset Your Password',
-    content: '<p>Dear {{name}},</p><p>You requested a password reset. Click the link below to reset your password:</p><p><a href="{{resetLink}}">Reset Password</a></p><p>If you didn\'t request this, please ignore this email.</p><p>Regards,<br>Support Team</p>',
-    created_at: '2024-01-25T00:00:00.000Z',
-    updated_at: '2024-01-25T00:00:00.000Z',
-    variables: ['name', 'resetLink']
+    name: 'Follow-up',
+    subject: 'Following Up on Your Interest',
+    body: '<p>Just following up on your recent interest in our services.</p>',
+    content: '<p>Just following up on your recent interest in our services.</p>',
+    created_at: '2023-02-20T00:00:00Z',
+    updated_at: '2023-02-20T00:00:00Z'
   }
 ];
 
-// Add the body property to email templates for backward compatibility
-export const emailTemplatesWithBody = mockEmailTemplates.map(template => ({
-  ...template,
-  body: template.content
-}));
+// Helper function for real implementations
+export const getTemplate = (id: string) => {
+  return mockEmailTemplates.find(template => template.id === id);
+};
