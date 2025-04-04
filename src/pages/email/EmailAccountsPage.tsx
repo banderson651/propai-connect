@@ -248,6 +248,7 @@ const EmailAccountsPage = () => {
           description: result.message,
         });
         setIsSendTestEmailOpen(false);
+        setTestEmailRecipient('');
       } else {
         toast({
           title: "Failed to Send Test Email",

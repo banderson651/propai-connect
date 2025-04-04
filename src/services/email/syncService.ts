@@ -1,34 +1,12 @@
-
-import { EmailAccount, Email } from '@/types/email';
+import { EmailAccount } from '@/types/email';
 import { supabase } from '@/lib/supabase';
-import { EmailAccountService } from './accountService';
-
-// Simple stub for ImapClient since we can't import from Deno
-class ImapClient {
-  constructor(options: any) {
-    // Stub constructor
-  }
-  
-  async connect() {
-    // Stub implementation
-    return true;
-  }
-  
-  async listMessages(options: any) {
-    // Stub implementation
-    return [];
-  }
-  
-  async disconnect() {
-    // Stub implementation
-  }
-}
 
 export class EmailSyncService {
-  private static instance: EmailSyncService;
-  private syncIntervalId: NodeJS.Timeout | null = null;
+  private static instance: EmailSyncService | null = null;
   
-  private constructor() {}
+  private constructor() {
+    // Private constructor for singleton pattern
+  }
   
   public static getInstance(): EmailSyncService {
     if (!EmailSyncService.instance) {
@@ -37,111 +15,78 @@ export class EmailSyncService {
     return EmailSyncService.instance;
   }
   
-  public startSyncService(): void {
-    if (this.syncIntervalId) {
-      clearInterval(this.syncIntervalId);
-    }
-    
-    // Check for new emails every minute
-    this.syncIntervalId = setInterval(async () => {
-      await this.syncAllAccounts();
-    }, 60 * 1000);
-    
-    // Start an initial sync
-    this.syncAllAccounts();
-  }
-  
-  public stopSyncService(): void {
-    if (this.syncIntervalId) {
-      clearInterval(this.syncIntervalId);
-      this.syncIntervalId = null;
-    }
-  }
-  
-  // Add the syncEmails method that was missing
-  public async syncEmails(account: EmailAccount): Promise<{ success: boolean; message: string }> {
+  async syncEmails(accountId: string): Promise<boolean> {
     try {
-      console.log(`Manual sync initiated for account: ${account.email}`);
-      await this.syncAccount(account);
-      return { 
-        success: true, 
-        message: `Successfully synced emails for ${account.email}` 
-      };
+      console.log(`Syncing emails for account ${accountId}`);
+      // In a real implementation, this would connect to the email server
+      // and sync emails to the database
+      
+      // For now, we'll just simulate success
+      return true;
     } catch (error) {
-      console.error(`Error during manual sync for ${account.email}:`, error);
-      return { 
-        success: false, 
-        message: error instanceof Error ? error.message : 'Failed to sync emails' 
-      };
+      console.error('Error syncing emails:', error);
+      return false;
     }
   }
   
-  private async syncAllAccounts(): Promise<void> {
+  async syncAllAccounts(): Promise<{ success: number; failed: number }> {
     try {
-      const accountService = EmailAccountService.getInstance();
-      const accounts = await accountService.getAccounts();
+      const { data: accounts, error } = await supabase
+        .from('email_accounts')
+        .select('*')
+        .eq('is_active', true);
+        
+      if (error) throw error;
+      
+      let success = 0;
+      let failed = 0;
       
       for (const account of accounts) {
-        if (account.is_active) {
-          // Check if it's time to sync this account
-          const lastSync = account.last_sync_at ? new Date(account.last_sync_at) : null;
-          const now = new Date();
-          
-          if (!lastSync || 
-              (now.getTime() - lastSync.getTime() > (account.sync_frequency || 5) * 60 * 1000)) {
-            await this.syncAccount(account);
-          }
+        const result = await this.syncEmails(account.id);
+        if (result) {
+          success++;
+        } else {
+          failed++;
         }
       }
+      
+      return { success, failed };
     } catch (error) {
       console.error('Error syncing all accounts:', error);
+      return { success: 0, failed: 0 };
     }
   }
   
-  private async syncAccount(account: EmailAccount): Promise<void> {
-    console.log(`Syncing account: ${account.email}`);
-    
+  async getLastSyncTime(accountId: string): Promise<string | null> {
     try {
-      // Connect to the email server
-      const client = new ImapClient({
-        host: account.imap_host || account.host,
-        port: account.imap_port || account.port,
-        secure: account.imap_secure || account.secure,
-        auth: {
-          user: account.imap_username || account.username,
-          pass: account.imap_password || account.password
-        }
-      });
+      const { data, error } = await supabase
+        .from('email_accounts')
+        .select('last_sync_at')
+        .eq('id', accountId)
+        .single();
+        
+      if (error) throw error;
       
-      await client.connect();
-      
-      // Get the last sync time
-      const since = account.last_sync_at ? new Date(account.last_sync_at) : new Date(0);
-      
-      // Fetch new messages
-      const messages = await client.listMessages({
-        since,
-        limit: account.max_emails_per_sync || 100
-      });
-      
-      // Process and save the messages
-      // ... (code for processing messages would go here)
-      
-      // Update the last sync time
-      await EmailAccountService.getInstance().updateAccount(account.id, {
-        last_sync_at: new Date().toISOString()
-      });
-      
-      await client.disconnect();
-      
-      console.log(`Successfully synced ${messages.length} messages for ${account.email}`);
+      return data.last_sync_at;
     } catch (error) {
-      console.error(`Error syncing account ${account.email}:`, error);
+      console.error('Error getting last sync time:', error);
+      return null;
+    }
+  }
+  
+  async updateLastSyncTime(accountId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('email_accounts')
+        .update({ last_sync_at: new Date().toISOString() })
+        .eq('id', accountId);
+        
+      if (error) throw error;
       
-      // Update account status to reflect the error
-      await EmailAccountService.getInstance().updateAccount(account.id, {
-        status: 'error'
-      });
+      return true;
+    } catch (error) {
+      console.error('Error updating last sync time:', error);
+      return false;
     }
   }
 }

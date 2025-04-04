@@ -1,1 +1,5 @@
-project_id = "lvpnigtmgnapxzezrvup"
+
+lvpnigtmgnapxzezrvup = "http://localhost:54321"
+
+[functions.send-email]
+verify_jwt = true

@@ -1,62 +1,64 @@
-
-import { EmailAccount, EmailTemplate } from '@/types/email';
+import { EmailAccount, EmailTemplate, Campaign } from '@/types/email';
 
 // Campaigns mock data
-export const mockCampaigns: any[] = [
+export const mockCampaigns: Campaign[] = [
   {
     id: '1',
-    name: 'Welcome Series',
-    status: 'running',
-    createdAt: '2024-02-01T00:00:00.000Z',
+    name: 'March Newsletter',
+    status: 'completed',
+    createdAt: '2023-03-01T08:00:00Z',
+    startedAt: '2023-03-01T09:00:00Z',
+    completedAt: '2023-03-01T09:15:00Z',
     stats: {
-      sent: 500,
-      delivered: 490,
-      opened: 350,
-      clicked: 175,
-      openRate: 71,
-      clickRate: 35
+      sent: 150,
+      delivered: 145,
+      opened: 98,
+      clicked: 45,
+      openRate: 67.6,
+      clickRate: 31.0,
     }
   },
   {
     id: '2',
-    name: 'Monthly Newsletter',
-    status: 'draft',
-    createdAt: '2024-02-15T00:00:00.000Z',
+    name: 'New Listing Notification',
+    status: 'running',
+    createdAt: '2023-03-05T10:00:00Z',
+    startedAt: '2023-03-05T10:30:00Z',
+    stats: {
+      sent: 75,
+      delivered: 73,
+      opened: 40,
+      clicked: 12,
+      openRate: 54.8,
+      clickRate: 16.4,
+    }
+  },
+  {
+    id: '3',
+    name: 'Client Appreciation',
+    status: 'scheduled',
+    createdAt: '2023-03-07T14:00:00Z',
     stats: {
       sent: 0,
       delivered: 0,
       opened: 0,
       clicked: 0,
       openRate: 0,
-      clickRate: 0
-    }
-  },
-  {
-    id: '3',
-    name: 'Product Announcement',
-    status: 'completed',
-    createdAt: '2024-01-10T00:00:00.000Z',
-    stats: {
-      sent: 1000,
-      delivered: 980,
-      opened: 700,
-      clicked: 450,
-      openRate: 71,
-      clickRate: 46
+      clickRate: 0,
     }
   },
   {
     id: '4',
-    name: 'Special Offer',
-    status: 'paused',
-    createdAt: '2024-01-25T00:00:00.000Z',
+    name: 'Spring Open House',
+    status: 'draft',
+    createdAt: '2023-03-10T11:00:00Z',
     stats: {
-      sent: 250,
-      delivered: 245,
-      opened: 150,
-      clicked: 80,
-      openRate: 61,
-      clickRate: 33
+      sent: 0,
+      delivered: 0,
+      opened: 0,
+      clicked: 0,
+      openRate: 0,
+      clickRate: 0,
     }
   }
 ];

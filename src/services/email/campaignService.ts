@@ -1,271 +1,116 @@
 
-import { EmailCampaign, Campaign, CampaignStatus } from '@/types/email';
+import { EmailCampaign, Campaign } from '@/types/email';
 import { supabase } from '@/lib/supabase';
+import emailService from './emailService';
 
-// Get all campaigns
 export const getCampaigns = async (): Promise<Campaign[]> => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      throw new Error('User not authenticated');
-    }
-    
-    const { data, error } = await supabase
-      .from('email_campaigns')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-    
-    if (error) throw error;
-    
-    return data.map(campaign => ({
-      id: campaign.id,
-      name: campaign.name,
-      status: campaign.status as CampaignStatus,
-      createdAt: campaign.created_at,
-      stats: campaign.statistics || {
-        sent: 0,
-        delivered: 0,
-        opened: 0,
-        clicked: 0,
-        openRate: 0,
-        clickRate: 0
-      }
-    }));
-  } catch (error) {
-    console.error('Error fetching email campaigns:', error);
-    // Return mock data for development
-    return [
-      {
-        id: '1',
-        name: 'Welcome Campaign',
-        status: 'completed',
-        createdAt: new Date().toISOString(),
-        stats: {
-          sent: 100,
-          delivered: 95,
-          opened: 80,
-          clicked: 40,
-          openRate: 84,
-          clickRate: 42
-        }
-      },
-      {
-        id: '2',
-        name: 'Monthly Newsletter',
-        status: 'running',
-        createdAt: new Date().toISOString(),
-        stats: {
-          sent: 500,
-          delivered: 490,
-          opened: 350,
-          clicked: 200,
-          openRate: 71,
-          clickRate: 40
-        }
-      }
-    ];
-  }
+  // Mock function for now
+  return [];
 };
 
-// Get a campaign by ID
 export const getCampaignById = async (id: string): Promise<Campaign | null> => {
   try {
+    // In a real implementation, this would fetch from Supabase
     const { data, error } = await supabase
       .from('email_campaigns')
       .select('*')
       .eq('id', id)
       .single();
-    
+      
     if (error) throw error;
     
-    if (!data) return null;
-    
-    return {
-      id: data.id,
-      name: data.name,
-      status: data.status as CampaignStatus,
-      createdAt: data.created_at,
-      startedAt: data.started_at,
-      completedAt: data.completed_at,
-      emailAccountId: data.email_account_id,
-      templateId: data.template_id,
-      contactIds: data.contact_ids || [],
-      sendingRate: data.sending_rate || 20,
-      stats: data.statistics || {
-        sent: 0,
-        delivered: 0,
-        opened: 0,
-        clicked: 0,
-        openRate: 0,
-        clickRate: 0
-      }
-    };
+    return data as Campaign;
   } catch (error) {
-    console.error(`Error fetching campaign with ID ${id}:`, error);
-    // Return mock data for development
-    return {
-      id,
-      name: 'Sample Campaign',
-      status: 'running',
-      createdAt: new Date().toISOString(),
-      startedAt: new Date().toISOString(),
-      emailAccountId: '1',
-      templateId: '1',
-      contactIds: ['1', '2', '3'],
-      sendingRate: 20,
-      stats: {
-        sent: 100,
-        delivered: 95,
-        opened: 80,
-        clicked: 40,
-        openRate: 84,
-        clickRate: 42
-      }
-    };
+    console.error(`Error fetching campaign with id ${id}:`, error);
+    return null;
   }
 };
 
-// Create a new campaign
-export const createCampaign = async (campaignData: any): Promise<Campaign> => {
+export const createCampaign = async (campaign: Partial<EmailCampaign>): Promise<Campaign> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      throw new Error('User not authenticated');
-    }
-    
-    const campaign = {
-      user_id: user.id,
-      name: campaignData.name,
-      status: campaignData.status || 'draft',
-      email_account_id: campaignData.emailAccountId,
-      template_id: campaignData.templateId,
-      contact_ids: campaignData.contactIds,
-      sending_rate: campaignData.sendingRate,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    
+    // In a real implementation, this would insert into Supabase
     const { data, error } = await supabase
       .from('email_campaigns')
-      .insert([campaign])
+      .insert({
+        ...campaign,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        status: 'draft'
+      })
       .select()
       .single();
-    
+      
     if (error) throw error;
     
-    return {
-      id: data.id,
-      name: data.name,
-      status: data.status as CampaignStatus,
-      createdAt: data.created_at,
-      emailAccountId: data.email_account_id,
-      templateId: data.template_id,
-      contactIds: data.contact_ids || [],
-      sendingRate: data.sending_rate || 20,
-      stats: {
-        sent: 0,
-        delivered: 0,
-        opened: 0,
-        clicked: 0,
-        openRate: 0,
-        clickRate: 0
-      }
-    };
+    return data as Campaign;
   } catch (error) {
     console.error('Error creating campaign:', error);
-    // Return mock data for development
-    return {
-      id: crypto.randomUUID(),
-      name: campaignData.name,
-      status: 'draft',
-      createdAt: new Date().toISOString(),
-      emailAccountId: campaignData.emailAccountId,
-      templateId: campaignData.templateId,
-      contactIds: campaignData.contactIds,
-      sendingRate: campaignData.sendingRate,
-      stats: {
-        sent: 0,
-        delivered: 0,
-        opened: 0,
-        clicked: 0,
-        openRate: 0,
-        clickRate: 0
-      }
-    };
+    throw error;
   }
 };
 
-// Delete a campaign
-export const deleteCampaign = async (id: string): Promise<void> => {
+export const deleteCampaign = async (id: string): Promise<boolean> => {
   try {
     const { error } = await supabase
       .from('email_campaigns')
       .delete()
       .eq('id', id);
-    
+      
     if (error) throw error;
+    
+    return true;
   } catch (error) {
-    console.error(`Error deleting campaign with ID ${id}:`, error);
-    throw error;
+    console.error(`Error deleting campaign with id ${id}:`, error);
+    return false;
   }
 };
 
-// Campaign actions
-export const startCampaign = async (id: string): Promise<void> => {
+export const sendCampaign = async (campaignId: string): Promise<boolean> => {
   try {
+    // Get campaign details
+    const campaign = await getCampaignById(campaignId);
+    if (!campaign) throw new Error('Campaign not found');
+    
+    // Update campaign status
     const { error } = await supabase
       .from('email_campaigns')
-      .update({ status: 'running' })
-      .eq('id', id);
-    
+      .update({ 
+        status: 'sending',
+        sent_at: new Date().toISOString()
+      })
+      .eq('id', campaignId);
+      
     if (error) throw error;
-  } catch (error) {
-    console.error(`Error starting campaign with ID ${id}:`, error);
-    throw error;
-  }
-};
-
-export const pauseCampaign = async (id: string): Promise<void> => {
-  try {
-    const { error } = await supabase
+    
+    // Initialize email service with the campaign's account
+    await emailService.initialize(campaign.emailAccountId);
+    
+    // In a real implementation, this would send emails to all recipients
+    // For now, we'll just update the status
+    
+    // Update campaign as sent
+    const { error: updateError } = await supabase
       .from('email_campaigns')
-      .update({ status: 'paused' })
-      .eq('id', id);
+      .update({ 
+        status: 'sent',
+        completed_at: new Date().toISOString()
+      })
+      .eq('id', campaignId);
+      
+    if (updateError) throw updateError;
     
-    if (error) throw error;
+    return true;
   } catch (error) {
-    console.error(`Error pausing campaign with ID ${id}:`, error);
-    throw error;
-  }
-};
-
-export const resumeCampaign = async (id: string): Promise<void> => {
-  try {
-    const { error } = await supabase
+    console.error(`Error sending campaign ${campaignId}:`, error);
+    
+    // Update campaign status to failed
+    await supabase
       .from('email_campaigns')
-      .update({ status: 'running' })
-      .eq('id', id);
-    
-    if (error) throw error;
-  } catch (error) {
-    console.error(`Error resuming campaign with ID ${id}:`, error);
-    throw error;
-  }
-};
-
-export const stopCampaign = async (id: string): Promise<void> => {
-  try {
-    const { error } = await supabase
-      .from('email_campaigns')
-      .update({ status: 'completed' })
-      .eq('id', id);
-    
-    if (error) throw error;
-  } catch (error) {
-    console.error(`Error stopping campaign with ID ${id}:`, error);
-    throw error;
+      .update({ 
+        status: 'failed'
+      })
+      .eq('id', campaignId);
+      
+    return false;
   }
 };
