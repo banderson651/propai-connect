@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import {
@@ -21,13 +22,19 @@ ChartJS.register(
   Legend
 );
 
+interface LeadMetrics {
+  sources: { name: string; count: number }[];
+  status: { name: string; count: number }[];
+  conversion: { rate: number; avgResponseTime: number };
+}
+
 export function LeadAnalytics() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [leadMetrics, setLeadMetrics] = useState({
+  const [leadMetrics, setLeadMetrics] = useState<LeadMetrics>({
     sources: [],
     status: [],
-    conversion: [],
+    conversion: { rate: 0, avgResponseTime: 0 },
   });
 
   useEffect(() => {
@@ -39,7 +46,7 @@ export function LeadAnalytics() {
       setIsLoading(true);
       const analyticsService = AnalyticsService.getInstance();
       const data = await analyticsService.getLeadMetrics();
-      setLeadMetrics(data);
+      setLeadMetrics(data as LeadMetrics);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to load lead analytics');
     } finally {
@@ -159,4 +166,4 @@ export function LeadAnalytics() {
       </div>
     </div>
   );
-} 
+}

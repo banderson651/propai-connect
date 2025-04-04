@@ -18,6 +18,7 @@ interface TopBarProps {
 
 export const TopBar = ({ onMenuClick }: TopBarProps) => {
   const { user, signOut } = useAuth();
+  const displayName = user?.email ? user.email.split('@')[0] : 'User';
 
   return (
     <header className="h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between">
@@ -50,7 +51,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
               <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
                 <User className="h-4 w-4 text-blue-600" />
               </div>
-              <span className="font-medium">{user?.name || 'User'}</span>
+              <span className="font-medium">{displayName}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">

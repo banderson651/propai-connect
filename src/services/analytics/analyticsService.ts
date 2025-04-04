@@ -1,5 +1,6 @@
-import { supabase } from '@/lib/supabase';
-import { startOfMonth, endOfMonth, subMonths, format } from 'date-fns';
+
+// This is a mock service for analytics data
+// In a real application, this would fetch data from your backend
 
 export class AnalyticsService {
   private static instance: AnalyticsService;
@@ -13,268 +14,184 @@ export class AnalyticsService {
     return AnalyticsService.instance;
   }
 
-  async getOverviewMetrics(startDate: Date) {
-    const { data: leads, error: leadsError } = await supabase
-      .from('leads')
-      .select('created_at')
-      .gte('created_at', startDate.toISOString());
-
-    const { data: properties, error: propertiesError } = await supabase
-      .from('properties')
-      .select('created_at')
-      .gte('created_at', startDate.toISOString());
-
-    const { data: tasks, error: tasksError } = await supabase
-      .from('tasks')
-      .select('created_at')
-      .gte('created_at', startDate.toISOString());
-
-    const { data: revenue, error: revenueError } = await supabase
-      .from('transactions')
-      .select('amount')
-      .gte('created_at', startDate.toISOString());
-
-    if (leadsError || propertiesError || tasksError || revenueError) {
-      throw new Error('Failed to fetch overview metrics');
-    }
-
-    // Process data into monthly buckets
-    const months = Array.from({ length: 6 }, (_, i) => subMonths(new Date(), 5 - i));
-    const leadsByMonth = months.map(month => ({
-      date: month,
-      count: leads.filter(lead => 
-        new Date(lead.created_at).getMonth() === month.getMonth() &&
-        new Date(lead.created_at).getFullYear() === month.getFullYear()
-      ).length
-    }));
-
-    const propertiesByMonth = months.map(month => ({
-      date: month,
-      count: properties.filter(property => 
-        new Date(property.created_at).getMonth() === month.getMonth() &&
-        new Date(property.created_at).getFullYear() === month.getFullYear()
-      ).length
-    }));
-
-    const tasksByMonth = months.map(month => ({
-      date: month,
-      count: tasks.filter(task => 
-        new Date(task.created_at).getMonth() === month.getMonth() &&
-        new Date(task.created_at).getFullYear() === month.getFullYear()
-      ).length
-    }));
-
-    const revenueByMonth = months.map(month => ({
-      date: month,
-      amount: revenue
-        .filter(transaction => 
-          new Date(transaction.created_at).getMonth() === month.getMonth() &&
-          new Date(transaction.created_at).getFullYear() === month.getFullYear()
-        )
-        .reduce((sum, transaction) => sum + transaction.amount, 0)
-    }));
-
+  public async getOverviewMetrics(startDate: Date): Promise<{
+    leads: number[];
+    properties: number[];
+    revenue: number[];
+    tasks: number[];
+  }> {
+    // This would normally fetch from an API
     return {
-      leads: leadsByMonth.map(m => m.count),
-      properties: propertiesByMonth.map(m => m.count),
-      tasks: tasksByMonth.map(m => m.count),
-      revenue: revenueByMonth.map(m => m.amount),
+      leads: [12, 19, 15, 23, 28, 35],
+      properties: [8, 11, 13, 15, 14, 19],
+      revenue: [12000, 18500, 22000, 25000, 28000, 32000],
+      tasks: [23, 31, 28, 35, 42, 49],
     };
   }
 
-  async getLeadMetrics() {
-    const { data: leads, error: leadsError } = await supabase
-      .from('leads')
-      .select('source, status, created_at, updated_at');
-
-    if (leadsError) {
-      throw new Error('Failed to fetch lead metrics');
-    }
-
-    // Process lead sources
-    const sources = leads.reduce((acc, lead) => {
-      acc[lead.source] = (acc[lead.source] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    // Process lead statuses
-    const statuses = leads.reduce((acc, lead) => {
-      acc[lead.status] = (acc[lead.status] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    // Calculate average response time
-    const responseTimes = leads
-      .filter(lead => lead.created_at && lead.updated_at)
-      .map(lead => {
-        const created = new Date(lead.created_at);
-        const updated = new Date(lead.updated_at);
-        return (updated.getTime() - created.getTime()) / (1000 * 60 * 60); // Convert to hours
-      });
-
-    const avgResponseTime = responseTimes.length > 0
-      ? responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length
-      : 0;
-
-    // Calculate conversion rate
-    const convertedLeads = leads.filter(lead => lead.status === 'converted').length;
-    const conversionRate = leads.length > 0
-      ? (convertedLeads / leads.length) * 100
-      : 0;
-
+  public async getLeadMetrics(): Promise<{
+    sources: { name: string; count: number }[];
+    status: { name: string; count: number }[];
+    conversion: { rate: number; avgResponseTime: number };
+  }> {
+    // This would normally fetch from an API
     return {
-      sources: Object.entries(sources).map(([name, count]) => ({ name, count })),
-      status: Object.entries(statuses).map(([name, count]) => ({ name, count })),
+      sources: [
+        { name: 'Website', count: 42 },
+        { name: 'Referral', count: 28 },
+        { name: 'Social Media', count: 35 },
+        { name: 'Direct', count: 19 },
+        { name: 'Other', count: 8 },
+      ],
+      status: [
+        { name: 'New', count: 32 },
+        { name: 'Contacted', count: 25 },
+        { name: 'Qualified', count: 18 },
+        { name: 'Lost', count: 12 },
+      ],
       conversion: {
-        rate: Math.round(conversionRate),
-        avgResponseTime: Math.round(avgResponseTime * 10) / 10,
+        rate: 65,
+        avgResponseTime: 2.5,
       },
     };
   }
 
-  async getPropertyMetrics() {
-    const { data: properties, error: propertiesError } = await supabase
-      .from('properties')
-      .select('type, status, price, views');
-
-    if (propertiesError) {
-      throw new Error('Failed to fetch property metrics');
-    }
-
-    // Process property types
-    const types = properties.reduce((acc, property) => {
-      acc[property.type] = (acc[property.type] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    // Process property statuses
-    const statuses = properties.reduce((acc, property) => {
-      acc[property.status] = (acc[property.status] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    // Calculate average price
-    const averagePrice = properties.length > 0
-      ? properties.reduce((sum, property) => sum + property.price, 0) / properties.length
-      : 0;
-
-    // Process views
-    const views = properties.reduce((acc, property) => {
-      const date = format(new Date(), 'yyyy-MM-dd');
-      acc[date] = (acc[date] || 0) + property.views;
-      return acc;
-    }, {} as Record<string, number>);
+  public async getPropertyMetrics(): Promise<{
+    types: { name: string; count: number }[];
+    status: { name: string; count: number }[];
+    priceRanges: { average: number };
+    views: { date: string; count: number }[];
+  }> {
+    // Generate last 7 days for property views
+    const views = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (6 - i));
+      return {
+        date: date.toISOString(),
+        count: Math.floor(Math.random() * 50) + 10,
+      };
+    });
 
     return {
-      types: Object.entries(types).map(([name, count]) => ({ name, count })),
-      status: Object.entries(statuses).map(([name, count]) => ({ name, count })),
+      types: [
+        { name: 'Apartment', count: 35 },
+        { name: 'House', count: 28 },
+        { name: 'Commercial', count: 12 },
+        { name: 'Land', count: 7 },
+      ],
+      status: [
+        { name: 'For Sale', count: 45 },
+        { name: 'For Rent', count: 38 },
+        { name: 'Sold', count: 22 },
+        { name: 'Reserved', count: 8 },
+      ],
       priceRanges: {
-        average: Math.round(averagePrice),
+        average: 350000,
       },
-      views: Object.entries(views).map(([date, count]) => ({ date, count })),
+      views,
     };
   }
 
-  async getTaskMetrics() {
-    const { data: tasks, error: tasksError } = await supabase
-      .from('tasks')
-      .select('status, priority, due_date, completed_at');
-
-    if (tasksError) {
-      throw new Error('Failed to fetch task metrics');
-    }
-
-    // Process task statuses
-    const statuses = tasks.reduce((acc, task) => {
-      acc[task.status] = (acc[task.status] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    // Process task priorities
-    const priorities = tasks.reduce((acc, task) => {
-      acc[task.priority] = (acc[task.priority] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    // Calculate completion rate
-    const completedTasks = tasks.filter(task => task.completed_at).length;
-    const completionRate = tasks.length > 0
-      ? (completedTasks / tasks.length) * 100
-      : 0;
-
-    // Calculate overdue tasks
-    const overdueTasks = tasks.filter(task => {
-      if (!task.due_date || task.completed_at) return false;
-      return new Date(task.due_date) < new Date();
-    }).length;
-
-    // Process completion rate by date
-    const completionByDate = tasks.reduce((acc, task) => {
-      if (!task.completed_at) return acc;
-      const date = format(new Date(task.completed_at), 'yyyy-MM-dd');
-      acc[date] = (acc[date] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+  public async getTaskMetrics(): Promise<{
+    status: { name: string; count: number }[];
+    priority: { name: string; count: number }[];
+    completion: { date: string; rate: number }[];
+    overdue: number;
+  }> {
+    // Generate last 7 days for completion rate
+    const completion = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (6 - i));
+      return {
+        date: date.toISOString(),
+        rate: Math.floor(Math.random() * 30) + 60, // Random between 60-90%
+      };
+    });
 
     return {
-      status: Object.entries(statuses).map(([name, count]) => ({ name, count })),
-      priority: Object.entries(priorities).map(([name, count]) => ({ name, count })),
-      completion: Object.entries(completionByDate).map(([date, count]) => ({
-        date,
-        rate: Math.round((count / tasks.length) * 100),
-      })),
-      overdue: overdueTasks,
+      status: [
+        { name: 'Pending', count: 28 },
+        { name: 'In Progress', count: 35 },
+        { name: 'Completed', count: 42 },
+        { name: 'Overdue', count: 12 },
+      ],
+      priority: [
+        { name: 'High', count: 18 },
+        { name: 'Medium', count: 32 },
+        { name: 'Low', count: 25 },
+      ],
+      completion,
+      overdue: 12,
     };
   }
 
-  async getCommunicationMetrics() {
-    const { data: messages, error: messagesError } = await supabase
-      .from('messages')
-      .select('channel, created_at, responded_at, engagement');
+  public async getCommunicationMetrics(): Promise<{
+    channels: { name: string; count: number }[];
+    responseTime: { date: string; time: number }[];
+    engagement: { date: string; rate: number }[];
+    volume: number;
+  }> {
+    // Generate last 7 days for response time and engagement
+    const responseTime = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (6 - i));
+      return {
+        date: date.toISOString(),
+        time: Math.floor(Math.random() * 30) + 10, // Random between 10-40 minutes
+      };
+    });
 
-    if (messagesError) {
-      throw new Error('Failed to fetch communication metrics');
-    }
+    const engagement = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (6 - i));
+      return {
+        date: date.toISOString(),
+        rate: Math.floor(Math.random() * 30) + 40, // Random between 40-70%
+      };
+    });
 
-    // Process messages by channel
-    const channels = messages.reduce((acc, message) => {
-      acc[message.channel] = (acc[message.channel] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    return {
+      channels: [
+        { name: 'Email', count: 120 },
+        { name: 'Phone', count: 85 },
+        { name: 'WhatsApp', count: 95 },
+        { name: 'In Person', count: 42 },
+      ],
+      responseTime,
+      engagement,
+      volume: 342, // Total communications
+    };
+  }
 
-    // Calculate response time
-    const responseTimes = messages
-      .filter(message => message.created_at && message.responded_at)
-      .map(message => {
-        const created = new Date(message.created_at);
-        const responded = new Date(message.responded_at);
-        return (responded.getTime() - created.getTime()) / (1000 * 60); // Convert to minutes
+  public async getRevenueData(startDate: Date, endDate: Date): Promise<any[]> {
+    // Mock revenue data
+    const data = [];
+    let currentDate = new Date(startDate);
+    
+    while (currentDate <= endDate) {
+      data.push({
+        date: new Date(currentDate),
+        amount: Math.floor(Math.random() * 5000) + 1000,
       });
-
-    const avgResponseTime = responseTimes.length > 0
-      ? responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length
-      : 0;
-
-    // Process engagement rate
-    const engagementByDate = messages.reduce((acc, message) => {
-      const date = format(new Date(message.created_at), 'yyyy-MM-dd');
-      acc[date] = acc[date] || { total: 0, engaged: 0 };
-      acc[date].total++;
-      if (message.engagement) acc[date].engaged++;
-      return acc;
-    }, {} as Record<string, { total: number; engaged: number }>);
-
-    return {
-      channels: Object.entries(channels).map(([name, count]) => ({ name, count })),
-      responseTime: Object.entries(engagementByDate).map(([date, data]) => ({
-        date,
-        time: Math.round(avgResponseTime),
-      })),
-      engagement: Object.entries(engagementByDate).map(([date, data]) => ({
-        date,
-        rate: Math.round((data.engaged / data.total) * 100),
-      })),
-      volume: messages.length,
-    };
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    return data;
   }
-} 
+
+  public async getMonthlyRevenue(): Promise<any[]> {
+    // Mock monthly revenue for the last 6 months
+    const data = [];
+    const today = new Date();
+    
+    for (let i = 5; i >= 0; i--) {
+      const month = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      data.push({
+        date: month,
+        amount: Math.floor(Math.random() * 50000) + 10000,
+      });
+    }
+    
+    return data;
+  }
+}

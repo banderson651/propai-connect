@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import {
@@ -27,10 +28,10 @@ export function AnalyticsOverview() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [metrics, setMetrics] = useState({
-    leads: [],
-    properties: [],
-    revenue: [],
-    tasks: [],
+    leads: [] as number[],
+    properties: [] as number[],
+    revenue: [] as number[],
+    tasks: [] as number[],
   });
 
   useEffect(() => {
@@ -149,4 +150,4 @@ export function AnalyticsOverview() {
       </div>
     </div>
   );
-} 
+}

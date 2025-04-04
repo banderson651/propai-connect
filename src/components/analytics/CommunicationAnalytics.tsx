@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Bar, Line } from 'react-chartjs-2';
 import {
@@ -25,10 +26,17 @@ ChartJS.register(
   Legend
 );
 
+interface CommunicationMetrics {
+  channels: { name: string; count: number }[];
+  responseTime: { date: string; time: number }[];
+  engagement: { date: string; rate: number }[];
+  volume: number[] | number;
+}
+
 export function CommunicationAnalytics() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [communicationMetrics, setCommunicationMetrics] = useState({
+  const [communicationMetrics, setCommunicationMetrics] = useState<CommunicationMetrics>({
     channels: [],
     responseTime: [],
     engagement: [],
@@ -44,7 +52,7 @@ export function CommunicationAnalytics() {
       setIsLoading(true);
       const analyticsService = AnalyticsService.getInstance();
       const data = await analyticsService.getCommunicationMetrics();
-      setCommunicationMetrics(data);
+      setCommunicationMetrics(data as CommunicationMetrics);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to load communication analytics');
     } finally {
@@ -189,4 +197,4 @@ export function CommunicationAnalytics() {
       </div>
     </div>
   );
-} 
+}

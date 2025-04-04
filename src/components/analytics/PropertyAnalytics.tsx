@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import {
@@ -23,13 +24,20 @@ ChartJS.register(
   Legend
 );
 
+interface PropertyMetrics {
+  types: { name: string; count: number }[];
+  status: { name: string; count: number }[];
+  priceRanges: { average: number };
+  views: { date: string; count: number }[];
+}
+
 export function PropertyAnalytics() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [propertyMetrics, setPropertyMetrics] = useState({
+  const [propertyMetrics, setPropertyMetrics] = useState<PropertyMetrics>({
     types: [],
     status: [],
-    priceRanges: [],
+    priceRanges: { average: 0 },
     views: [],
   });
 
@@ -42,7 +50,7 @@ export function PropertyAnalytics() {
       setIsLoading(true);
       const analyticsService = AnalyticsService.getInstance();
       const data = await analyticsService.getPropertyMetrics();
-      setPropertyMetrics(data);
+      setPropertyMetrics(data as PropertyMetrics);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to load property analytics');
     } finally {
@@ -188,4 +196,4 @@ export function PropertyAnalytics() {
       </div>
     </div>
   );
-} 
+}

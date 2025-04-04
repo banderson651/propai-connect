@@ -7,7 +7,7 @@ import {
   CheckSquare,
   Settings
 } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 const navigation = [
@@ -47,9 +47,9 @@ export function DashboardNav() {
         const isActive = location.pathname === item.href || 
                          location.pathname.startsWith(`${item.href}/`);
         return (
-          <a
+          <Link
             key={item.name}
-            href={item.href}
+            to={item.href}
             className={cn(
               "flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors",
               isActive 
@@ -63,7 +63,7 @@ export function DashboardNav() {
             )} 
             aria-hidden="true" />
             {item.name}
-          </a>
+          </Link>
         );
       })}
     </nav>

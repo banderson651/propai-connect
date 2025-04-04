@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Bar, Line } from 'react-chartjs-2';
 import {
@@ -25,14 +26,21 @@ ChartJS.register(
   Legend
 );
 
+interface TaskMetrics {
+  status: { name: string; count: number }[];
+  priority: { name: string; count: number }[];
+  completion: { date: string; rate: number }[];
+  overdue: number;
+}
+
 export function TaskAnalytics() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [taskMetrics, setTaskMetrics] = useState({
+  const [taskMetrics, setTaskMetrics] = useState<TaskMetrics>({
     status: [],
     priority: [],
     completion: [],
-    overdue: [],
+    overdue: 0,
   });
 
   useEffect(() => {
@@ -44,7 +52,7 @@ export function TaskAnalytics() {
       setIsLoading(true);
       const analyticsService = AnalyticsService.getInstance();
       const data = await analyticsService.getTaskMetrics();
-      setTaskMetrics(data);
+      setTaskMetrics(data as TaskMetrics);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to load task analytics');
     } finally {
@@ -198,4 +206,4 @@ export function TaskAnalytics() {
       </div>
     </div>
   );
-} 
+}
