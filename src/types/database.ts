@@ -1,3 +1,4 @@
+
 export interface Property {
   id: string;
   user_id: string;
@@ -47,6 +48,24 @@ export interface Task {
   updated_at: string;
 }
 
+export interface CalendarEvent {
+  id: string;
+  user_id: string;
+  title: string;
+  description?: string;
+  start_date: string;
+  end_date?: string;
+  all_day: boolean;
+  location?: string;
+  color?: string;
+  task_id?: string;
+  property_id?: string;
+  contact_id?: string;
+  recurrence_pattern?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -70,6 +89,11 @@ export interface Database {
         Insert: Omit<Task, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<Task, 'id' | 'created_at' | 'updated_at'>>;
       };
+      calendar_events: {
+        Row: CalendarEvent;
+        Insert: Omit<CalendarEvent, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<CalendarEvent, 'id' | 'created_at' | 'updated_at'>>;
+      };
     };
   };
-} 
+}

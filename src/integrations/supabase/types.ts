@@ -157,16 +157,16 @@ export type Database = {
           password: string
           port: number
           secure: boolean | null
+          smtp_host: string
+          smtp_password: string
+          smtp_port: number
+          smtp_secure: boolean
+          smtp_username: string
           status: string | null
           type: string
           updated_at: string
           user_id: string
           username: string
-          smtp_host: string | null
-          smtp_port: number | null
-          smtp_secure: boolean | null
-          smtp_username: string | null
-          smtp_password: string | null
         }
         Insert: {
           created_at?: string
@@ -178,16 +178,16 @@ export type Database = {
           password: string
           port: number
           secure?: boolean | null
+          smtp_host: string
+          smtp_password: string
+          smtp_port: number
+          smtp_secure?: boolean
+          smtp_username: string
           status?: string | null
           type: string
           updated_at?: string
           user_id: string
           username: string
-          smtp_host?: string | null
-          smtp_port?: number | null
-          smtp_secure?: boolean | null
-          smtp_username?: string | null
-          smtp_password?: string | null
         }
         Update: {
           created_at?: string
@@ -199,16 +199,16 @@ export type Database = {
           password?: string
           port?: number
           secure?: boolean | null
+          smtp_host?: string
+          smtp_password?: string
+          smtp_port?: number
+          smtp_secure?: boolean
+          smtp_username?: string
           status?: string | null
           type?: string
           updated_at?: string
           user_id?: string
           username?: string
-          smtp_host?: string | null
-          smtp_port?: number | null
-          smtp_secure?: boolean | null
-          smtp_username?: string | null
-          smtp_password?: string | null
         }
         Relationships: []
       }
