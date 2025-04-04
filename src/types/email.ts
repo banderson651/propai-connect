@@ -229,12 +229,18 @@ export interface EmailLabel {
   count: number;
 }
 
-// Add Campaign types to fix errors
+// Campaign types
 export interface Campaign {
   id: string;
   name: string;
   status: CampaignStatus;
   createdAt: string;
+  startedAt?: string;
+  completedAt?: string;
+  emailAccountId?: string;
+  templateId?: string;
+  contactIds?: string[];
+  sendingRate?: number;
   stats: {
     sent: number;
     delivered: number;

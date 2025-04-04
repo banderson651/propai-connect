@@ -1,10 +1,9 @@
+
 import { EmailAccount, Email } from '@/types/email';
 import { supabase } from '@/lib/supabase';
 import { EmailAccountService } from './accountService';
-// Remove the Deno import that was causing errors
-// import { ImapClient } from 'https://deno.land/x/imap@v0.1.0/mod.ts';
 
-// Stub for the ImapClient since we can't import from Deno
+// Simple stub for ImapClient since we can't import from Deno
 class ImapClient {
   constructor(options: any) {
     // Stub constructor
@@ -56,6 +55,24 @@ export class EmailSyncService {
     if (this.syncIntervalId) {
       clearInterval(this.syncIntervalId);
       this.syncIntervalId = null;
+    }
+  }
+  
+  // Add the syncEmails method that was missing
+  public async syncEmails(account: EmailAccount): Promise<{ success: boolean; message: string }> {
+    try {
+      console.log(`Manual sync initiated for account: ${account.email}`);
+      await this.syncAccount(account);
+      return { 
+        success: true, 
+        message: `Successfully synced emails for ${account.email}` 
+      };
+    } catch (error) {
+      console.error(`Error during manual sync for ${account.email}:`, error);
+      return { 
+        success: false, 
+        message: error instanceof Error ? error.message : 'Failed to sync emails' 
+      };
     }
   }
   

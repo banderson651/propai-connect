@@ -185,16 +185,25 @@ const EmailAccountsPage = () => {
     }
     
     try {
-      const result = await testEmailConnection({
+      const testAccount: Partial<EmailAccount> = {
         id: 'temp-id',
+        user_id: '',
+        name: accountName,
         type: accountType,
         host,
         port: numPort,
         username,
         password,
         email,
-        secure
-      });
+        secure,
+        smtp_host: smtpHost,
+        smtp_port: parseInt(smtpPort, 10),
+        smtp_username: smtpUsername,
+        smtp_password: smtpPassword,
+        smtp_secure: smtpSecure
+      };
+      
+      const result = await testEmailConnection(testAccount as EmailAccount);
       
       setTestResult(result);
     } catch (error) {
@@ -273,16 +282,7 @@ const EmailAccountsPage = () => {
     setTestResult(null);
     
     try {
-      const result = await testEmailConnection({
-        id: account.id,
-        type: account.type,
-        host: account.host,
-        port: account.port,
-        username: account.username,
-        password: account.password,
-        email: account.email,
-        secure: account.secure
-      });
+      const result = await testEmailConnection(account);
       
       setTestResult(result);
       

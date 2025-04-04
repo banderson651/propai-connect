@@ -1,3 +1,4 @@
+
 // Export types
 export * from '@/types/email';
 
@@ -15,3 +16,6 @@ export * from './campaignService';
 
 // Export utilities
 export * from './emailUtils';
+
+// Export sync service
+export { EmailSyncService } from './syncService';
