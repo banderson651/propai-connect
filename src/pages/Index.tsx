@@ -1,3 +1,4 @@
+
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { DashboardNav } from '@/components/dashboard/DashboardNav';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +8,7 @@ import { TasksDashboard } from '@/components/tasks/TasksDashboard';
 import { Building2, Calendar, CheckSquare, MailOpen, MessageSquare, PlusCircle, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { cn } from '@/lib/utils';
 
 export default function Index() {
   const navigate = useNavigate();
@@ -51,7 +53,7 @@ export default function Index() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <TasksDashboard limit={5} />
+            <TasksDashboard />
             <div className="mt-4 flex justify-end">
               <Button onClick={() => navigate('/tasks')}>
                 View All Tasks
