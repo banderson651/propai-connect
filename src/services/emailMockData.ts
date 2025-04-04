@@ -1,169 +1,163 @@
-import { v4 as uuidv4 } from 'uuid';
-import { EmailAccount, EmailTemplate, Campaign } from '@/types/email';
 
-export const emailAccounts: EmailAccount[] = [
+import { EmailAccount, EmailTemplate, EmailCampaign } from '@/types/email';
+
+export const mockAccounts: EmailAccount[] = [
   {
-    id: uuidv4(),
-    user_id: '12345', // Mock user ID
-    name: 'Work Gmail',
-    email: 'propaimarketing@gmail.com',
+    id: '1',
+    user_id: 'user-1',
+    name: 'Work Email',
+    email: 'work@example.com',
+    type: 'IMAP',
+    host: 'imap.example.com',
+    port: 993,
+    username: 'work@example.com',
+    password: 'password123',
+    secure: true,
+    status: 'connected',
+    last_checked: new Date().toISOString(),
+    smtp_host: 'smtp.example.com',
+    smtp_port: 587,
+    smtp_username: 'work@example.com',
+    smtp_password: 'password123',
+    smtp_secure: true,
+    display_name: 'Work Email',
+    is_default: true,
+    is_active: true,
+    imap_host: 'imap.example.com',
+    imap_port: 993,
+    imap_username: 'work@example.com',
+    imap_password: 'password123',
+    imap_secure: true,
+    last_sync_at: new Date().toISOString(),
+    sync_frequency: 5,
+    max_emails_per_sync: 100
+  },
+  {
+    id: '2',
+    user_id: 'user-1',
+    name: 'Personal Email',
+    email: 'personal@example.com',
     type: 'IMAP',
     host: 'imap.gmail.com',
     port: 993,
-    username: 'propaimarketing@gmail.com',
-    password: 'app-password-here',
-    status: 'connected',
-    lastChecked: new Date().toISOString(),
-    secure: true
+    username: 'personal@example.com',
+    password: 'password456',
+    secure: true,
+    status: 'disconnected',
+    last_checked: new Date().toISOString(),
+    smtp_host: 'smtp.gmail.com',
+    smtp_port: 587,
+    smtp_username: 'personal@example.com',
+    smtp_password: 'password456',
+    smtp_secure: true,
+    display_name: 'Personal Gmail',
+    is_default: false,
+    is_active: false,
+    imap_host: 'imap.gmail.com',
+    imap_port: 993,
+    imap_username: 'personal@example.com',
+    imap_password: 'password456',
+    imap_secure: true,
+    last_sync_at: new Date().toISOString(),
+    sync_frequency: 10,
+    max_emails_per_sync: 200
   },
   {
-    id: uuidv4(),
-    user_id: '12345', // Mock user ID
-    name: 'Office 365',
-    email: 'marketing@propai.com',
-    type: 'IMAP',
-    host: 'outlook.office365.com',
-    port: 993,
-    username: 'marketing@propai.com',
-    password: 'password123',
-    status: 'connected',
-    lastChecked: new Date().toISOString(),
-    secure: true
-  },
-  {
-    id: uuidv4(),
-    user_id: '12345', // Mock user ID
-    name: 'Yahoo Mail',
-    email: 'propai.realestate@yahoo.com',
-    type: 'IMAP',
-    host: 'imap.mail.yahoo.com',
-    port: 993,
-    username: 'propai.realestate@yahoo.com',
-    password: 'password123',
+    id: '3',
+    user_id: 'user-1',
+    name: 'Business Email',
+    email: 'business@example.com',
+    type: 'POP3',
+    host: 'pop.example.com',
+    port: 995,
+    username: 'business@example.com',
+    password: 'password789',
+    secure: true,
     status: 'error',
-    lastChecked: new Date().toISOString(),
-    secure: true
+    last_checked: new Date().toISOString(),
+    smtp_host: 'smtp.example.com',
+    smtp_port: 587,
+    smtp_username: 'business@example.com',
+    smtp_password: 'password789',
+    smtp_secure: true,
+    display_name: 'Business Account',
+    is_default: false,
+    is_active: true,
+    imap_host: 'pop.example.com',
+    imap_port: 995,
+    imap_username: 'business@example.com',
+    imap_password: 'password789',
+    imap_secure: true,
+    last_sync_at: new Date().toISOString(),
+    sync_frequency: 15,
+    max_emails_per_sync: 150
   }
 ];
 
-export const mockEmailTemplates: EmailTemplate[] = [
+export const mockTemplates: EmailTemplate[] = [
   {
-    id: uuidv4(),
-    name: 'Welcome Email',
-    subject: 'Welcome to PropAI!',
-    body: `
-      <p>Hello {{firstName}},</p>
-      <p>Thank you for your interest in our real estate services. At PropAI, we're dedicated to helping you find the perfect property that meets your needs.</p>
-      <p>Would you like to schedule a call to discuss your property requirements?</p>
-      <p>Best regards,<br>{{agentName}}<br>PropAI Real Estate</p>
-    `,
-    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+    id: '1',
+    user_id: 'user-1',
+    name: 'Welcome Template',
+    subject: 'Welcome to our service',
+    content: '<p>Dear {{name}},</p><p>Welcome to our service! We are excited to have you on board.</p>',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    variables: ['name'],
+    body: '<p>Dear {{name}},</p><p>Welcome to our service! We are excited to have you on board.</p>'
   },
   {
-    id: uuidv4(),
-    name: 'New Property Alert',
-    subject: 'New Properties Matching Your Criteria',
-    body: `
-      <p>Hello {{firstName}},</p>
-      <p>We've found {{propertyCount}} new properties that match your search criteria:</p>
-      <ul>
-        <li>{{property1}}</li>
-        <li>{{property2}}</li>
-        <li>{{property3}}</li>
-      </ul>
-      <p>Click <a href="{{viewAllLink}}">here</a> to view all matching properties.</p>
-      <p>Best regards,<br>{{agentName}}<br>PropAI Real Estate</p>
-    `,
-    createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    id: '2',
+    user_id: 'user-1',
+    name: 'Follow-up Template',
+    subject: 'Following up on our conversation',
+    content: '<p>Hello {{name}},</p><p>I wanted to follow up on our conversation about {{topic}}.</p>',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    variables: ['name', 'topic'],
+    body: '<p>Hello {{name}},</p><p>I wanted to follow up on our conversation about {{topic}}.</p>'
   },
   {
-    id: uuidv4(),
-    name: 'Follow-up Email',
-    subject: 'Following Up: Your Real Estate Journey',
-    body: `
-      <p>Hello {{firstName}},</p>
-      <p>I wanted to follow up on our previous conversation about your property interests. Are you still looking for a {{propertyType}} in the {{location}} area?</p>
-      <p>I have some new options that might interest you. Would you like me to send you more details?</p>
-      <p>Best regards,<br>{{agentName}}<br>PropAI Real Estate</p>
-    `,
-    createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-  },
+    id: '3',
+    user_id: 'user-1',
+    name: 'Property Update',
+    subject: 'Update on your property at {{address}}',
+    content: '<p>Dear {{name}},</p><p>Here is an update regarding your property at {{address}}:</p><p>{{update_details}}</p>',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    variables: ['name', 'address', 'update_details'],
+    body: '<p>Dear {{name}},</p><p>Here is an update regarding your property at {{address}}:</p><p>{{update_details}}</p>'
+  }
 ];
 
+// Fix missing campaign mock data
 export const mockCampaigns: Campaign[] = [
   {
-    id: uuidv4(),
-    name: 'Welcome Sequence for Q2 Leads',
-    status: 'running',
-    emailAccountId: emailAccounts[0].id,
-    templateId: mockEmailTemplates[0].id,
-    contactIds: ['id1', 'id2', 'id3'], // Will link to real IDs in a full implementation
-    sendingRate: 20, // 20 emails per hour
-    scheduled: null,
-    startedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    completedAt: null,
-    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    stats: {
-      sent: 87,
-      delivered: 85,
-      opened: 42,
-      clicked: 15,
-      bounced: 2,
-      failed: 0,
-      openRate: 49.4,
-      clickRate: 17.6,
-    },
-  },
-  {
-    id: uuidv4(),
-    name: 'April Property Updates',
+    id: '1',
+    name: 'Welcome Campaign',
     status: 'completed',
-    emailAccountId: emailAccounts[1].id,
-    templateId: mockEmailTemplates[1].id,
-    contactIds: ['id4', 'id5', 'id6'], // Will link to real IDs in a full implementation
-    sendingRate: 30, // 30 emails per hour
-    scheduled: null,
-    startedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-    completedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-    createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+    createdAt: new Date().toISOString(),
     stats: {
-      sent: 150,
-      delivered: 147,
-      opened: 98,
-      clicked: 45,
-      bounced: 2,
-      failed: 1,
-      openRate: 66.7,
-      clickRate: 30.6,
-    },
+      sent: 120,
+      delivered: 118,
+      opened: 95,
+      clicked: 67,
+      openRate: 81,
+      clickRate: 57
+    }
   },
   {
-    id: uuidv4(),
-    name: 'Follow-up with Interested Buyers',
-    status: 'draft',
-    emailAccountId: emailAccounts[0].id,
-    templateId: mockEmailTemplates[2].id,
-    contactIds: ['id7', 'id8'], // Will link to real IDs in a full implementation
-    sendingRate: 10, // 10 emails per hour
-    scheduled: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-    startedAt: null,
-    completedAt: null,
-    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    id: '2',
+    name: 'Monthly Newsletter',
+    status: 'running',
+    createdAt: new Date().toISOString(),
     stats: {
-      sent: 0,
-      delivered: 0,
-      opened: 0,
-      clicked: 0,
-      bounced: 0,
-      failed: 0,
-      openRate: 0,
-      clickRate: 0,
-    },
-  },
+      sent: 250,
+      delivered: 245,
+      opened: 180,
+      clicked: 120,
+      openRate: 73,
+      clickRate: 49
+    }
+  }
 ];

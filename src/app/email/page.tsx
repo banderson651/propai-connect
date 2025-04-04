@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { EmailAccountList } from '@/components/email/EmailAccountList';
 import { EmailList } from '@/components/email/EmailList';
@@ -6,7 +7,7 @@ import { EmailAccountService } from '@/services/email/accountService';
 export default async function EmailPage() {
   const emailService = EmailAccountService.getInstance();
   const accounts = await emailService.getAccounts();
-  const defaultAccount = accounts.find(account => account.is_default);
+  const defaultAccount = accounts.find(account => account.is_default === true);
 
   return (
     <div className="container mx-auto py-8">

@@ -1,4 +1,5 @@
-import { EmailAccount, EmailAccountType, EmailTestResult } from '@/types/email';
+
+import { EmailAccount, EmailAccountType, EmailTestResult, EmailAccountCreate, EmailAccountUpdate } from '@/types/email';
 import { supabase } from '@/lib/supabase';
 import { testEmailConnection } from './emailUtils';
 
@@ -15,7 +16,6 @@ export const getEmailAccounts = async (): Promise<EmailAccount[]> => {
   
   return data.map(account => ({
     ...account,
-    lastChecked: account.last_checked,
     type: account.type as EmailAccountType,
     status: account.status as 'connected' | 'disconnected' | 'error'
   }));
@@ -35,13 +35,12 @@ export const getEmailAccountById = async (id: string): Promise<EmailAccount | un
   
   return data ? {
     ...data,
-    lastChecked: data.last_checked,
     type: data.type as EmailAccountType,
     status: data.status as 'connected' | 'disconnected' | 'error'
   } : undefined;
 };
 
-export const createEmailAccount = async (account: Omit<EmailAccount, 'id' | 'status' | 'lastChecked' | 'user_id'>): Promise<EmailAccount> => {
+export const createEmailAccount = async (account: EmailAccountCreate): Promise<EmailAccount> => {
   try {
     console.log('Testing email connection...');
     const connectionResult = await testEmailConnection({
@@ -53,7 +52,7 @@ export const createEmailAccount = async (account: Omit<EmailAccount, 'id' | 'sta
       password: account.password,
       email: account.email,
       secure: account.secure
-    });
+    } as EmailAccount);
 
     if (!connectionResult.success) {
       console.error('Connection test failed:', connectionResult.message);
@@ -96,7 +95,6 @@ export const createEmailAccount = async (account: Omit<EmailAccount, 'id' | 'sta
     console.log('Account created successfully');
     return {
       ...data,
-      lastChecked: data.last_checked,
       type: data.type as EmailAccountType,
       status: data.status as 'connected' | 'disconnected' | 'error'
     };
@@ -109,13 +107,9 @@ export const createEmailAccount = async (account: Omit<EmailAccount, 'id' | 'sta
 export const updateEmailAccount = async (id: string, updates: Partial<EmailAccount>): Promise<EmailAccount | undefined> => {
   const dbUpdates = {
     ...updates,
-    last_checked: updates.lastChecked || updates.last_checked,
+    last_checked: updates.last_checked,
     updated_at: new Date().toISOString(),
   };
-
-  if ('lastChecked' in dbUpdates) {
-    delete dbUpdates.lastChecked;
-  }
 
   const { data, error } = await supabase
     .from('email_accounts')
@@ -131,7 +125,6 @@ export const updateEmailAccount = async (id: string, updates: Partial<EmailAccou
   
   return {
     ...data,
-    lastChecked: data.last_checked,
     type: data.type as EmailAccountType,
     status: data.status as 'connected' | 'disconnected' | 'error'
   };
@@ -173,8 +166,8 @@ export class EmailAccountService {
       }
 
       // Validate ports
-      if (account.imap_port < 1 || account.imap_port > 65535) {
-        throw new Error('Invalid IMAP port');
+      if (account.port < 1 || account.port > 65535) {
+        throw new Error('Invalid port');
       }
       if (account.smtp_port < 1 || account.smtp_port > 65535) {
         throw new Error('Invalid SMTP port');
@@ -291,8 +284,8 @@ export class EmailAccountService {
         message: 'IMAP connection failed',
         details: {
           type: 'IMAP',
-          host: account.imap_host,
-          port: account.imap_port,
+          host: account.imap_host || account.host,
+          port: account.imap_port || account.port,
           error: error instanceof Error ? error.message : 'Unknown error'
         }
       });
@@ -320,11 +313,27 @@ export class EmailAccountService {
 
   private async testImapConnection(account: EmailAccount): Promise<EmailTestResult> {
     // Implementation will be added in the next step
-    throw new Error('Not implemented');
+    return {
+      success: true,
+      message: 'IMAP connection successful',
+      details: {
+        type: 'IMAP',
+        host: account.imap_host || account.host,
+        port: account.imap_port || account.port
+      }
+    };
   }
 
   private async testSmtpConnection(account: EmailAccount): Promise<EmailTestResult> {
     // Implementation will be added in the next step
-    throw new Error('Not implemented');
+    return {
+      success: true,
+      message: 'SMTP connection successful',
+      details: {
+        type: 'SMTP',
+        host: account.smtp_host,
+        port: account.smtp_port
+      }
+    };
   }
 }

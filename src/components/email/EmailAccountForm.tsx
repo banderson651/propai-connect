@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,7 +15,16 @@ import { GmailAuthService } from '@/services/email/gmailAuthService';
 
 const emailAccountSchema = z.object({
   email: z.string().email('Invalid email address'),
+  name: z.string().min(1, 'Name is required'),
   display_name: z.string().optional(),
+  
+  // Connection Settings
+  type: z.enum(['IMAP', 'POP3']),
+  host: z.string().min(1, 'Host is required'),
+  port: z.number().min(1).max(65535, 'Port must be between 1 and 65535'),
+  username: z.string().min(1, 'Username is required'),
+  password: z.string().min(1, 'Password is required'),
+  secure: z.boolean(),
   
   // IMAP Settings
   imap_host: z.string().min(1, 'IMAP host is required'),
@@ -52,7 +62,14 @@ export function EmailAccountForm({ initialData, onSubmit, onCancel }: EmailAccou
     resolver: zodResolver(emailAccountSchema),
     defaultValues: initialData || {
       email: '',
+      name: '',
       display_name: '',
+      type: 'IMAP',
+      host: '',
+      port: 993,
+      username: '',
+      password: '',
+      secure: true,
       imap_host: '',
       imap_port: 993,
       imap_username: '',
@@ -168,6 +185,18 @@ export function EmailAccountForm({ initialData, onSubmit, onCancel }: EmailAccou
               />
               {form.formState.errors.email && (
                 <p className="text-sm text-red-500">{form.formState.errors.email.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="name">Account Name</Label>
+              <Input
+                id="name"
+                {...form.register('name')}
+                placeholder="My Work Email"
+              />
+              {form.formState.errors.name && (
+                <p className="text-sm text-red-500">{form.formState.errors.name.message}</p>
               )}
             </div>
 
@@ -388,4 +417,4 @@ export function EmailAccountForm({ initialData, onSubmit, onCancel }: EmailAccou
       </div>
     </form>
   );
-} 
+}

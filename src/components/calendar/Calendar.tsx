@@ -13,6 +13,16 @@ import { Switch } from '@/components/ui/switch';
 import { format } from 'date-fns';
 import { Plus, Calendar as CalendarIcon, Clock, MapPin, Tag } from 'lucide-react';
 
+interface CalendarEventCreate {
+  title: string;
+  description?: string;
+  start_date: string;
+  end_date: string;
+  all_day: boolean;
+  location?: string;
+  color?: string;
+}
+
 interface CalendarProps {
   onEventClick?: (event: CalendarEvent) => void;
 }

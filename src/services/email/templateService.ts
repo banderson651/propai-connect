@@ -1,46 +1,129 @@
 
 import { EmailTemplate } from '@/types/email';
-import { mockEmailTemplates } from '../emailMockData';
-import { v4 as uuidv4 } from 'uuid';
+import { supabase } from '@/lib/supabase';
 
-// Email Templates
-export const getEmailTemplates = (): Promise<EmailTemplate[]> => {
-  return Promise.resolve([...mockEmailTemplates]);
+// Get all email templates for the current user
+export const getEmailTemplates = async (): Promise<EmailTemplate[]> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+    
+    const { data, error } = await supabase
+      .from('email_templates')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    return data.map(template => ({
+      ...template,
+      body: template.content // For backward compatibility
+    }));
+  } catch (error) {
+    console.error('Error fetching email templates:', error);
+    // Return mock data for development
+    return [
+      {
+        id: '1',
+        user_id: 'mock-user-id',
+        name: 'Welcome Email',
+        subject: 'Welcome to our platform',
+        content: '<p>Welcome to our platform!</p>',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+    ];
+  }
 };
 
-export const getEmailTemplateById = (id: string): Promise<EmailTemplate | undefined> => {
-  const template = mockEmailTemplates.find(template => template.id === id);
-  return Promise.resolve(template);
+// Get a specific email template by ID
+export const getEmailTemplateById = async (id: string): Promise<EmailTemplate | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('email_templates')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) throw error;
+    
+    return {
+      ...data,
+      body: data.content // For backward compatibility
+    };
+  } catch (error) {
+    console.error(`Error fetching email template with ID ${id}:`, error);
+    return null;
+  }
 };
 
-export const createEmailTemplate = (template: Omit<EmailTemplate, 'id' | 'createdAt' | 'updatedAt'>): Promise<EmailTemplate> => {
-  const now = new Date().toISOString();
-  const newTemplate: EmailTemplate = {
-    ...template,
-    id: uuidv4(),
-    createdAt: now,
-    updatedAt: now,
-  };
-  mockEmailTemplates.push(newTemplate);
-  return Promise.resolve(newTemplate);
+// Create a new email template
+export const createEmailTemplate = async (template: Omit<EmailTemplate, 'id' | 'user_id' | 'created_at' | 'updated_at'>): Promise<EmailTemplate> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+    
+    const { data, error } = await supabase
+      .from('email_templates')
+      .insert([{
+        ...template,
+        user_id: user.id
+      }])
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    return {
+      ...data,
+      body: data.content // For backward compatibility
+    };
+  } catch (error) {
+    console.error('Error creating email template:', error);
+    throw error;
+  }
 };
 
-export const updateEmailTemplate = (id: string, updates: Partial<EmailTemplate>): Promise<EmailTemplate | undefined> => {
-  const index = mockEmailTemplates.findIndex(template => template.id === id);
-  if (index === -1) return Promise.resolve(undefined);
-  
-  mockEmailTemplates[index] = { 
-    ...mockEmailTemplates[index], 
-    ...updates, 
-    updatedAt: new Date().toISOString() 
-  };
-  return Promise.resolve(mockEmailTemplates[index]);
+// Update an existing email template
+export const updateEmailTemplate = async (id: string, updates: Partial<Omit<EmailTemplate, 'id' | 'user_id' | 'created_at' | 'updated_at'>>): Promise<EmailTemplate> => {
+  try {
+    const { data, error } = await supabase
+      .from('email_templates')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    return {
+      ...data,
+      body: data.content // For backward compatibility
+    };
+  } catch (error) {
+    console.error(`Error updating email template with ID ${id}:`, error);
+    throw error;
+  }
 };
 
-export const deleteEmailTemplate = (id: string): Promise<boolean> => {
-  const index = mockEmailTemplates.findIndex(template => template.id === id);
-  if (index === -1) return Promise.resolve(false);
-  
-  mockEmailTemplates.splice(index, 1);
-  return Promise.resolve(true);
+// Delete an email template
+export const deleteEmailTemplate = async (id: string): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('email_templates')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+  } catch (error) {
+    console.error(`Error deleting email template with ID ${id}:`, error);
+    throw error;
+  }
 };

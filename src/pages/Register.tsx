@@ -1,170 +1,132 @@
-
 import { useState } from 'react';
-import { Link, useNavigate, Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, UserPlus } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
 
-const registerSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-});
+interface RegisterFormData {
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
 
-type RegisterFormValues = z.infer<typeof registerSchema>;
+export default function Register() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { user, signUp } = useAuth();
+  const { handleSubmit, register, formState: { errors }, watch } = useForm<RegisterFormData>();
 
-const Register = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const { signUp, isAuthenticated, isLoading: authLoading } = useAuth();
-
-  const form = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      password: '',
-    },
-  });
-
-  // If already logged in, redirect to dashboard
-  if (isAuthenticated && !authLoading) {
-    return <Navigate to="/" />;
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
   }
 
-  // If auth is loading, show loading state
-  if (authLoading) {
-    return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
-  }
+  const onSubmit = async (data: RegisterFormData) => {
+    if (data.password !== data.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
 
-  const handleRegister = async (values: RegisterFormValues) => {
-    setIsLoading(true);
-    
     try {
-      const { error } = await signUp(values.email, values.password, values.name);
+      setLoading(true);
+      setError(null);
       
-      if (error) {
-        toast({
-          title: "Registration failed",
-          description: error.message || "Failed to create account.",
-          variant: "destructive",
-        });
+      if (signUp) {
+        await signUp(data.email, data.password);
       } else {
-        toast({
-          title: "Registration successful",
-          description: "Your account has been created. You can now log in.",
-        });
-        // Navigate to login page with the email pre-filled
-        navigate('/login', { state: { email: values.email } });
+        setError('Authentication service is not available');
       }
-    } catch (error) {
-      toast({
-        title: "Registration error",
-        description: error instanceof Error ? error.message : "An unexpected error occurred.",
-        variant: "destructive",
-      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred during registration');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <div className="flex items-center justify-center mb-6">
-            <Building2 className="h-10 w-10 text-blue-600" />
-            <span className="text-2xl font-bold text-gray-900 ml-2">PropAI</span>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 w-full max-w-md">
+        <h2 className="text-2xl font-bold text-center mb-6 text-gray-900">
+          Create an Account
+        </h2>
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input
+              type="email"
+              id="email"
+              placeholder="Email"
+              {...register('email', {
+                required: 'Email is required',
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: 'Invalid email address',
+                },
+              })}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            />
+            {errors.email && (
+              <p className="text-red-500 text-xs italic">{errors.email.message}</p>
+            )}
           </div>
-          <CardTitle className="text-2xl text-center">Create an account</CardTitle>
-          <CardDescription className="text-center">
-            Enter your information below to create your account
-          </CardDescription>
-        </CardHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleRegister)}>
-            <CardContent className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="John Doe"
-                        required
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="email"
-                        placeholder="name@example.com"
-                        required
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="password"
-                        required
-                      />
-                    </FormControl>
-                    <FormMessage />
-                    <p className="text-xs text-gray-500">
-                      Password must be at least 6 characters long
-                    </p>
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-            <CardFooter className="flex flex-col">
-              <Button className="w-full mb-4" type="submit" disabled={isLoading}>
-                {isLoading ? 'Creating account...' : 'Create account'}
-                {!isLoading && <UserPlus className="ml-2 h-4 w-4" />}
-              </Button>
-              <p className="text-sm text-center text-gray-600">
-                Already have an account?{' '}
-                <Link to="/login" className="text-blue-600 hover:text-blue-800 font-medium">
-                  Sign in
-                </Link>
+          <div>
+            <Label htmlFor="password">Password</Label>
+            <Input
+              type="password"
+              id="password"
+              placeholder="Password"
+              {...register('password', {
+                required: 'Password is required',
+                minLength: {
+                  value: 6,
+                  message: 'Password must be at least 6 characters',
+                },
+              })}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+            />
+            {errors.password && (
+              <p className="text-red-500 text-xs italic">{errors.password.message}</p>
+            )}
+          </div>
+          <div>
+            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Input
+              type="password"
+              id="confirmPassword"
+              placeholder="Confirm Password"
+              {...register('confirmPassword', {
+                required: 'Confirm password is required',
+                validate: (value) => value === watch('password') || 'Passwords do not match',
+              })}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+            />
+            {errors.confirmPassword && (
+              <p className="text-red-500 text-xs italic">
+                {errors.confirmPassword.message}
               </p>
-            </CardFooter>
-          </form>
-        </Form>
-      </Card>
+            )}
+          </div>
+          <Button
+            type="submit"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            disabled={loading}
+          >
+            {loading ? 'Loading...' : 'Register'}
+          </Button>
+        </form>
+        <div className="text-center mt-4">
+          <Link to="/login" className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
+            Already have an account? Login!
+          </Link>
+        </div>
+      </div>
     </div>
   );
-};
-
-export default Register;
+}
