@@ -1,21 +1,58 @@
 
-// Export types
-export * from '@/types/email';
+// Re-export all email services
+import { 
+  getCampaigns, 
+  getCampaignById, 
+  createCampaign, 
+  deleteCampaign,
+  startCampaign,
+  pauseCampaign,
+  resumeCampaign,
+  stopCampaign,
+  sendCampaign
+} from './campaignService';
 
-// Export email service
-export { EmailService, default as emailService } from './emailService';
+import {
+  getEmailAccountById,
+  createEmailAccount,
+  updateEmailAccount,
+  deleteEmailAccount,
+  getEmailAccounts,
+  testEmailConnection
+} from './accountService';
 
-// Export account service
-export * from './accountService';
+import {
+  getEmailTemplateById,
+  getEmailTemplates,
+  createEmailTemplate,
+  updateEmailTemplate,
+  deleteEmailTemplate
+} from './templateService';
 
-// Export template service
-export * from './templateService';
-
-// Export campaign service
-export * from './campaignService';
-
-// Export utilities
-export * from './emailUtils';
-
-// Export sync service
-export { EmailSyncService } from './syncService';
+export {
+  // Campaign services
+  getCampaigns,
+  getCampaignById,
+  createCampaign,
+  deleteCampaign,
+  startCampaign,
+  pauseCampaign,
+  resumeCampaign,
+  stopCampaign,
+  sendCampaign,
+  
+  // Account services
+  getEmailAccountById,
+  createEmailAccount,
+  updateEmailAccount,
+  deleteEmailAccount,
+  getEmailAccounts,
+  testEmailConnection,
+  
+  // Template services
+  getEmailTemplateById,
+  getEmailTemplates,
+  createEmailTemplate,
+  updateEmailTemplate,
+  deleteEmailTemplate
+};
