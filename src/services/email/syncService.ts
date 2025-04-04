@@ -1,3 +1,4 @@
+
 import { EmailAccount } from '@/types/email';
 import { supabase } from '@/lib/supabase';
 
@@ -15,17 +16,23 @@ export class EmailSyncService {
     return EmailSyncService.instance;
   }
   
-  async syncEmails(accountId: string): Promise<boolean> {
+  async syncEmails(accountId: string): Promise<{ success: boolean; message: string }> {
     try {
       console.log(`Syncing emails for account ${accountId}`);
       // In a real implementation, this would connect to the email server
       // and sync emails to the database
       
       // For now, we'll just simulate success
-      return true;
+      return { 
+        success: true, 
+        message: "Emails synchronized successfully" 
+      };
     } catch (error) {
       console.error('Error syncing emails:', error);
-      return false;
+      return { 
+        success: false, 
+        message: error instanceof Error ? error.message : "Failed to sync emails" 
+      };
     }
   }
   
@@ -43,7 +50,7 @@ export class EmailSyncService {
       
       for (const account of accounts) {
         const result = await this.syncEmails(account.id);
-        if (result) {
+        if (result.success) {
           success++;
         } else {
           failed++;

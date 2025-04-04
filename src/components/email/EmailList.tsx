@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { supabase } from '@/lib/supabase';
@@ -57,7 +58,7 @@ export function EmailList({ account }: EmailListProps) {
   const handleSync = async () => {
     try {
       setIsSyncing(true);
-      const result = await emailSyncService.syncEmails(account);
+      const result = await emailSyncService.syncEmails(account.id);
       setSyncResult(result.message);
       if (result.success) {
         await loadMessages();
@@ -139,4 +140,4 @@ export function EmailList({ account }: EmailListProps) {
       </div>
     </div>
   );
-} 
+}

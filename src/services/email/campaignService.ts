@@ -65,6 +65,82 @@ export const deleteCampaign = async (id: string): Promise<boolean> => {
   }
 };
 
+// Implementation of the missing campaign control functions
+export const startCampaign = async (id: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('email_campaigns')
+      .update({
+        status: 'running',
+        started_at: new Date().toISOString()
+      })
+      .eq('id', id);
+      
+    if (error) throw error;
+    
+    // In a real implementation, this would initiate the sending process
+    return await sendCampaign(id);
+  } catch (error) {
+    console.error(`Error starting campaign ${id}:`, error);
+    return false;
+  }
+};
+
+export const pauseCampaign = async (id: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('email_campaigns')
+      .update({
+        status: 'paused'
+      })
+      .eq('id', id);
+      
+    if (error) throw error;
+    
+    return true;
+  } catch (error) {
+    console.error(`Error pausing campaign ${id}:`, error);
+    return false;
+  }
+};
+
+export const resumeCampaign = async (id: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('email_campaigns')
+      .update({
+        status: 'running'
+      })
+      .eq('id', id);
+      
+    if (error) throw error;
+    
+    return true;
+  } catch (error) {
+    console.error(`Error resuming campaign ${id}:`, error);
+    return false;
+  }
+};
+
+export const stopCampaign = async (id: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('email_campaigns')
+      .update({
+        status: 'completed',
+        completed_at: new Date().toISOString()
+      })
+      .eq('id', id);
+      
+    if (error) throw error;
+    
+    return true;
+  } catch (error) {
+    console.error(`Error stopping campaign ${id}:`, error);
+    return false;
+  }
+};
+
 export const sendCampaign = async (campaignId: string): Promise<boolean> => {
   try {
     // Get campaign details
