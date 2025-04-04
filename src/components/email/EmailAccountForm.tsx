@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { EmailAccountCreate, EmailAccountUpdate } from '@/types/email';
+import { EmailAccount, EmailAccountCreate, EmailAccountUpdate, EmailAccountType } from '@/types/email';
 import { EmailAccountService } from '@/services/email/accountService';
 import { GmailAuthService } from '@/services/email/gmailAuthService';
 
@@ -19,7 +19,7 @@ const emailAccountSchema = z.object({
   display_name: z.string().optional(),
   
   // Connection Settings
-  type: z.enum(['IMAP', 'POP3']),
+  type: z.enum(['imap', 'pop3'] as const),
   host: z.string().min(1, 'Host is required'),
   port: z.number().min(1).max(65535, 'Port must be between 1 and 65535'),
   username: z.string().min(1, 'Username is required'),
@@ -64,7 +64,7 @@ export function EmailAccountForm({ initialData, onSubmit, onCancel }: EmailAccou
       email: '',
       name: '',
       display_name: '',
-      type: 'IMAP',
+      type: 'imap',
       host: '',
       port: 993,
       username: '',

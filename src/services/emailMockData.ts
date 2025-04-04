@@ -1,4 +1,3 @@
-
 import { EmailAccount, EmailTemplate, Campaign } from '@/types/email';
 
 // Campaigns mock data

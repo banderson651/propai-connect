@@ -1,43 +1,19 @@
-
 import { EmailTemplate } from '@/types/email';
 import { supabase } from '@/lib/supabase';
 
 // Get all email templates for the current user
 export const getEmailTemplates = async (): Promise<EmailTemplate[]> => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      throw new Error('User not authenticated');
-    }
-    
-    const { data, error } = await supabase
-      .from('email_templates')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-    
-    if (error) throw error;
-    
-    return data.map(template => ({
-      ...template,
-      body: template.content // For backward compatibility
-    }));
-  } catch (error) {
-    console.error('Error fetching email templates:', error);
-    // Return mock data for development
-    return [
-      {
-        id: '1',
-        user_id: 'mock-user-id',
-        name: 'Welcome Email',
-        subject: 'Welcome to our platform',
-        content: '<p>Welcome to our platform!</p>',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }
-    ];
-  }
+  // For demo purposes, returning mock data
+  return mockEmailTemplates.map(template => ({
+    id: template.id,
+    name: template.name,
+    subject: template.subject,
+    body: template.content || template.body || '',
+    content: template.content,
+    created_at: template.created_at,
+    updated_at: template.updated_at,
+    user_id: template.user_id
+  }));
 };
 
 // Get a specific email template by ID

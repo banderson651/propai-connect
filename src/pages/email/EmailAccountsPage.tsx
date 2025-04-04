@@ -60,7 +60,7 @@ const EmailAccountsPage = () => {
   
   const [accountName, setAccountName] = useState('');
   const [email, setEmail] = useState('');
-  const [accountType, setAccountType] = useState<EmailAccountType>('IMAP');
+  const [accountType, setAccountType] = useState<EmailAccountType>('imap');
   const [host, setHost] = useState('');
   const [port, setPort] = useState('');
   const [username, setUsername] = useState('');
@@ -118,7 +118,7 @@ const EmailAccountsPage = () => {
   const resetForm = () => {
     setAccountName('');
     setEmail('');
-    setAccountType('IMAP');
+    setAccountType('imap');
     setHost('');
     setPort('');
     setUsername('');
@@ -477,8 +477,8 @@ const EmailAccountsPage = () => {
                   onChange={(e) => setAccountType(e.target.value as EmailAccountType)}
                   className="w-full p-2 border rounded-md"
                 >
-                  <option value="IMAP">IMAP</option>
-                  <option value="POP3">POP3</option>
+                  <option value="imap">IMAP</option>
+                  <option value="pop3">POP3</option>
                 </select>
               </div>
               <div className="space-y-2">

@@ -1,4 +1,3 @@
-
 export type EmailAccountType = 'imap' | 'pop3' | 'smtp' | 'gmail' | 'outlook';
 export type EmailAccountStatus = 'active' | 'inactive' | 'error' | 'connected' | 'disconnected';
 
