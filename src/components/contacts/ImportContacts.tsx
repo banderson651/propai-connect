@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { 
   Dialog, 
@@ -333,14 +332,14 @@ export const ImportContacts: React.FC = () => {
                       <TableCell className="font-medium">{column.name}</TableCell>
                       <TableCell>
                         <Select
-                          value={mappings.find(m => m.sourceColumn === column.name)?.targetField || ""}
-                          onValueChange={(value) => handleUpdateMapping(column.name, value)}
+                          value={mappings.find(m => m.sourceColumn === column.name)?.targetField || "none"}
+                          onValueChange={(value) => handleUpdateMapping(column.name, value === "none" ? "" : value)}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select field..." />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">-- Do not import --</SelectItem>
+                            <SelectItem value="none">-- Do not import --</SelectItem>
                             {fieldOptions.map(option => (
                               <SelectItem 
                                 key={option.value} 
