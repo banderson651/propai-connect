@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { 
   Dialog, 
@@ -43,7 +44,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-const fieldOptions = [
+// Define field options outside of component to avoid recreating on each render
+export const fieldOptions = [
   { value: 'name', label: 'Full Name' },
   { value: 'email', label: 'Email Address' },
   { value: 'phone', label: 'Phone Number' },
@@ -116,7 +118,7 @@ export const ImportContacts: React.FC = () => {
       
       // Generate initial mappings based on header names
       const initialMappings: ImportMapping[] = [];
-      parsedData[0].forEach(header => {
+      parsedData[0].forEach((header) => {
         const normalizedHeader = header.toLowerCase().trim();
         
         // Try to match header with field
@@ -467,7 +469,12 @@ export const ImportContacts: React.FC = () => {
   };
   
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      setIsOpen(open);
+      if (!open) {
+        handleClose();
+      }
+    }}>
       <DialogTrigger asChild>
         <Button variant="outline" onClick={() => setIsOpen(true)}>
           <UploadCloud className="mr-2 h-4 w-4" />
