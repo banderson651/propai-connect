@@ -23,7 +23,31 @@ serve(async (req) => {
   }
 
   try {
-    const { config } = await req.json();
+    console.log("Test connection request received");
+    
+    // Parse the request body
+    const reqBody = await req.text();
+    console.log("Request body:", reqBody);
+    
+    // Parse JSON with error handling
+    let data;
+    try {
+      data = JSON.parse(reqBody);
+    } catch (parseError) {
+      console.error("Error parsing JSON:", parseError);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: "Invalid JSON: " + (parseError instanceof Error ? parseError.message : String(parseError)),
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        }
+      );
+    }
+    
+    const { config } = data;
 
     if (!config || !config.type || !config.host || !config.port || !config.username || !config.password) {
       throw new Error("Missing required configuration");
@@ -69,6 +93,8 @@ async function testConnection(config: TestEmailConfig) {
 }
 
 async function testSmtpConnection(config: TestEmailConfig) {
+  console.log(`Testing SMTP connection to ${config.host}:${config.port}`);
+  
   const client = new SmtpClient();
 
   try {
@@ -81,6 +107,8 @@ async function testSmtpConnection(config: TestEmailConfig) {
     });
     
     await client.close();
+    console.log("SMTP connection test successful");
+    
     return {
       success: true,
       message: "SMTP connection successful",
@@ -91,6 +119,7 @@ async function testSmtpConnection(config: TestEmailConfig) {
       },
     };
   } catch (error) {
+    console.error("SMTP connection test failed:", error);
     throw new Error(`SMTP connection failed: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }

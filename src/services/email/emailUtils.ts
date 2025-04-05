@@ -12,8 +12,10 @@ export const testEmailConnection = async (account: EmailAccount): Promise<EmailT
       port: account.port || account.smtp_port,
       username: account.username || account.smtp_username,
       password: account.password || account.smtp_password,
-      secure: account.secure || account.smtp_secure
+      secure: account.secure !== undefined ? account.secure : (account.smtp_secure !== undefined ? account.smtp_secure : true)
     };
+    
+    console.log('Test connection config:', config);
     
     // Call the Edge Function to test connection
     const { data, error } = await supabase.functions.invoke('test-email-connection', {
@@ -33,8 +35,8 @@ export const testEmailConnection = async (account: EmailAccount): Promise<EmailT
       message: error instanceof Error ? error.message : 'Unknown error occurred',
       details: {
         type: account.type,
-        host: account.host,
-        port: account.port,
+        host: account.host || account.smtp_host,
+        port: account.port || account.smtp_port,
         error: error instanceof Error ? error.message : 'Unknown error'
       }
     };
@@ -56,6 +58,14 @@ export const sendTestEmail = async (account: EmailAccount, recipient: string): P
       }
     };
     
+    console.log('SMTP config for test email:', JSON.stringify({
+      ...smtpConfig,
+      auth: { 
+        user: smtpConfig.auth.user,
+        pass: '********' // Don't log the actual password
+      }
+    }));
+    
     // Call the Edge Function to send the email with better error handling
     try {
       const { data, error } = await supabase.functions.invoke('send-email', {
@@ -75,6 +85,8 @@ export const sendTestEmail = async (account: EmailAccount, recipient: string): P
           smtp: smtpConfig
         }
       });
+      
+      console.log('Send email response:', data);
       
       if (error) {
         console.error("Error invoking send-email function:", error);
