@@ -6,19 +6,26 @@ export const testEmailConnection = async (account: EmailAccount): Promise<EmailT
   try {
     console.log('Testing connection to', account.host);
     
-    // Simulate a delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Simulate a successful connection
-    return {
-      success: true,
-      message: 'Connection successful',
-      details: {
-        type: account.type,
-        host: account.host,
-        port: account.port
-      }
+    const config = {
+      type: account.type.toLowerCase(),
+      host: account.host || account.smtp_host,
+      port: account.port || account.smtp_port,
+      username: account.username || account.smtp_username,
+      password: account.password || account.smtp_password,
+      secure: account.secure || account.smtp_secure
     };
+    
+    // Call the Edge Function to test connection
+    const { data, error } = await supabase.functions.invoke('test-email-connection', {
+      body: { config }
+    });
+    
+    if (error) {
+      console.error('Error testing connection:', error);
+      throw new Error(error.message || 'Connection test failed');
+    }
+    
+    return data;
   } catch (error) {
     console.error('Error testing connection:', error);
     return {
@@ -40,12 +47,12 @@ export const sendTestEmail = async (account: EmailAccount, recipient: string): P
     
     // Prepare SMTP configuration
     const smtpConfig = {
-      host: account.smtp_host,
-      port: account.smtp_port,
-      secure: account.smtp_secure,
+      host: account.smtp_host || account.host,
+      port: account.smtp_port || account.port,
+      secure: account.smtp_secure !== undefined ? account.smtp_secure : account.secure,
       auth: {
-        user: account.smtp_username,
-        pass: account.smtp_password
+        user: account.smtp_username || account.username || account.email,
+        pass: account.smtp_password || account.password
       }
     };
     
@@ -74,7 +81,7 @@ export const sendTestEmail = async (account: EmailAccount, recipient: string): P
         throw new Error(error.message || "Failed to send email");
       }
       
-      if (!data.success) {
+      if (data && !data.success) {
         throw new Error(data.message || "Failed to send email");
       }
       
@@ -84,12 +91,9 @@ export const sendTestEmail = async (account: EmailAccount, recipient: string): P
       };
     } catch (functionError) {
       console.error("Error with Edge Function:", functionError);
-      return {
-        success: false,
-        message: functionError instanceof Error 
-          ? functionError.message 
-          : "Failed to send email - Edge Function error"
-      };
+      throw new Error(functionError instanceof Error 
+        ? functionError.message 
+        : "Failed to send email - Edge Function error");
     }
     
   } catch (error) {

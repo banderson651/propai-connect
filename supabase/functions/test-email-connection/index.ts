@@ -1,6 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { SmtpClient } from "https://deno.land/x/smtp@v0.7.0/mod.ts";
+import { SmtpClient } from "https://deno.land/x/smtp@v0.7.0/smtp_client.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -69,20 +69,17 @@ async function testConnection(config: TestEmailConfig) {
 }
 
 async function testSmtpConnection(config: TestEmailConfig) {
-  const client = new SmtpClient({
-    connection: {
-      hostname: config.host,
-      port: config.port,
-      tls: config.secure,
-      auth: {
-        username: config.username,
-        password: config.password,
-      },
-    },
-  });
+  const client = new SmtpClient();
 
   try {
-    await client.connect();
+    await client.connect({
+      hostname: config.host,
+      port: config.port,
+      username: config.username,
+      password: config.password,
+      tls: config.secure,
+    });
+    
     await client.close();
     return {
       success: true,

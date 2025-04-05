@@ -1,6 +1,6 @@
 
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { SMTPClient } from "https://deno.land/x/smtp@v0.7.0/mod.ts";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { SmtpClient } from "https://deno.land/x/smtp@v0.7.0/smtp_client.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,7 +12,6 @@ interface EmailRequest {
   subject: string;
   text?: string;
   html?: string;
-  from?: string;
   smtp: {
     host: string;
     port: number;
@@ -27,121 +26,61 @@ interface EmailRequest {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response(null, {
-      headers: corsHeaders,
-    });
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    // Parse the request body
-    let reqBody;
-    try {
-      reqBody = await req.json();
-    } catch (parseError) {
-      console.error("Error parsing request body:", parseError);
-      return new Response(
-        JSON.stringify({
-          success: false,
-          message: "Invalid request body format"
-        }),
-        {
-          status: 400,
-          headers: {
-            "Content-Type": "application/json",
-            ...corsHeaders,
-          },
-        }
-      );
-    }
+    const { to, subject, text, html, smtp }: EmailRequest = await req.json();
 
-    const { to, subject, text, html, from, smtp } = reqBody as EmailRequest;
-    
     if (!to || !subject || !smtp) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          message: "Missing required parameters: to, subject, or smtp configuration",
-        }),
-        {
-          status: 400,
-          headers: {
-            "Content-Type": "application/json",
-            ...corsHeaders,
-          },
-        }
-      );
+      throw new Error("Missing required fields: to, subject, or smtp configuration");
     }
-    
-    console.log(`Attempting to send email to ${to} via ${smtp.host}:${smtp.port}`);
-    
-    try {
-      const client = new SMTPClient({
-        connection: {
-          hostname: smtp.host,
-          port: smtp.port,
-          tls: smtp.secure,
-          auth: {
-            username: smtp.auth.user,
-            password: smtp.auth.pass,
-          },
-        },
-      });
 
-      const fromEmail = from || smtp.auth.user;
-      
-      await client.send({
-        from: fromEmail,
-        to: to,
-        subject: subject,
-        content: html || text || "This is a test email",
-        html: html || undefined,
-      });
+    console.log(`Attempting to send email to ${to} using SMTP server ${smtp.host}:${smtp.port}`);
 
-      await client.close();
-      
-      console.log("Email sent successfully");
+    const client = new SmtpClient();
 
-      return new Response(
-        JSON.stringify({ success: true, message: "Email sent successfully" }),
-        {
-          headers: {
-            "Content-Type": "application/json",
-            ...corsHeaders,
-          },
-        }
-      );
-    } catch (smtpError) {
-      console.error("SMTP Error:", smtpError);
-      return new Response(
-        JSON.stringify({
-          success: false,
-          message: `SMTP Error: ${smtpError.message || "Failed to send email"}`,
-          error: smtpError.stack || String(smtpError),
-        }),
-        {
-          status: 500,
-          headers: {
-            "Content-Type": "application/json",
-            ...corsHeaders,
-          },
-        }
-      );
-    }
+    await client.connect({
+      hostname: smtp.host,
+      port: smtp.port,
+      username: smtp.auth.user,
+      password: smtp.auth.pass,
+      tls: smtp.secure,
+    });
+
+    const senderEmail = smtp.auth.user;
+    await client.send({
+      from: senderEmail,
+      to: to,
+      subject: subject,
+      content: html || text || "Test email from PropAI",
+    });
+
+    await client.close();
+
+    console.log(`Email sent successfully to ${to}`);
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        message: `Email sent successfully to ${to}` 
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      }
+    );
   } catch (error) {
-    console.error("General error sending email:", error);
+    console.error("Error sending email:", error);
     
     return new Response(
       JSON.stringify({
         success: false,
-        message: error.message || "Failed to send email",
-        error: error.stack || String(error),
+        message: error instanceof Error ? error.message : "Unknown error occurred",
       }),
       {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-          ...corsHeaders,
-        },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
       }
     );
   }
