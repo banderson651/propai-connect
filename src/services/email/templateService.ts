@@ -1,5 +1,7 @@
+
 import { EmailTemplate } from '@/types/email';
 import { supabase } from '@/lib/supabase';
+import { mockEmailTemplates } from '@/services/emailMockData';
 
 // Get all email templates for the current user
 export const getEmailTemplates = async (): Promise<EmailTemplate[]> => {
