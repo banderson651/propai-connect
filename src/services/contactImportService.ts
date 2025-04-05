@@ -2,6 +2,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Contact, ContactTag } from '@/types/contact';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export interface ImportMapping {
   sourceColumn: string;
@@ -59,48 +60,66 @@ export const parseExcel = async (file: File): Promise<string[][]> => {
       reader.onload = (e) => {
         try {
           const data = e.target?.result;
+          if (!data) {
+            throw new Error('Failed to read file data');
+          }
+          
           const workbook = XLSX.read(data, { type: 'array' });
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
           const json = XLSX.utils.sheet_to_json<string[]>(worksheet, { header: 1 });
-          resolve(json.filter(row => row.length > 0));
+          
+          console.log('Parsed Excel data:', json.slice(0, 3)); // Debug log
+          resolve(json.filter(row => Array.isArray(row) && row.length > 0));
         } catch (error) {
+          console.error('Error processing Excel file:', error);
           reject(error);
         }
       };
       
-      reader.onerror = (error) => reject(error);
+      reader.onerror = (error) => {
+        console.error('FileReader error:', error);
+        reject(error);
+      };
+      
       reader.readAsArrayBuffer(file);
     });
   } catch (error) {
     console.error('Error parsing Excel file:', error);
+    toast.error('Failed to parse Excel file. Please check the file format.');
     throw new Error('Failed to parse Excel file. Please check the file format.');
   }
 };
 
 export const getColumnPreviews = (data: string[][], maxPreviewRows: number = 5): ColumnPreview[] => {
-  if (data.length < 2) return [];
+  if (!data || data.length < 2) {
+    console.error('Invalid data for column previews:', data);
+    return [];
+  }
   
   const headers = data[0];
   const previewData = data.slice(1, maxPreviewRows + 1);
   
+  console.log('Generating column previews. Headers:', headers);
+  
   return headers.map((header, index) => ({
     name: header,
-    values: previewData.map(row => row[index] || '')
+    values: previewData.map(row => (row[index] || '').toString().trim())
   }));
 };
 
 export const createImportRecord = async (filename: string, totalRows: number): Promise<string | null> => {
   try {
-    // Get current user id from local storage
-    const storedUser = localStorage.getItem('user');
-    if (!storedUser) {
+    // Get current user id from supabase auth
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
       console.error('User not authenticated');
+      toast.error('You must be logged in to import contacts');
       return null;
     }
     
-    const user = JSON.parse(storedUser);
-    const userId = user.email; // Using email as user_id since we don't have UUID in the mock auth
+    console.log('Creating import record for file:', filename, 'with', totalRows, 'rows');
     
     const { data, error } = await supabase
       .from('contact_imports')
@@ -108,21 +127,30 @@ export const createImportRecord = async (filename: string, totalRows: number): P
         filename,
         total_rows: totalRows,
         status: 'mapping',
-        user_id: userId
+        user_id: user.id
       })
       .select('id')
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error creating import record:', error);
+      toast.error('Failed to start import process');
+      throw error;
+    }
+    
+    console.log('Import record created with ID:', data.id);
     return data.id;
   } catch (error) {
     console.error('Error creating import record:', error);
+    toast.error('Failed to start import process');
     return null;
   }
 };
 
 export const saveColumnMappings = async (importId: string, mappings: ImportMapping[]): Promise<boolean> => {
   try {
+    console.log('Saving column mappings for import ID:', importId, mappings);
+    
     const mappingsToInsert = mappings.map(mapping => ({
       import_id: importId,
       source_column: mapping.sourceColumn,
@@ -133,7 +161,11 @@ export const saveColumnMappings = async (importId: string, mappings: ImportMappi
       .from('contact_import_mappings')
       .insert(mappingsToInsert);
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error saving column mappings:', error);
+      toast.error('Failed to save column mappings');
+      throw error;
+    }
     
     // Update import status
     const { error: updateError } = await supabase
@@ -141,11 +173,17 @@ export const saveColumnMappings = async (importId: string, mappings: ImportMappi
       .update({ status: 'processing' })
       .eq('id', importId);
       
-    if (updateError) throw updateError;
+    if (updateError) {
+      console.error('Error updating import status:', updateError);
+      toast.error('Failed to update import status');
+      throw updateError;
+    }
     
+    console.log('Column mappings saved successfully');
     return true;
   } catch (error) {
     console.error('Error saving column mappings:', error);
+    toast.error('Failed to save column mappings');
     return false;
   }
 };
@@ -156,6 +194,10 @@ export const processImport = async (
   mappings: ImportMapping[],
   onProgress?: (progress: ImportProgress) => void
 ): Promise<ImportProgress> => {
+  console.log('Starting import process for ID:', importId);
+  console.log('Data sample:', data.slice(0, 2));
+  console.log('Mappings:', mappings);
+  
   const progress: ImportProgress = {
     total: data.length - 1, // Exclude header row
     processed: 0,
@@ -174,11 +216,14 @@ export const processImport = async (
     const headers = data[0];
     const rows = data.slice(1);
     
+    console.log('Processing', rows.length, 'rows with', headers.length, 'columns');
+    
     const fieldIndexMap = new Map<string, number>();
     mappings.forEach(mapping => {
       const index = headers.findIndex(h => h === mapping.sourceColumn);
       if (index !== -1) {
         fieldIndexMap.set(mapping.targetField, index);
+        console.log(`Mapped field ${mapping.targetField} to column index ${index}`);
       }
     });
     
@@ -186,13 +231,17 @@ export const processImport = async (
       try {
         progress.processed++;
         
+        if (progress.processed % 10 === 0) {
+          console.log(`Processed ${progress.processed} of ${progress.total} rows`);
+        }
+        
         const contactData: any = {
           tags: []
         };
         
         // Extract fields based on mapping
         for (const [field, index] of fieldIndexMap.entries()) {
-          const value = row[index]?.trim();
+          const value = row[index]?.toString().trim();
           
           if (field === 'tags' && value) {
             // Split comma-separated tags
@@ -204,7 +253,7 @@ export const processImport = async (
         
         // Ensure required fields
         if (!contactData.name || !contactData.email) {
-          throw new Error('Missing required fields: name and email');
+          throw new Error(`Missing required fields: ${!contactData.name ? 'name' : ''} ${!contactData.email ? 'email' : ''}`);
         }
         
         // Generate a new UUID for the contact
@@ -226,7 +275,10 @@ export const processImport = async (
             updated_at: now
           });
           
-        if (error) throw error;
+        if (error) {
+          console.error('Error inserting contact:', error);
+          throw error;
+        }
         
         progress.successful++;
         
@@ -245,11 +297,9 @@ export const processImport = async (
         }
       } catch (error) {
         progress.failed++;
-        if (error instanceof Error) {
-          progress.errors.push(`Row ${progress.processed}: ${error.message}`);
-        } else {
-          progress.errors.push(`Row ${progress.processed}: Unknown error`);
-        }
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error(`Error processing row ${progress.processed}:`, errorMessage);
+        progress.errors.push(`Row ${progress.processed}: ${errorMessage}`);
       }
     }
     
@@ -262,11 +312,17 @@ export const processImport = async (
       })
       .eq('id', importId);
     
+    console.log('Import completed successfully');
+    console.log(`Processed: ${progress.processed}, Successful: ${progress.successful}, Failed: ${progress.failed}`);
+    
     if (onProgress) onProgress({ ...progress });
+    toast.success(`Successfully imported ${progress.successful} contacts`);
     return progress;
     
   } catch (error) {
-    console.error('Error processing import:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error processing import:', errorMessage);
+    toast.error('Import failed. Please try again.');
     
     // Update import status to failed
     await supabase

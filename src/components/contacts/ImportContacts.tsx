@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { UploadCloud, FileSpreadsheet, CheckCircle, AlertCircle, ChevronRight, ChevronLeft } from 'lucide-react';
 import { 
   parseCSV, 
@@ -62,8 +63,9 @@ export const ImportContacts: React.FC = () => {
   const [progress, setProgress] = useState<ImportProgress | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [importId, setImportId] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
   
   const resetState = () => {
     setFile(null);
@@ -73,6 +75,7 @@ export const ImportContacts: React.FC = () => {
     setProgress(null);
     setIsProcessing(false);
     setImportId(null);
+    setIsUploading(false);
     setStep(1);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -83,15 +86,19 @@ export const ImportContacts: React.FC = () => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
     
+    setIsUploading(true);
     setFile(selectedFile);
     
     try {
+      console.log('Processing file:', selectedFile.name, selectedFile.type);
       let parsedData: string[][] = [];
       
       if (selectedFile.name.endsWith('.csv')) {
+        console.log('Parsing CSV file...');
         const text = await selectedFile.text();
         parsedData = parseCSV(text);
       } else if (selectedFile.name.endsWith('.xlsx') || selectedFile.name.endsWith('.xls')) {
+        console.log('Parsing Excel file...');
         parsedData = await parseExcel(selectedFile);
       } else {
         throw new Error('Unsupported file format. Please upload a CSV or Excel file.');
@@ -101,6 +108,7 @@ export const ImportContacts: React.FC = () => {
         throw new Error('The file appears to be empty or has invalid format.');
       }
       
+      console.log('File parsed successfully. Row count:', parsedData.length);
       setFileData(parsedData);
       
       // Generate column previews
@@ -136,13 +144,18 @@ export const ImportContacts: React.FC = () => {
       
       // Move to next step
       setStep(2);
+      toast.success('File uploaded successfully!');
     } catch (error) {
-      console.error('File parsing error:', error);
-      toast({
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('File parsing error:', errorMessage);
+      toast.error(`Error uploading file: ${errorMessage}`);
+      uiToast({
         variant: "destructive",
         title: "Error uploading file",
-        description: error instanceof Error ? error.message : "An unknown error occurred.",
+        description: errorMessage,
       });
+    } finally {
+      setIsUploading(false);
     }
   };
   
@@ -172,11 +185,7 @@ export const ImportContacts: React.FC = () => {
   
   const handleStartImport = async () => {
     if (!fileData.length || !mappings.length || !importId) {
-      toast({
-        variant: "destructive",
-        title: "Cannot start import",
-        description: "Please upload a file and map at least name and email fields.",
-      });
+      toast.error('Cannot start import. Please upload a file and map at least name and email fields.');
       return;
     }
     
@@ -185,7 +194,8 @@ export const ImportContacts: React.FC = () => {
     const hasEmailMapping = mappings.some(m => m.targetField === 'email');
     
     if (!hasNameMapping || !hasEmailMapping) {
-      toast({
+      toast.error('You must map both Name and Email fields to proceed.');
+      uiToast({
         variant: "destructive",
         title: "Missing required fields",
         description: "You must map both Name and Email fields to proceed.",
@@ -197,25 +207,21 @@ export const ImportContacts: React.FC = () => {
     setStep(3);
     
     try {
+      console.log('Starting import process...');
       // Save mappings to database
       await saveColumnMappings(importId, mappings);
       
       // Process the import
       await processImport(importId, fileData, mappings, (progressUpdate) => {
         setProgress(progressUpdate);
+        console.log('Import progress:', progressUpdate);
       });
       
-      toast({
-        title: "Import completed",
-        description: `Successfully imported ${progress?.successful || 0} contacts.`,
-      });
+      toast.success(`Successfully imported ${progress?.successful || 0} contacts.`);
     } catch (error) {
-      console.error('Import error:', error);
-      toast({
-        variant: "destructive",
-        title: "Import failed",
-        description: error instanceof Error ? error.message : "An unknown error occurred during import.",
-      });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Import error:', errorMessage);
+      toast.error(`Import failed: ${errorMessage}`);
     } finally {
       setIsProcessing(false);
     }
@@ -223,12 +229,34 @@ export const ImportContacts: React.FC = () => {
   
   const handleClose = () => {
     if (isProcessing) {
-      toast({
-        description: "Import is in progress. It will continue in the background.",
-      });
+      toast.info('Import is in progress. It will continue in the background.');
     }
     resetState();
     setIsOpen(false);
+  };
+  
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const droppedFiles = e.dataTransfer.files;
+    if (droppedFiles.length > 0) {
+      const file = droppedFiles[0];
+      
+      // Create a synthetic event object with the file
+      const syntheticEvent = {
+        target: {
+          files: droppedFiles
+        }
+      } as unknown as React.ChangeEvent<HTMLInputElement>;
+      
+      await handleFileChange(syntheticEvent);
+    }
   };
   
   const renderStep = () => {
@@ -236,24 +264,42 @@ export const ImportContacts: React.FC = () => {
       case 1:
         return (
           <div className="py-8 flex flex-col items-center">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 flex flex-col items-center justify-center">
-              <UploadCloud className="h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium mb-2">Upload Contact File</h3>
-              <p className="text-sm text-gray-500 text-center mb-6">
-                Drag and drop a CSV or Excel file, or click to browse
-              </p>
-              <Input
-                ref={fileInputRef}
-                type="file"
-                accept=".csv,.xlsx,.xls"
-                onChange={handleFileChange}
-                className="hidden"
-                id="file-upload"
-              />
-              <Button onClick={() => fileInputRef.current?.click()}>
-                <FileSpreadsheet className="mr-2 h-4 w-4" />
-                Select File
-              </Button>
+            <div 
+              className="border-2 border-dashed border-gray-300 rounded-lg p-12 flex flex-col items-center justify-center"
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            >
+              {isUploading ? (
+                <>
+                  <div className="animate-spin mb-4">
+                    <svg className="h-12 w-12 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium mb-2">Processing file...</h3>
+                </>
+              ) : (
+                <>
+                  <UploadCloud className="h-12 w-12 text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium mb-2">Upload Contact File</h3>
+                  <p className="text-sm text-gray-500 text-center mb-6">
+                    Drag and drop a CSV or Excel file, or click to browse
+                  </p>
+                  <Input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".csv,.xlsx,.xls"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    id="file-upload"
+                  />
+                  <Button onClick={() => fileInputRef.current?.click()}>
+                    <FileSpreadsheet className="mr-2 h-4 w-4" />
+                    Select File
+                  </Button>
+                </>
+              )}
             </div>
             <div className="mt-6 text-sm text-gray-500">
               <p>Supported file formats: CSV, Excel (.xlsx, .xls)</p>
