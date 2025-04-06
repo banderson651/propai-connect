@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -144,7 +143,7 @@ export function EmailDiagnostics({ account, onSuccess, onError }: EmailDiagnosti
         updateStep(4, { 
           status: 'success', 
           message: 'Email sent successfully',
-          details: `Test email sent to ${testEmailAddress}`
+          details: `Test email sent to ${testEmailAddress} (Note: In development mode)`
         });
       } else {
         updateStep(4, { 
