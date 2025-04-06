@@ -41,31 +41,29 @@ export const testEmailConnection = async (account: EmailAccount): Promise<EmailT
       password: '********' // Don't log actual password
     });
     
-    // Call the Edge Function to test connection with timeout handling
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 20000); // 20-second timeout
+    // Use a Promise with timeout rather than AbortController
+    const timeoutPromise = new Promise<EmailTestResult>((_, reject) => {
+      setTimeout(() => reject(new Error('Connection test timed out after 20 seconds')), 20000);
+    });
     
     try {
       // Call the Edge Function to test connection
-      const response = await supabase.functions.invoke('test-email-connection', {
-        body: { config },
-        signal: controller.signal
+      const resultPromise = supabase.functions.invoke('test-email-connection', {
+        body: { config }
+      }).then(response => {
+        if (response.error) {
+          debugLog('Edge function error:', response.error);
+          throw new Error(response.error.message || 'Connection test failed');
+        }
+        
+        debugLog('Connection test response:', response);
+        return response.data;
       });
       
-      clearTimeout(timeoutId);
-      
-      if (response.error) {
-        debugLog('Edge function error:', response.error);
-        throw new Error(response.error.message || 'Connection test failed');
-      }
-      
-      debugLog('Connection test response:', response);
-      
-      return response.data;
+      // Race the function call against the timeout
+      return await Promise.race([resultPromise, timeoutPromise]);
     } catch (fetchError) {
-      clearTimeout(timeoutId);
-      
-      if (fetchError.name === 'AbortError') {
+      if (fetchError.message?.includes('timed out')) {
         debugLog('Connection test timed out after 20 seconds');
         throw new Error('Connection test timed out after 20 seconds. The server may be unreachable or blocking connections.');
       }
@@ -128,11 +126,12 @@ export const sendTestEmail = async (account: EmailAccount, recipient: string): P
     
     // Call the Edge Function to send the email with improved error handling
     try {
-      // Set up timeout for the request
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30-second timeout
+      // Use Promise with timeout instead of AbortController
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Email sending timed out after 30 seconds')), 30000);
+      });
       
-      const response = await supabase.functions.invoke('send-email', {
+      const responsePromise = supabase.functions.invoke('send-email', {
         body: {
           to: recipient,
           subject: "Test Email from PropAI",
@@ -150,32 +149,31 @@ export const sendTestEmail = async (account: EmailAccount, recipient: string): P
           from: `"${account.name}" <${account.email}>`,
           messageId: messageId,
           smtp: smtpConfig
-        },
-        signal: controller.signal
+        }
+      }).then(response => {
+        debugLog('Send email response:', response);
+        
+        if (response.error) {
+          debugLog("Error invoking send-email function:", response.error);
+          throw new Error(response.error.message || "Failed to send email");
+        }
+        
+        const data = response.data;
+        
+        if (!data.success) {
+          debugLog("Email sending failed:", data);
+          throw new Error(data.message || "Failed to send email");
+        }
+        
+        return {
+          success: true,
+          message: `Test email sent successfully from ${account.email} to ${recipient}`
+        };
       });
       
-      clearTimeout(timeoutId);
-      
-      debugLog('Send email response:', response);
-      
-      if (response.error) {
-        debugLog("Error invoking send-email function:", response.error);
-        throw new Error(response.error.message || "Failed to send email");
-      }
-      
-      const data = response.data;
-      
-      if (!data.success) {
-        debugLog("Email sending failed:", data);
-        throw new Error(data.message || "Failed to send email");
-      }
-      
-      return {
-        success: true,
-        message: `Test email sent successfully from ${account.email} to ${recipient}`
-      };
+      return await Promise.race([responsePromise, timeoutPromise]);
     } catch (fetchError) {
-      if (fetchError.name === 'AbortError') {
+      if (fetchError.message?.includes('timed out')) {
         debugLog('Email sending timed out after 30 seconds');
         throw new Error('Email sending timed out after 30 seconds. The server may be slow or rejecting the connection.');
       }

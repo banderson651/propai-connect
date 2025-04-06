@@ -139,14 +139,15 @@ export class EmailService {
       // Generate message ID for tracking
       const messageId = `<${Date.now()}-${Math.random().toString(36).substring(2, 15)}@${account.smtp_host}>`;
 
-      // Call the Edge Function to send the email with timeout handling
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30-second timeout
+      // Use Promise with timeout instead of AbortController
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Email sending timed out after 30 seconds')), 30000);
+      });
       
-      if (DEBUG_MODE) console.log('[EmailService] Invoking edge function with controller');
+      if (DEBUG_MODE) console.log('[EmailService] Invoking edge function');
       
       try {
-        const { data, error: sendError } = await supabase.functions.invoke('send-email', {
+        const resultPromise = supabase.functions.invoke('send-email', {
           body: {
             to: recipients.join(','),
             subject: options.subject,
@@ -156,42 +157,39 @@ export class EmailService {
             attachments: options.attachments,
             messageId: messageId,
             smtp: smtpConfig
-          },
-          signal: controller.signal
+          }
+        }).then(async response => {
+          if (response.error) {
+            if (DEBUG_MODE) console.error('[EmailService] Edge function error:', response.error);
+            throw response.error;
+          }
+          
+          if (DEBUG_MODE) console.log('[EmailService] Edge function response:', response.data);
+          
+          if (!response.data.success) {
+            if (DEBUG_MODE) console.error('[EmailService] Email sending failed:', response.data.message);
+            throw new Error(response.data.message);
+          }
+  
+          // Log successful email
+          await supabase.from('email_logs').insert({
+            to: Array.isArray(options.to) ? options.to.join(', ') : options.to,
+            subject: options.subject,
+            status: 'success',
+            account_id: this.accountId,
+            message_id: messageId
+          });
+  
+          // Reset retry count on success
+          this.retryCount = 0;
+          this.lastError = null;
+  
+          return { success: true, message: 'Email sent successfully', messageId };
         });
-
-        clearTimeout(timeoutId);
         
-        if (sendError) {
-          if (DEBUG_MODE) console.error('[EmailService] Edge function error:', sendError);
-          throw sendError;
-        }
-        
-        if (DEBUG_MODE) console.log('[EmailService] Edge function response:', data);
-        
-        if (!data.success) {
-          if (DEBUG_MODE) console.error('[EmailService] Email sending failed:', data.message);
-          throw new Error(data.message);
-        }
-
-        // Log successful email
-        await supabase.from('email_logs').insert({
-          to: Array.isArray(options.to) ? options.to.join(', ') : options.to,
-          subject: options.subject,
-          status: 'success',
-          account_id: this.accountId,
-          message_id: messageId
-        });
-
-        // Reset retry count on success
-        this.retryCount = 0;
-        this.lastError = null;
-
-        return { success: true, message: 'Email sent successfully', messageId };
+        return await Promise.race([resultPromise, timeoutPromise]);
       } catch (fetchError) {
-        clearTimeout(timeoutId);
-        
-        if (fetchError.name === 'AbortError') {
+        if (fetchError.message?.includes('timed out')) {
           const timeoutMsg = 'Email sending timed out after 30 seconds';
           if (DEBUG_MODE) console.error(`[EmailService] ${timeoutMsg}`);
           throw new Error(timeoutMsg);
