@@ -1,10 +1,31 @@
 
 import { EmailAccount, EmailTestResult } from '@/types/email';
 import { supabase } from '@/lib/supabase';
+import { toast } from '@/hooks/use-toast';
 
+// Utility function to add DEBUG output when in debug mode
+const DEBUG_MODE = true; // Set to true to enable detailed diagnostic logging
+const debugLog = (message: string, data?: any) => {
+  if (DEBUG_MODE) {
+    if (data) {
+      console.log(`[EMAIL-DEBUG] ${message}`, data);
+    } else {
+      console.log(`[EMAIL-DEBUG] ${message}`);
+    }
+  }
+};
+
+/**
+ * Tests email server connection using provided account credentials
+ */
 export const testEmailConnection = async (account: EmailAccount): Promise<EmailTestResult> => {
   try {
-    console.log('Testing connection to', account.host);
+    debugLog('Testing connection to', { 
+      host: account.host || account.smtp_host,
+      port: account.port || account.smtp_port,
+      user: account.username || account.smtp_username,
+      secure: account.secure !== undefined ? account.secure : (account.smtp_secure !== undefined ? account.smtp_secure : true)
+    });
     
     const config = {
       type: account.type.toLowerCase(),
@@ -15,37 +36,73 @@ export const testEmailConnection = async (account: EmailAccount): Promise<EmailT
       secure: account.secure !== undefined ? account.secure : (account.smtp_secure !== undefined ? account.smtp_secure : true)
     };
     
-    console.log('Test connection config:', config);
-    
-    // Call the Edge Function to test connection
-    const { data, error } = await supabase.functions.invoke('test-email-connection', {
-      body: { config }
+    debugLog('Test connection config:', {
+      ...config,
+      password: '********' // Don't log actual password
     });
     
-    if (error) {
-      console.error('Error testing connection:', error);
-      throw new Error(error.message || 'Connection test failed');
+    // Call the Edge Function to test connection with timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000); // 20-second timeout
+    
+    try {
+      // Call the Edge Function to test connection
+      const response = await supabase.functions.invoke('test-email-connection', {
+        body: { config },
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.error) {
+        debugLog('Edge function error:', response.error);
+        throw new Error(response.error.message || 'Connection test failed');
+      }
+      
+      debugLog('Connection test response:', response);
+      
+      return response.data;
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      
+      if (fetchError.name === 'AbortError') {
+        debugLog('Connection test timed out after 20 seconds');
+        throw new Error('Connection test timed out after 20 seconds. The server may be unreachable or blocking connections.');
+      }
+      
+      throw fetchError;
+    }
+  } catch (error) {
+    debugLog('Error testing connection:', error);
+    
+    // Provide specific user-friendly error messages based on common issues
+    let errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
+    if (errorMessage.includes('CORS')) {
+      errorMessage = 'Cross-origin request blocked. This is likely an issue with the server configuration.';
+    } else if (errorMessage.includes('NetworkError')) {
+      errorMessage = 'Network error occurred. Check your internet connection and server availability.';
     }
     
-    return data;
-  } catch (error) {
-    console.error('Error testing connection:', error);
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Unknown error occurred',
+      message: errorMessage,
       details: {
         type: account.type,
         host: account.host || account.smtp_host,
         port: account.port || account.smtp_port,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: errorMessage
       }
     };
   }
 };
 
+/**
+ * Sends a test email to verify email account configuration
+ */
 export const sendTestEmail = async (account: EmailAccount, recipient: string): Promise<{ success: boolean; message: string }> => {
   try {
-    console.log(`Sending test email from ${account.email} to ${recipient}`);
+    debugLog(`Sending test email from ${account.email} to ${recipient}`);
     
     // Prepare SMTP configuration
     const smtpConfig = {
@@ -58,17 +115,24 @@ export const sendTestEmail = async (account: EmailAccount, recipient: string): P
       }
     };
     
-    console.log('SMTP config for test email:', JSON.stringify({
+    debugLog('SMTP config for test email:', {
       ...smtpConfig,
       auth: { 
         user: smtpConfig.auth.user,
         pass: '********' // Don't log the actual password
       }
-    }));
+    });
     
-    // Call the Edge Function to send the email with better error handling
+    // Add message ID for tracking
+    const messageId = `<test-${Date.now()}-${Math.random().toString(36).substring(2, 15)}@${account.smtp_host || account.host}>`;
+    
+    // Call the Edge Function to send the email with improved error handling
     try {
-      const { data, error } = await supabase.functions.invoke('send-email', {
+      // Set up timeout for the request
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30-second timeout
+      
+      const response = await supabase.functions.invoke('send-email', {
         body: {
           to: recipient,
           subject: "Test Email from PropAI",
@@ -80,20 +144,29 @@ export const sendTestEmail = async (account: EmailAccount, recipient: string): P
               <p>If you received this email, your email configuration is working correctly.</p>
               <hr style="border: 1px solid #eaeaea; margin: 20px 0;" />
               <p style="color: #666; font-size: 12px;">This is an automated message from PropAI. Please do not reply to this email.</p>
+              <p style="color: #666; font-size: 12px;">Message-ID: ${messageId}</p>
             </div>
           `,
+          from: `"${account.name}" <${account.email}>`,
+          messageId: messageId,
           smtp: smtpConfig
-        }
+        },
+        signal: controller.signal
       });
       
-      console.log('Send email response:', data);
+      clearTimeout(timeoutId);
       
-      if (error) {
-        console.error("Error invoking send-email function:", error);
-        throw new Error(error.message || "Failed to send email");
+      debugLog('Send email response:', response);
+      
+      if (response.error) {
+        debugLog("Error invoking send-email function:", response.error);
+        throw new Error(response.error.message || "Failed to send email");
       }
       
-      if (data && !data.success) {
+      const data = response.data;
+      
+      if (!data.success) {
+        debugLog("Email sending failed:", data);
         throw new Error(data.message || "Failed to send email");
       }
       
@@ -101,18 +174,44 @@ export const sendTestEmail = async (account: EmailAccount, recipient: string): P
         success: true,
         message: `Test email sent successfully from ${account.email} to ${recipient}`
       };
-    } catch (functionError) {
-      console.error("Error with Edge Function:", functionError);
-      throw new Error(functionError instanceof Error 
-        ? functionError.message 
+    } catch (fetchError) {
+      if (fetchError.name === 'AbortError') {
+        debugLog('Email sending timed out after 30 seconds');
+        throw new Error('Email sending timed out after 30 seconds. The server may be slow or rejecting the connection.');
+      }
+      
+      debugLog("Error with Edge Function:", fetchError);
+      throw new Error(fetchError instanceof Error 
+        ? fetchError.message 
         : "Failed to send email - Edge Function error");
     }
     
   } catch (error) {
-    console.error("Error sending test email:", error);
+    debugLog("Error sending test email:", error);
+    
+    // Create user-friendly error messages based on common issues
+    let errorMessage = error instanceof Error ? error.message : "Failed to send email";
+    
+    if (errorMessage.includes('authentication')) {
+      errorMessage = "Authentication failed. Check your username and password.";
+    } else if (errorMessage.includes('connection')) {
+      errorMessage = "Connection failed. Check your server address and port settings.";
+    } else if (errorMessage.includes('certificate')) {
+      errorMessage = "SSL/TLS certificate validation failed. Try changing the 'secure' setting.";
+    } else if (errorMessage.includes('relay')) {
+      errorMessage = "Relay access denied. Your email provider may require additional authentication or settings.";
+    }
+    
+    // Show toast for better UI feedback
+    toast({
+      title: "Email Sending Failed",
+      description: errorMessage,
+      variant: "destructive"
+    });
+    
     return {
       success: false,
-      message: error instanceof Error ? error.message : "Failed to send email"
+      message: errorMessage
     };
   }
 };

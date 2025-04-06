@@ -33,7 +33,8 @@ import {
   RefreshCw,
   Send,
   Mailbox,
-  Server
+  Server,
+  Stethoscope
 } from 'lucide-react';
 import { EmailAccount, EmailAccountType } from '@/types/email';
 import { 
@@ -44,6 +45,7 @@ import {
   sendTestEmail
 } from '@/services/email';
 import { Link } from 'react-router-dom';
+import { EmailDiagnostics } from '@/components/email/EmailDiagnostics';
 
 const EmailAccountsPage = () => {
   const { toast } = useToast();
@@ -52,6 +54,7 @@ const EmailAccountsPage = () => {
   
   const [isAddAccountOpen, setIsAddAccountOpen] = useState(false);
   const [isSendTestEmailOpen, setIsSendTestEmailOpen] = useState(false);
+  const [isDiagnosticsOpen, setIsDiagnosticsOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<EmailAccount | null>(null);
   const [testEmailRecipient, setTestEmailRecipient] = useState('');
   const [isSendingTestEmail, setIsSendingTestEmail] = useState(false);
@@ -319,6 +322,11 @@ const EmailAccountsPage = () => {
     setIsSendTestEmailOpen(true);
   };
   
+  const openDiagnosticsDialog = (account: EmailAccount) => {
+    setSelectedAccount(account);
+    setIsDiagnosticsOpen(true);
+  };
+  
   return (
     <DashboardLayout>
       <div className="flex items-center justify-between mb-6">
@@ -425,6 +433,9 @@ const EmailAccountsPage = () => {
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => openSendTestEmailDialog(account)}>
                         <Send className="h-4 w-4 mr-2" /> Send Test Email
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => openDiagnosticsDialog(account)}>
+                        <Stethoscope className="h-4 w-4 mr-2" /> Run Diagnostics
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleDeleteAccount(account.id)}>
                         <Trash className="h-4 w-4 mr-2" /> Delete Account
@@ -655,6 +666,43 @@ const EmailAccountsPage = () => {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={isDiagnosticsOpen} onOpenChange={setIsDiagnosticsOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Email Diagnostics</DialogTitle>
+            <DialogDescription>
+              Run comprehensive diagnostics on your email configuration
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedAccount && (
+            <EmailDiagnostics 
+              account={selectedAccount}
+              onSuccess={() => {
+                queryClient.invalidateQueries({ queryKey: ['emailAccounts'] });
+              }}
+              onError={(error) => {
+                toast({
+                  title: "Diagnostics Failed",
+                  description: error,
+                  variant: "destructive"
+                });
+              }}
+            />
+          )}
+          
+          <DialogFooter>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setIsDiagnosticsOpen(false)}
+            >
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </DashboardLayout>
