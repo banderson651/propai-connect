@@ -89,15 +89,18 @@ serve(async (req) => {
       const client = new SmtpClient();
       
       // Add connection timeout
-      const connectionPromise = client.connectTLS({
-        hostname: smtp.host,
-        port: smtp.port,
-        username: smtp.auth.user,
-        password: smtp.auth.pass
-      });
+      let connectionPromise;
       
-      // If not secure, try regular connection
-      if (!smtp.secure) {
+      if (smtp.secure) {
+        console.log("Attempting secure TLS connection");
+        connectionPromise = client.connectTLS({
+          hostname: smtp.host,
+          port: smtp.port,
+          username: smtp.auth.user,
+          password: smtp.auth.pass
+        });
+      } else {
+        console.log("Attempting non-secure connection");
         connectionPromise = client.connect({
           hostname: smtp.host,
           port: smtp.port,
