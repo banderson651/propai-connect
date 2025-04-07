@@ -1,6 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { SmtpClient } from "https://deno.land/x/smtp@v0.13.0/mod.ts";
+import { SmtpClient } from "https://deno.land/x/smtp@v0.12.0/mod.ts";
 
 // Define CORS headers to allow cross-origin requests
 const corsHeaders = {
@@ -34,7 +34,7 @@ async function sendEmailViaSMTP(options: EmailRequest): Promise<{ success: boole
   console.log(`Attempting to send email to ${to} using SMTP server ${smtp.host}:${smtp.port}`);
   
   try {
-    // Create SMTP client with latest compatible library
+    // Create SMTP client with compatible library
     const client = new SmtpClient();
 
     // Configure connection with timeout
