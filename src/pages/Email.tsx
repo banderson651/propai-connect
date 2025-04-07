@@ -1,14 +1,15 @@
 
 import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Mail } from 'lucide-react';
 import emailService from '@/services/email/emailService';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function Email() {
   const { toast } = useToast();
@@ -60,11 +61,20 @@ export default function Email() {
           <p className="text-slate-600 mt-2">Send emails to your contacts and leads.</p>
         </div>
 
+        <Alert className="mb-6 bg-blue-50 border-blue-200">
+          <Mail className="h-5 w-5 text-blue-600" />
+          <AlertTitle className="text-blue-800">Powered by Resend</AlertTitle>
+          <AlertDescription className="text-blue-700">
+            Emails are now sent using Resend.com for improved deliverability and tracking.
+          </AlertDescription>
+        </Alert>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Send Email Form */}
           <Card className="border-slate-200">
             <CardHeader>
               <CardTitle className="text-xl text-slate-900">Send Email</CardTitle>
+              <CardDescription>Compose and send an email to any recipient</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -131,15 +141,25 @@ export default function Email() {
             </CardHeader>
             <CardContent>
               <p className="text-slate-600 mb-4">
-                Configure your email server settings to enable real email sending.
+                Configure your email server settings or connect additional email accounts.
               </p>
-              <Button
-                variant="outline"
-                className="border-slate-200"
-                onClick={() => window.location.href = '/settings#email'}
-              >
-                Configure Email Settings
-              </Button>
+              <div className="space-y-3">
+                <Button
+                  variant="outline"
+                  className="w-full border-slate-200"
+                  onClick={() => window.location.href = '/settings'}
+                >
+                  Configure Email Settings
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  className="w-full border-slate-200"
+                  onClick={() => window.location.href = '/email/accounts'}
+                >
+                  Manage Email Accounts
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

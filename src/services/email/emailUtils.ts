@@ -102,36 +102,17 @@ export const sendTestEmail = async (account: EmailAccount, recipient: string): P
   try {
     debugLog(`Sending test email from ${account.email} to ${recipient}`);
     
-    // Prepare SMTP configuration
-    const smtpConfig = {
-      host: account.smtp_host || account.host,
-      port: account.smtp_port || account.port,
-      secure: account.smtp_secure !== undefined ? account.smtp_secure : account.secure,
-      auth: {
-        user: account.smtp_username || account.username || account.email,
-        pass: account.smtp_password || account.password
-      }
-    };
-    
-    debugLog('SMTP config for test email:', {
-      ...smtpConfig,
-      auth: { 
-        user: smtpConfig.auth.user,
-        pass: '********' // Don't log the actual password
-      }
-    });
-    
     // Add message ID for tracking
     const messageId = `<test-${Date.now()}-${Math.random().toString(36).substring(2, 15)}@${account.smtp_host || account.host}>`;
     
-    // Call the Edge Function to send the email with improved error handling
+    // Call the Resend Edge Function to send the email with improved error handling
     try {
       // Use Promise with timeout instead of AbortController
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => reject(new Error('Email sending timed out after 30 seconds')), 30000);
       });
       
-      const responsePromise = supabase.functions.invoke('send-email', {
+      const responsePromise = supabase.functions.invoke('send-email-resend', {
         body: {
           to: recipient,
           subject: "Test Email from PropAI",
@@ -146,15 +127,13 @@ export const sendTestEmail = async (account: EmailAccount, recipient: string): P
               <p style="color: #666; font-size: 12px;">Message-ID: ${messageId}</p>
             </div>
           `,
-          from: `"${account.name}" <${account.email}>`,
-          messageId: messageId,
-          smtp: smtpConfig
+          from: `"${account.name}" <${account.email}>`
         }
       }).then(response => {
         debugLog('Send email response:', response);
         
         if (response.error) {
-          debugLog("Error invoking send-email function:", response.error);
+          debugLog("Error invoking send-email-resend function:", response.error);
           throw new Error(response.error.message || "Failed to send email");
         }
         
@@ -173,10 +152,8 @@ export const sendTestEmail = async (account: EmailAccount, recipient: string): P
       
       return await Promise.race([responsePromise, timeoutPromise]);
     } catch (fetchError) {
-      // Special handling for the SMTP library compatibility issue
-      if (fetchError.message?.includes('Deno.writeAll') || 
-          fetchError.message?.includes('Edge Function returned a non-2xx status code')) {
-        
+      // Special handling for development mode
+      if (DEBUG_MODE && (fetchError.message?.includes('Edge Function returned a non-2xx status code'))) {
         debugLog('Using development mode email simulation');
         toast({
           title: "Development Mode",
@@ -207,16 +184,6 @@ export const sendTestEmail = async (account: EmailAccount, recipient: string): P
     
     // Create user-friendly error messages based on common issues
     let errorMessage = error instanceof Error ? error.message : "Failed to send email";
-    
-    if (errorMessage.includes('authentication')) {
-      errorMessage = "Authentication failed. Check your username and password.";
-    } else if (errorMessage.includes('connection')) {
-      errorMessage = "Connection failed. Check your server address and port settings.";
-    } else if (errorMessage.includes('certificate')) {
-      errorMessage = "SSL/TLS certificate validation failed. Try changing the 'secure' setting.";
-    } else if (errorMessage.includes('relay')) {
-      errorMessage = "Relay access denied. Your email provider may require additional authentication or settings.";
-    }
     
     // Show toast for better UI feedback
     toast({

@@ -2,16 +2,6 @@
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 
-interface EmailConfig {
-  host: string;
-  port: number;
-  secure: boolean;
-  auth: {
-    user: string;
-    pass: string;
-  };
-}
-
 interface EmailOptions {
   to: string | string[];
   subject: string;
@@ -98,38 +88,6 @@ export class EmailService {
         throw new Error(errorMsg);
       }
 
-      // Verify account has required SMTP fields
-      if (!account.smtp_host || !account.smtp_port || !account.smtp_username || !account.smtp_password) {
-        const errorMsg = 'Email account is missing required SMTP configuration';
-        if (DEBUG_MODE) console.error(`[EmailService] ${errorMsg}`, {
-          hasHost: !!account.smtp_host,
-          hasPort: !!account.smtp_port,
-          hasUsername: !!account.smtp_username,
-          hasPassword: !!account.smtp_password
-        });
-        throw new Error(errorMsg);
-      }
-
-      // Set up SMTP configuration
-      const smtpConfig = {
-        host: account.smtp_host,
-        port: account.smtp_port,
-        secure: account.smtp_secure,
-        auth: {
-          user: account.smtp_username,
-          pass: account.smtp_password
-        }
-      };
-
-      if (DEBUG_MODE) {
-        console.log('[EmailService] SMTP Config:', {
-          host: smtpConfig.host,
-          port: smtpConfig.port,
-          secure: smtpConfig.secure,
-          auth: { user: smtpConfig.auth.user, pass: '********' }
-        });
-      }
-
       // Prepare recipients
       const recipients = Array.isArray(options.to) ? options.to : [options.to];
       
@@ -137,7 +95,7 @@ export class EmailService {
       const fromEmail = options.from || `${account.name} <${account.email}>`;
 
       // Generate message ID for tracking
-      const messageId = `<${Date.now()}-${Math.random().toString(36).substring(2, 15)}@${account.smtp_host}>`;
+      const messageId = `<${Date.now()}-${Math.random().toString(36).substring(2, 15)}@${account.smtp_host || account.host || 'propai.app'}>`;
 
       // Use Promise with timeout instead of AbortController
       const timeoutPromise = new Promise<never>((_, reject) => {
@@ -147,16 +105,14 @@ export class EmailService {
       if (DEBUG_MODE) console.log('[EmailService] Invoking edge function');
       
       try {
-        const resultPromise = supabase.functions.invoke('send-email', {
+        const resultPromise = supabase.functions.invoke('send-email-resend', {
           body: {
-            to: recipients.join(','),
+            to: recipients,
             subject: options.subject,
             text: options.text,
             html: options.html,
             from: fromEmail,
-            attachments: options.attachments,
-            messageId: messageId,
-            smtp: smtpConfig
+            attachments: options.attachments
           }
         }).then(async response => {
           if (response.error) {
