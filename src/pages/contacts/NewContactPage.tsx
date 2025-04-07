@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -8,10 +7,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { saveContact, analyzeTextForTags } from '@/services/mockData';
+import { analyzeTextForTags } from '@/services/mockData';
 import { ContactTag } from '@/types/contact';
 import { Badge } from '@/components/ui/badge';
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 const tagOptions: ContactTag[] = [
   'buyer', 'seller', 'agent', 'investor', 'first-time-buyer',
@@ -67,21 +67,28 @@ const NewContactPage = () => {
     }
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
     const contactData = {
       name,
       email,
-      phone: phone || undefined,
-      address: address || undefined,
+      phone: phone || null,
+      address: address || null,
       tags,
-      notes: notes || undefined,
+      notes: notes || null,
     };
     
     try {
-      saveContact(contactData);
+      // Save to Supabase instead of localStorage
+      const { data, error } = await supabase
+        .from('contacts')
+        .insert(contactData)
+        .select()
+        .single();
+      
+      if (error) throw error;
       
       toast({
         title: "Contact created",
@@ -213,7 +220,14 @@ const NewContactPage = () => {
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting || !name || !email}>
-                {isSubmitting ? 'Creating...' : 'Create Contact'}
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </> 
+                ) : (
+                  'Create Contact'
+                )}
               </Button>
             </CardFooter>
           </Card>

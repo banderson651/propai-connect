@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -5,6 +6,8 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   ArrowLeft, 
   Save, 
@@ -13,10 +16,12 @@ import {
   FileText, 
   Users, 
   Clock, 
-  Plus
+  Plus,
+  Upload
 } from 'lucide-react';
 import { getEmailAccounts, getEmailTemplates, createCampaign } from '@/services/email';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase';
 
 const NewCampaignPage = () => {
   const navigate = useNavigate();
@@ -27,12 +32,17 @@ const NewCampaignPage = () => {
     emailAccountId: '',
     templateId: '',
     contactIds: [] as string[],
+    customRecipients: [] as {email: string, name?: string}[],
     sendingRate: 20,
     scheduled: null as string | null,
     status: 'draft' as const,
     startedAt: null as string | null,
     completedAt: null as string | null
   });
+
+  const [customEmailInput, setCustomEmailInput] = useState('');
+  const [customNameInput, setCustomNameInput] = useState('');
+  const [recipientSource, setRecipientSource] = useState<'contacts' | 'custom'>('contacts');
 
   const { data: emailAccounts = [], isLoading: isLoadingAccounts } = useQuery({
     queryKey: ['emailAccounts'],
@@ -44,16 +54,46 @@ const NewCampaignPage = () => {
     queryFn: getEmailTemplates
   });
   
-  const contacts = [
-    { id: 'id1', name: 'John Smith', email: 'john@example.com' },
-    { id: 'id2', name: 'Sarah Johnson', email: 'sarah@example.com' },
-    { id: 'id3', name: 'Michael Brown', email: 'michael@example.com' },
-    { id: 'id4', name: 'Emma Wilson', email: 'emma@example.com' },
-    { id: 'id5', name: 'David Clark', email: 'david@example.com' },
-    { id: 'id6', name: 'Lisa Anderson', email: 'lisa@example.com' },
-    { id: 'id7', name: 'Robert Taylor', email: 'robert@example.com' },
-    { id: 'id8', name: 'Jennifer White', email: 'jennifer@example.com' },
-  ];
+  const [contacts, setContacts] = useState<Array<{id: string, name: string, email: string}>>([]);
+  const [isLoadingContacts, setIsLoadingContacts] = useState(true);
+
+  useEffect(() => {
+    const fetchContacts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('contacts')
+          .select('id, name, email')
+          .order('name', { ascending: true });
+          
+        if (error) throw error;
+        
+        setContacts(data || []);
+      } catch (error) {
+        console.error('Error fetching contacts:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load contacts. Using demo data instead.",
+          variant: "destructive",
+        });
+        
+        // Fallback to demo data
+        setContacts([
+          { id: 'id1', name: 'John Smith', email: 'john@example.com' },
+          { id: 'id2', name: 'Sarah Johnson', email: 'sarah@example.com' },
+          { id: 'id3', name: 'Michael Brown', email: 'michael@example.com' },
+          { id: 'id4', name: 'Emma Wilson', email: 'emma@example.com' },
+          { id: 'id5', name: 'David Clark', email: 'david@example.com' },
+          { id: 'id6', name: 'Lisa Anderson', email: 'lisa@example.com' },
+          { id: 'id7', name: 'Robert Taylor', email: 'robert@example.com' },
+          { id: 'id8', name: 'Jennifer White', email: 'jennifer@example.com' },
+        ]);
+      } finally {
+        setIsLoadingContacts(false);
+      }
+    };
+    
+    fetchContacts();
+  }, [toast]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -88,6 +128,100 @@ const NewCampaignPage = () => {
     }));
   };
 
+  const addCustomRecipient = () => {
+    if (!customEmailInput.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter an email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customEmailInput)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      customRecipients: [...prev.customRecipients, {
+        email: customEmailInput,
+        name: customNameInput.trim() || undefined
+      }]
+    }));
+    
+    setCustomEmailInput('');
+    setCustomNameInput('');
+  };
+
+  const removeCustomRecipient = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      customRecipients: prev.customRecipients.filter((_, i) => i !== index)
+    }));
+  };
+
+  const importCustomRecipients = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const csv = event.target?.result as string;
+        const lines = csv.split('\n');
+        const newRecipients: {email: string, name?: string}[] = [];
+        
+        lines.forEach((line, index) => {
+          if (index === 0 || !line.trim()) return; // Skip header row and empty lines
+          
+          const columns = line.split(',');
+          const email = columns[0]?.trim();
+          const name = columns[1]?.trim();
+          
+          if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            newRecipients.push({
+              email,
+              name: name || undefined
+            });
+          }
+        });
+        
+        if (newRecipients.length > 0) {
+          setFormData(prev => ({
+            ...prev,
+            customRecipients: [...prev.customRecipients, ...newRecipients]
+          }));
+          
+          toast({
+            title: "Success",
+            description: `Imported ${newRecipients.length} recipients.`,
+          });
+        } else {
+          toast({
+            title: "No Valid Emails",
+            description: "No valid email addresses were found in the file.",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error('Error parsing CSV:', error);
+        toast({
+          title: "Import Error",
+          description: "Failed to import recipients. Please check your file format.",
+          variant: "destructive",
+        });
+      }
+    };
+    
+    reader.readAsText(file);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -109,7 +243,7 @@ const NewCampaignPage = () => {
       return;
     }
 
-    if (formData.contactIds.length === 0) {
+    if (recipientSource === 'contacts' && formData.contactIds.length === 0) {
       toast({
         title: "Missing Information",
         description: "Please select at least one contact.",
@@ -118,8 +252,22 @@ const NewCampaignPage = () => {
       return;
     }
 
+    if (recipientSource === 'custom' && formData.customRecipients.length === 0) {
+      toast({
+        title: "Missing Information",
+        description: "Please add at least one custom recipient.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      const newCampaign = await createCampaign(formData);
+      const campaignData = {
+        ...formData,
+        recipients: recipientSource === 'custom' ? formData.customRecipients : undefined
+      };
+      
+      const newCampaign = await createCampaign(campaignData);
       toast({
         title: "Campaign Created",
         description: "Your email campaign has been created successfully.",
@@ -277,45 +425,156 @@ const NewCampaignPage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <p className="text-sm">
-                    Selected: <span className="font-medium">{formData.contactIds.length}</span> contacts
-                  </p>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    size="sm"
-                    onClick={handleSelectAllContacts}
-                  >
-                    Select All
-                  </Button>
-                </div>
-                
-                <div className="border rounded-md overflow-hidden">
-                  <div className="max-h-60 overflow-y-auto">
-                    {contacts.map(contact => (
-                      <div 
-                        key={contact.id} 
-                        className="flex items-center border-b last:border-b-0 p-2"
+                <Tabs value={recipientSource} onValueChange={(value) => setRecipientSource(value as 'contacts' | 'custom')}>
+                  <TabsList className="w-full mb-4">
+                    <TabsTrigger value="contacts" className="flex-1">From Contacts</TabsTrigger>
+                    <TabsTrigger value="custom" className="flex-1">Custom List</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="contacts">
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-sm">
+                        Selected: <span className="font-medium">{formData.contactIds.length}</span> contacts
+                      </p>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={handleSelectAllContacts}
                       >
-                        <input
-                          type="checkbox"
-                          id={`contact-${contact.id}`}
-                          checked={formData.contactIds.includes(contact.id)}
-                          onChange={() => handleContactToggle(contact.id)}
-                          className="mr-2 h-4 w-4"
-                        />
-                        <label 
-                          htmlFor={`contact-${contact.id}`}
-                          className="flex-1 cursor-pointer"
-                        >
-                          <p className="font-medium text-sm">{contact.name}</p>
-                          <p className="text-xs text-gray-500">{contact.email}</p>
-                        </label>
+                        Select All
+                      </Button>
+                    </div>
+                    
+                    {isLoadingContacts ? (
+                      <div className="text-center py-4">
+                        <p>Loading contacts...</p>
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    ) : contacts.length === 0 ? (
+                      <div className="text-center py-4">
+                        <p className="mb-2">No contacts found</p>
+                        <Button asChild size="sm">
+                          <Link to="/contacts/new">
+                            <Plus className="h-4 w-4 mr-1" /> Add Contact
+                          </Link>
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="border rounded-md overflow-hidden">
+                        <div className="max-h-60 overflow-y-auto">
+                          {contacts.map(contact => (
+                            <div 
+                              key={contact.id} 
+                              className="flex items-center border-b last:border-b-0 p-2"
+                            >
+                              <input
+                                type="checkbox"
+                                id={`contact-${contact.id}`}
+                                checked={formData.contactIds.includes(contact.id)}
+                                onChange={() => handleContactToggle(contact.id)}
+                                className="mr-2 h-4 w-4"
+                              />
+                              <label 
+                                htmlFor={`contact-${contact.id}`}
+                                className="flex-1 cursor-pointer"
+                              >
+                                <p className="font-medium text-sm">{contact.name}</p>
+                                <p className="text-xs text-gray-500">{contact.email}</p>
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </TabsContent>
+                  
+                  <TabsContent value="custom">
+                    <div className="space-y-4">
+                      <div className="flex flex-col space-y-2">
+                        <div className="flex space-x-2">
+                          <div className="flex-1">
+                            <Input
+                              placeholder="Email address"
+                              value={customEmailInput}
+                              onChange={(e) => setCustomEmailInput(e.target.value)}
+                            />
+                          </div>
+                          <Button type="button" size="sm" onClick={addCustomRecipient}>
+                            Add
+                          </Button>
+                        </div>
+                        <Input
+                          placeholder="Name (optional)"
+                          value={customNameInput}
+                          onChange={(e) => setCustomNameInput(e.target.value)}
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between mt-2">
+                        <p className="text-sm">
+                          Custom recipients: <span className="font-medium">{formData.customRecipients.length}</span>
+                        </p>
+                        
+                        <div className="relative">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-1"
+                            onClick={() => document.getElementById('csv-upload')?.click()}
+                          >
+                            <Upload className="h-4 w-4" />
+                            Import CSV
+                          </Button>
+                          <input
+                            id="csv-upload"
+                            type="file"
+                            accept=".csv"
+                            className="hidden"
+                            onChange={importCustomRecipients}
+                          />
+                        </div>
+                      </div>
+                      
+                      {formData.customRecipients.length > 0 ? (
+                        <div className="border rounded-md overflow-hidden mt-2">
+                          <div className="max-h-60 overflow-y-auto">
+                            {formData.customRecipients.map((recipient, index) => (
+                              <div 
+                                key={index} 
+                                className="flex items-center justify-between border-b last:border-b-0 p-2"
+                              >
+                                <div>
+                                  <p className="font-medium text-sm">{recipient.name || 'Unnamed Recipient'}</p>
+                                  <p className="text-xs text-gray-500">{recipient.email}</p>
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                  onClick={() => removeCustomRecipient(index)}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center py-4 border rounded-md text-gray-500">
+                          <p>No custom recipients added yet</p>
+                          <p className="text-xs mt-1">Add emails individually or import from CSV</p>
+                        </div>
+                      )}
+                      
+                      <div className="text-xs text-gray-500 mt-2">
+                        <p>CSV format: email,name</p>
+                        <p>Example: john@example.com,John Smith</p>
+                      </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </CardContent>
             </Card>
 

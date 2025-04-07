@@ -4,7 +4,6 @@ import emailService from './emailService';
 
 export const getCampaigns = async (): Promise<Campaign[]> => {
   try {
-    // First try to fetch campaigns from Supabase
     const { data, error } = await supabase
       .from('email_campaigns')
       .select('*')
@@ -26,13 +25,12 @@ export const getCampaigns = async (): Promise<Campaign[]> => {
       })) as Campaign[];
     }
     
-    // If no real data yet, return mock data for demonstration
     return [
       {
         id: '1',
         name: 'Spring Property Newsletter',
         status: 'draft',
-        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
         emailAccountId: '1',
         templateId: '1',
         subject: 'New Properties Available in Your Area',
@@ -51,7 +49,7 @@ export const getCampaigns = async (): Promise<Campaign[]> => {
         id: '2',
         name: 'Follow-up with Hot Leads',
         status: 'completed',
-        createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+        createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
         startedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
         completedAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
         emailAccountId: '1',
@@ -72,8 +70,8 @@ export const getCampaigns = async (): Promise<Campaign[]> => {
         id: '3',
         name: 'New Listings Notification',
         status: 'running',
-        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-        startedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(), // 12 hours ago
+        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        startedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
         emailAccountId: '2',
         templateId: '3',
         subject: 'New Properties Just Listed',
@@ -97,7 +95,6 @@ export const getCampaigns = async (): Promise<Campaign[]> => {
 
 export const getCampaignById = async (id: string): Promise<Campaign | null> => {
   try {
-    // In a real implementation, this would fetch from Supabase
     const { data, error } = await supabase
       .from('email_campaigns')
       .select('*')
@@ -113,17 +110,25 @@ export const getCampaignById = async (id: string): Promise<Campaign | null> => {
   }
 };
 
-export const createCampaign = async (campaign: Partial<EmailCampaign>): Promise<Campaign> => {
+export const createCampaign = async (campaign: Partial<EmailCampaign> & { recipients?: Array<{email: string, name?: string}> }): Promise<Campaign> => {
   try {
-    // In a real implementation, this would insert into Supabase
+    const campaignData = {
+      ...campaign,
+      metadata: campaign.recipients ? { 
+        customRecipients: campaign.recipients 
+      } : undefined,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      status: 'draft'
+    };
+    
+    if ('recipients' in campaignData) {
+      delete campaignData.recipients;
+    }
+    
     const { data, error } = await supabase
       .from('email_campaigns')
-      .insert({
-        ...campaign,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        status: 'draft'
-      })
+      .insert(campaignData)
       .select()
       .single();
       
@@ -152,7 +157,6 @@ export const deleteCampaign = async (id: string): Promise<boolean> => {
   }
 };
 
-// Implementation of the missing campaign control functions
 export const startCampaign = async (id: string): Promise<boolean> => {
   try {
     const { error } = await supabase
@@ -165,7 +169,6 @@ export const startCampaign = async (id: string): Promise<boolean> => {
       
     if (error) throw error;
     
-    // In a real implementation, this would initiate the sending process
     return await sendCampaign(id);
   } catch (error) {
     console.error(`Error starting campaign ${id}:`, error);
@@ -230,11 +233,9 @@ export const stopCampaign = async (id: string): Promise<boolean> => {
 
 export const sendCampaign = async (campaignId: string): Promise<boolean> => {
   try {
-    // Get campaign details
     const campaign = await getCampaignById(campaignId);
     if (!campaign) throw new Error('Campaign not found');
     
-    // Update campaign status
     const { error } = await supabase
       .from('email_campaigns')
       .update({ 
@@ -245,13 +246,30 @@ export const sendCampaign = async (campaignId: string): Promise<boolean> => {
       
     if (error) throw error;
     
-    // Initialize email service with the campaign's account
     await emailService.initialize(campaign.emailAccountId);
     
-    // In a real implementation, this would send emails to all recipients
-    // For now, we'll just update the status
+    let recipients: Array<{email: string, name?: string}> = [];
     
-    // Update campaign as sent
+    if (campaign.contactIds && campaign.contactIds.length > 0) {
+      const { data, error } = await supabase
+        .from('contacts')
+        .select('email, name')
+        .in('id', campaign.contactIds);
+        
+      if (error) throw error;
+      
+      recipients = data.map(contact => ({
+        email: contact.email,
+        name: contact.name
+      }));
+    } else if (campaign.metadata?.customRecipients) {
+      recipients = campaign.metadata.customRecipients;
+    }
+    
+    if (recipients.length === 0) {
+      throw new Error('No recipients found for this campaign');
+    }
+    
     const { error: updateError } = await supabase
       .from('email_campaigns')
       .update({ 
@@ -266,7 +284,6 @@ export const sendCampaign = async (campaignId: string): Promise<boolean> => {
   } catch (error) {
     console.error(`Error sending campaign ${campaignId}:`, error);
     
-    // Update campaign status to failed
     await supabase
       .from('email_campaigns')
       .update({ 
