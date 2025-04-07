@@ -80,7 +80,7 @@ serve(async (req) => {
     const recipients = Array.isArray(emailData.to) ? emailData.to : [emailData.to];
     
     // Default sender if not provided - using your custom domain
-    const fromEmail = emailData.from || "PropAI <no-reply@yourdomain.com>";
+    const fromEmail = emailData.from || "PropAI <no-reply@vamkor.com>";
 
     console.log(`Sending email to ${recipients.join(', ')} via Resend API`);
     

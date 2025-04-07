@@ -1,3 +1,4 @@
+
 import { EmailAccount, EmailTestResult } from '@/types/email';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
@@ -126,7 +127,7 @@ export const sendTestEmail = async (account: EmailAccount, recipient: string): P
               <p style="color: #666; font-size: 12px;">Message-ID: ${messageId}</p>
             </div>
           `,
-          from: `"${account.name}" <no-reply@yourdomain.com>`
+          from: `"${account.name}" <no-reply@vamkor.com>`
         }
       }).then(response => {
         debugLog('Send email response:', response);

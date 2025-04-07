@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 
@@ -95,7 +94,7 @@ export class EmailService {
       const fromEmail = options.from || `${account.name} <${account.email}>`;
 
       // Generate message ID for tracking
-      const messageId = `<${Date.now()}-${Math.random().toString(36).substring(2, 15)}@${account.smtp_host || account.host || 'propai.app'}>`;
+      const messageId = `<${Date.now()}-${Math.random().toString(36).substring(2, 15)}@vamkor.com>`;
 
       // Use Promise with timeout instead of AbortController
       const timeoutPromise = new Promise<never>((_, reject) => {
