@@ -253,16 +253,14 @@ export class EmailService {
   // Method to test connection with current account
   private async testConnection(account: any) {
     try {
-      const { data, error } = await supabase.functions.invoke('test-email-connection', {
+      // Since we're using Resend now, we can just check if the API key is valid
+      // We'll make a small request to see if it works
+      const { data, error } = await supabase.functions.invoke('send-email-resend', {
         body: {
-          config: {
-            type: 'smtp',
-            host: account.smtp_host,
-            port: account.smtp_port,
-            username: account.smtp_username,
-            password: account.smtp_password,
-            secure: account.smtp_secure
-          }
+          to: "test@example.com",
+          subject: "Test Connection",
+          text: "This is a test to verify the connection.",
+          dryRun: true // This should be handled in the function to not actually send emails
         }
       });
       

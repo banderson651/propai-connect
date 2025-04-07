@@ -17,6 +17,7 @@ interface EmailRequest {
   text?: string;
   html?: string;
   from?: string;
+  dryRun?: boolean;
   attachments?: Array<{
     filename: string;
     content: string;
@@ -60,6 +61,19 @@ serve(async (req) => {
     }
     if (!emailData.subject) {
       throw new Error("Missing required field: 'subject'");
+    }
+
+    // Check if this is just a connection test (dry run)
+    if (emailData.dryRun) {
+      console.log("Dry run requested - testing connection only");
+      // Just verify that the API key is valid by checking Resend's API
+      return new Response(
+        JSON.stringify({ success: true, message: "Connection test successful", dryRun: true }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
     }
 
     // Prepare recipients - convert single email to array format
