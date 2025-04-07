@@ -1,5 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { SmtpClient } from "https://deno.land/x/smtp@v0.13.0/mod.ts";
 
 // Define CORS headers to allow cross-origin requests
 const corsHeaders = {
@@ -25,7 +26,7 @@ interface EmailRequest {
   }
 }
 
-// Helper function to send email via raw SMTP protocol
+// Helper function to send email via SMTP
 async function sendEmailViaSMTP(options: EmailRequest): Promise<{ success: boolean; message: string }> {
   const { to, subject, text, html, from, smtp } = options;
   const senderEmail = from || smtp.auth.user;
@@ -33,41 +34,86 @@ async function sendEmailViaSMTP(options: EmailRequest): Promise<{ success: boole
   console.log(`Attempting to send email to ${to} using SMTP server ${smtp.host}:${smtp.port}`);
   
   try {
-    const port = smtp.port;
-    const protocol = smtp.secure ? "https" : "http";
-    const authHeader = btoa(`${smtp.auth.user}:${smtp.auth.pass}`);
+    // Create SMTP client with latest compatible library
+    const client = new SmtpClient();
+
+    // Configure connection with timeout
+    const connectConfig = {
+      hostname: smtp.host,
+      port: smtp.port,
+      username: smtp.auth.user,
+      password: smtp.auth.pass,
+      tls: smtp.secure,
+    };
+
+    console.log(`Connecting to SMTP server with config:`, {
+      hostname: connectConfig.hostname,
+      port: connectConfig.port,
+      username: connectConfig.username,
+      tls: connectConfig.tls
+    });
+
+    // Set connection timeout
+    const connectPromise = client.connectTLS(connectConfig);
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("SMTP connection timed out after 8 seconds")), 8000);
+    });
+
+    // Connect with timeout
+    await Promise.race([connectPromise, timeoutPromise]);
     
-    // Create email content following RFC822 format
-    const message = `From: ${senderEmail}\r\n` +
-      `To: ${to}\r\n` +
-      `Subject: ${subject}\r\n` +
-      `MIME-Version: 1.0\r\n` +
-      `Content-Type: text/html; charset=utf-8\r\n` +
-      `\r\n` +
-      `${html || text || "Email sent from PropAI"}\r\n`;
+    // Prepare email content
+    const mailOptions = {
+      from: senderEmail,
+      to: to,
+      subject: subject,
+      content: html || text || "Email sent from PropAI",
+      html: !!html,
+    };
+
+    console.log("Sending email with options:", {
+      from: mailOptions.from,
+      to: mailOptions.to,
+      subject: mailOptions.subject,
+      html: mailOptions.html
+    });
+
+    // Send with timeout
+    const sendPromise = client.send(mailOptions);
+    const sendTimeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("SMTP sending timed out after 10 seconds")), 10000);
+    });
+
+    await Promise.race([sendPromise, sendTimeoutPromise]);
     
-    // Instead of using the problematic SMTP library, we'll use a different approach
-    // This is a simplified implementation for demonstration
-    // In production, you might want to use a different email service
+    // Close connection
+    await client.close();
     
-    // Create a formatted log of what we would have done
-    console.log("Email would be sent with the following details:");
-    console.log(`- From: ${senderEmail}`);
-    console.log(`- To: ${to}`);
-    console.log(`- Subject: ${subject}`);
-    console.log(`- Content type: ${html ? 'HTML' : 'Plain text'}`);
-    
-    // For now, to bypass the SMTP library issue, we'll return success
-    // But in a real implementation, you'd want to use a different approach
+    console.log(`Email sent successfully to ${to}`);
     return {
       success: true,
-      message: `Email sent successfully to ${to} (Note: This is a simulated success for testing)`
+      message: `Email sent successfully to ${to}`
     };
   } catch (error) {
     console.error("Error in SMTP sending:", error);
+    
+    // Provide detailed error information
+    let errorMessage = error instanceof Error ? error.message : String(error);
+    let errorDetails = "";
+    
+    if (errorMessage.includes("connect")) {
+      errorDetails = "Could not connect to SMTP server. Check your host and port settings.";
+    } else if (errorMessage.includes("auth") || errorMessage.includes("535")) {
+      errorDetails = "Authentication failed. Check your username and password.";
+    } else if (errorMessage.includes("timeout")) {
+      errorDetails = "Connection timed out. The server may be unreachable.";
+    } else if (errorMessage.includes("certificate") || errorMessage.includes("TLS")) {
+      errorDetails = "TLS/SSL error. Try changing the 'secure' setting.";
+    }
+    
     return {
       success: false,
-      message: `Failed to send email: ${error instanceof Error ? error.message : String(error)}`
+      message: `Failed to send email: ${errorMessage}${errorDetails ? ` (${errorDetails})` : ''}`
     };
   }
 }
