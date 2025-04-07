@@ -79,8 +79,8 @@ serve(async (req) => {
     // Prepare recipients - convert single email to array format
     const recipients = Array.isArray(emailData.to) ? emailData.to : [emailData.to];
     
-    // Default sender if not provided
-    const fromEmail = emailData.from || "PropAI <onboarding@resend.dev>";
+    // Default sender if not provided - using your custom domain
+    const fromEmail = emailData.from || "PropAI <no-reply@yourdomain.com>";
 
     console.log(`Sending email to ${recipients.join(', ')} via Resend API`);
     

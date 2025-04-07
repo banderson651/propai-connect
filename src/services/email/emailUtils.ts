@@ -1,4 +1,3 @@
-
 import { EmailAccount, EmailTestResult } from '@/types/email';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
@@ -123,11 +122,11 @@ export const sendTestEmail = async (account: EmailAccount, recipient: string): P
               <p>This is a test email sent from your account: <strong>${account.name}</strong> (${account.email}).</p>
               <p>If you received this email, your email configuration is working correctly.</p>
               <hr style="border: 1px solid #eaeaea; margin: 20px 0;" />
-              <p style="color: #666; font-size: 12px;">This is an automated message from PropAI. Please do not reply to this email.</p>
+              <p style="color: #666; font-size: 12px;">This is an automated message from PropAI using your verified custom domain.</p>
               <p style="color: #666; font-size: 12px;">Message-ID: ${messageId}</p>
             </div>
           `,
-          from: `"${account.name}" <${account.email}>`
+          from: `"${account.name}" <no-reply@yourdomain.com>`
         }
       }).then(response => {
         debugLog('Send email response:', response);

@@ -65,7 +65,7 @@ export default function Email() {
           <Mail className="h-5 w-5 text-blue-600" />
           <AlertTitle className="text-blue-800">Powered by Resend</AlertTitle>
           <AlertDescription className="text-blue-700">
-            Emails are now sent using Resend.com for improved deliverability and tracking.
+            Emails are now sent using your verified custom domain for improved deliverability and brand consistency.
           </AlertDescription>
         </Alert>
 
@@ -141,7 +141,7 @@ export default function Email() {
             </CardHeader>
             <CardContent>
               <p className="text-slate-600 mb-4">
-                Configure your email server settings or connect additional email accounts.
+                Your verified custom domain is configured for sending emails through Resend.
               </p>
               <div className="space-y-3">
                 <Button
