@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -103,7 +104,7 @@ export function EmailDiagnostics({ account, onSuccess, onError }: EmailDiagnosti
       setCurrentStep(2);
       updateStep(2, { status: 'running' });
       
-      // This will test both connection and auth
+      // This will test both connection and auth - pass the actual account type
       const connectionResult = await testEmailConnection(account);
       
       if (!connectionResult.success) {
@@ -113,13 +114,13 @@ export function EmailDiagnostics({ account, onSuccess, onError }: EmailDiagnosti
           details: connectionResult.message 
         });
         updateStep(3, { status: 'idle' });
-        throw new Error('SMTP connection failed: ' + connectionResult.message);
+        throw new Error(`${account.type.toUpperCase()} connection failed: ` + connectionResult.message);
       }
       
       updateStep(2, { status: 'success', message: 'Connection successful' });
       setProgress(60);
       
-      // Auth is implicitly tested in the connection test for SMTP
+      // Auth is implicitly tested in the connection test
       setCurrentStep(3);
       updateStep(3, { status: 'success', message: 'Authentication successful' });
       setProgress(80);
@@ -143,7 +144,7 @@ export function EmailDiagnostics({ account, onSuccess, onError }: EmailDiagnosti
         updateStep(4, { 
           status: 'success', 
           message: 'Email sent successfully',
-          details: `Test email sent to ${testEmailAddress} (Note: In development mode)`
+          details: `Test email sent to ${testEmailAddress}`
         });
       } else {
         updateStep(4, { 

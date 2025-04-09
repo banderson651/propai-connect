@@ -1,4 +1,5 @@
 
+
 lvpnigtmgnapxzezrvup = "http://localhost:54321"
 
 [functions.send-email-resend]
@@ -12,3 +13,4 @@ verify_jwt = true
 
 [experimental]
 allowed_ports = [25, 465, 587, 2525, 993, 995, 143, 110]
+

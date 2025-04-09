@@ -1,4 +1,3 @@
-
 import { EmailAccount, EmailTestResult } from '@/types/email';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
@@ -57,15 +56,8 @@ export const testEmailConnection = async (account: EmailAccount): Promise<EmailT
         }
         
         debugLog('Connection test response:', response);
-
-        // If IMAP test returns success: false but with no error, provide a more helpful message
-        if (config.type === 'imap' && !response.data.success && !response.data.details?.error?.includes('testing is currently unavailable')) {
-          toast({
-            title: "IMAP Testing Notice",
-            description: "Please check SMTP credentials first. Full IMAP verification will be available soon.",
-          });
-        }
         
+        // Return the actual response from the edge function - don't modify or override it
         return response.data;
       });
       
