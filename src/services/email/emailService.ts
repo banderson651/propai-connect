@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 
@@ -70,29 +71,9 @@ export class EmailService {
         console.log(`[EmailService] Subject: ${options.subject}`);
       }
 
-      // Get the email account details
-      const { data: account, error } = await supabase
-        .from('email_accounts')
-        .select('*')
-        .eq('id', this.accountId)
-        .single();
-
-      if (error) {
-        if (DEBUG_MODE) console.error('[EmailService] Error fetching account details:', error);
-        throw error;
-      }
-      if (!account) {
-        const errorMsg = `Email account with ID ${this.accountId} not found`;
-        if (DEBUG_MODE) console.error(`[EmailService] ${errorMsg}`);
-        throw new Error(errorMsg);
-      }
-
       // Prepare recipients
       const recipients = Array.isArray(options.to) ? options.to : [options.to];
       
-      // Use the account's email as the default from address if not provided
-      const fromEmail = options.from || `${account.name} <${account.email}>`;
-
       // Generate message ID for tracking
       const messageId = `<${Date.now()}-${Math.random().toString(36).substring(2, 15)}@vamkor.com>`;
 
@@ -101,17 +82,18 @@ export class EmailService {
         setTimeout(() => reject(new Error('Email sending timed out after 30 seconds')), 30000);
       });
       
-      if (DEBUG_MODE) console.log('[EmailService] Invoking edge function');
+      if (DEBUG_MODE) console.log('[EmailService] Invoking SMTP edge function');
       
       try {
-        const resultPromise = supabase.functions.invoke('send-email-resend', {
+        const resultPromise = supabase.functions.invoke('send-email-smtp', {
           body: {
             to: recipients,
             subject: options.subject,
             text: options.text,
             html: options.html,
-            from: fromEmail,
-            attachments: options.attachments
+            from: options.from,
+            attachments: options.attachments,
+            accountId: this.accountId
           }
         }).then(async response => {
           if (response.error) {
@@ -128,10 +110,10 @@ export class EmailService {
   
           // Log successful email
           await supabase.from('email_logs').insert({
-            to: Array.isArray(options.to) ? options.to.join(', ') : options.to,
+            recipient: Array.isArray(options.to) ? options.to.join(', ') : options.to,
             subject: options.subject,
-            status: 'success',
-            account_id: this.accountId,
+            status: 'sent',
+            email_account_id: this.accountId,
             message_id: messageId
           });
   
@@ -161,11 +143,11 @@ export class EmailService {
       if (this.accountId) {
         try {
           await supabase.from('email_logs').insert({
-            to: Array.isArray(options.to) ? options.to.join(', ') : options.to,
+            recipient: Array.isArray(options.to) ? options.to.join(', ') : options.to,
             subject: options.subject,
             status: 'failed',
             error: error instanceof Error ? error.message : 'Unknown error',
-            account_id: this.accountId
+            email_account_id: this.accountId
           });
         } catch (logError) {
           if (DEBUG_MODE) console.error('[EmailService] Error logging failed email:', logError);
@@ -252,14 +234,14 @@ export class EmailService {
   // Method to test connection with current account
   private async testConnection(account: any) {
     try {
-      // Since we're using Resend now, we can just check if the API key is valid
-      // We'll make a small request to see if it works
-      const { data, error } = await supabase.functions.invoke('send-email-resend', {
+      // We'll use our SMTP edge function to test the connection
+      const { data, error } = await supabase.functions.invoke('send-email-smtp', {
         body: {
           to: "test@example.com",
           subject: "Test Connection",
           text: "This is a test to verify the connection.",
-          dryRun: true // This should be handled in the function to not actually send emails
+          accountId: this.accountId,
+          dryRun: true // This tells the function to just test connection without sending
         }
       });
       
