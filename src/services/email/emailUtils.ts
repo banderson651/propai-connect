@@ -58,7 +58,7 @@ export const testEmailConnection = async (account: EmailAccount): Promise<EmailT
         
         debugLog('Connection test response:', response);
         
-        // Return the actual response from the edge function - don't modify or override it
+        // Return the actual response from the edge function
         return response.data;
       });
       
