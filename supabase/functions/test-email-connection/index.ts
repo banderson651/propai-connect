@@ -1,6 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { SmtpClient } from "https://deno.land/x/smtp@v0.7.0/mod.ts";
+import { ImapFlow } from "https://deno.land/x/imapflow@v1.0.128/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -94,23 +95,81 @@ serve(async (req) => {
 });
 
 async function testConnection(config: TestEmailConfig) {
-  // For now, we'll focus on SMTP testing since we removed the IMAP dependency
-  // If IMAP functionality is needed later, we can implement it using a different library
   if (config.type.toLowerCase() === "smtp") {
     return testSmtpConnection(config);
+  } else if (config.type.toLowerCase() === "imap") {
+    return testImapConnection(config);
   } else {
-    // Return a placeholder for IMAP that doesn't fail but informs the user
-    // that we need to return to implement real IMAP testing
+    throw new Error(`Unsupported email protocol: ${config.type}`);
+  }
+}
+
+async function testImapConnection(config: TestEmailConfig) {
+  console.log(`Testing IMAP connection to ${config.host}:${config.port} with credentials ${config.username}`);
+  console.log(`IMAP secure mode: ${config.secure ? "TLS/SSL" : "Plain/STARTTLS"}`);
+  
+  try {
+    // Set timeout for connection (10 seconds)
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("IMAP connection timeout after 10 seconds")), 10000);
+    });
+    
+    // Create IMAP client
+    const client = new ImapFlow({
+      host: config.host,
+      port: config.port,
+      secure: config.secure,
+      auth: {
+        user: config.username,
+        pass: config.password
+      },
+      // Setting a shorter connection timeout
+      connectionTimeout: 5000,
+      // Setting a shorter greeting timeout
+      greetingTimeout: 5000,
+      logger: false
+    });
+
+    // Connect and immediately disconnect to test credentials
+    const connectPromise = async () => {
+      await client.connect();
+      // Briefly examine mailbox list to verify connection
+      const mailboxes = await client.listMailboxes();
+      console.log("IMAP connection successful, mailboxes found:", mailboxes.length);
+      await client.logout();
+    };
+    
+    // Race connection against timeout
+    await Promise.race([connectPromise(), timeoutPromise]);
+    
+    console.log("IMAP connection test successful");
+    
     return {
-      success: false,
-      message: "IMAP connection testing is being implemented in the next update. Please check SMTP credentials for now.",
+      success: true,
+      message: "IMAP connection successful",
       details: {
-        type: config.type,
+        type: "IMAP",
         host: config.host,
         port: config.port,
-        error: "IMAP testing is currently unavailable in this version. Use SMTP for verification."
       },
     };
+  } catch (error) {
+    console.error("IMAP connection test failed:", error);
+    
+    // Provide more specific error messages based on common IMAP errors
+    let errorMessage = `IMAP connection failed: ${error instanceof Error ? error.message : "Unknown error"}`;
+    
+    if (errorMessage.includes("AUTHENTICATIONFAILED")) {
+      errorMessage = `Authentication failed for user ${config.username}. Check username and password`;
+    } else if (errorMessage.includes("timeout")) {
+      errorMessage = `Connection to IMAP server ${config.host}:${config.port} timed out. Check firewall settings or server availability`;
+    } else if (errorMessage.includes("ECONNREFUSED")) {
+      errorMessage = `Connection refused by IMAP server ${config.host}:${config.port}. Server may be down or blocking connections`;
+    } else if (errorMessage.includes("certificate")) {
+      errorMessage = `SSL/TLS certificate validation failed for ${config.host}. Check your secure setting or server certificate`;
+    }
+    
+    throw new Error(errorMessage);
   }
 }
 

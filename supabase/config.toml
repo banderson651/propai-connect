@@ -11,4 +11,4 @@ verify_jwt = true
 verify_jwt = true
 
 [experimental]
-allowed_ports = [25, 465, 587, 2525, 993, 995]
+allowed_ports = [25, 465, 587, 2525, 993, 995, 143, 110]
