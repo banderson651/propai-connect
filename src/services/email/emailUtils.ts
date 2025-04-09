@@ -57,6 +57,15 @@ export const testEmailConnection = async (account: EmailAccount): Promise<EmailT
         }
         
         debugLog('Connection test response:', response);
+
+        // If IMAP test returns success: false but with no error, provide a more helpful message
+        if (config.type === 'imap' && !response.data.success && !response.data.details?.error?.includes('testing is currently unavailable')) {
+          toast({
+            title: "IMAP Testing Notice",
+            description: "Please check SMTP credentials first. Full IMAP verification will be available soon.",
+          });
+        }
+        
         return response.data;
       });
       
@@ -105,96 +114,53 @@ export const sendTestEmail = async (account: EmailAccount, recipient: string): P
     // Add message ID for tracking
     const messageId = `<test-${Date.now()}-${Math.random().toString(36).substring(2, 15)}@${account.smtp_host || account.host}>`;
     
-    // Call the Resend Edge Function to send the email with improved error handling
-    try {
-      // Use Promise with timeout instead of AbortController
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Email sending timed out after 30 seconds')), 30000);
-      });
-      
-      const responsePromise = supabase.functions.invoke('send-email-resend', {
-        body: {
-          to: recipient,
-          subject: "Test Email from PropAI",
-          text: `This is a test email sent from ${account.name} (${account.email})`,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #4F46E5;">Test Email from PropAI</h2>
-              <p>This is a test email sent from your account: <strong>${account.name}</strong> (${account.email}).</p>
-              <p>If you received this email, your email configuration is working correctly.</p>
-              <hr style="border: 1px solid #eaeaea; margin: 20px 0;" />
-              <p style="color: #666; font-size: 12px;">This is an automated message from PropAI using your verified custom domain.</p>
-              <p style="color: #666; font-size: 12px;">Message-ID: ${messageId}</p>
-            </div>
-          `,
-          from: `"${account.name}" <no-reply@vamkor.com>`
-        }
-      }).then(response => {
-        debugLog('Send email response:', response);
-        
-        if (response.error) {
-          debugLog("Error invoking send-email-resend function:", response.error);
-          throw new Error(response.error.message || "Failed to send email");
-        }
-        
-        const data = response.data;
-        
-        if (!data.success) {
-          debugLog("Email sending failed:", data);
-          throw new Error(data.message || "Failed to send email");
-        }
-        
-        return {
-          success: true,
-          message: `Test email sent successfully from ${account.email} to ${recipient}`
-        };
-      });
-      
-      return await Promise.race([responsePromise, timeoutPromise]);
-    } catch (fetchError) {
-      // Special handling for development mode
-      if (DEBUG_MODE && (fetchError.message?.includes('Edge Function returned a non-2xx status code'))) {
-        debugLog('Using development mode email simulation');
-        toast({
-          title: "Development Mode",
-          description: "Email sending is currently in simulation mode. No actual emails are being sent.",
-          variant: "default"
-        });
-        
-        // Return simulated success in development mode
-        return {
-          success: true,
-          message: `Test email simulated (development mode) to ${recipient}`
-        };
-      }
-      
-      if (fetchError.message?.includes('timed out')) {
-        debugLog('Email sending timed out after 30 seconds');
-        throw new Error('Email sending timed out after 30 seconds. The server may be slow or rejecting the connection.');
-      }
-      
-      debugLog("Error with Edge Function:", fetchError);
-      throw new Error(fetchError instanceof Error 
-        ? fetchError.message 
-        : "Failed to send email - Edge Function error");
-    }
-    
-  } catch (error) {
-    debugLog("Error sending test email:", error);
-    
-    // Create user-friendly error messages based on common issues
-    let errorMessage = error instanceof Error ? error.message : "Failed to send email";
-    
-    // Show toast for better UI feedback
-    toast({
-      title: "Email Sending Failed",
-      description: errorMessage,
-      variant: "destructive"
+    // Use Promise with timeout instead of AbortController
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Email sending timed out after 30 seconds')), 30000);
     });
+    
+    // Use direct SMTP sending through the edge function
+    const responsePromise = supabase.functions.invoke('send-email-smtp', {
+      body: {
+        to: recipient,
+        subject: "Test Email Connection",
+        text: `This is a test email sent from ${account.name} (${account.email}) to verify your email connection settings.`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #4F46E5;">Email Connection Test</h2>
+            <p>This is a test email sent from your account: <strong>${account.name}</strong> (${account.email}).</p>
+            <p>If you received this email, your email configuration is working correctly.</p>
+            <hr style="border: 1px solid #eaeaea; margin: 20px 0;" />
+            <p style="color: #666; font-size: 12px;">This is an automated test message. Message-ID: ${messageId}</p>
+          </div>
+        `,
+        accountId: account.id
+      }
+    }).then(response => {
+      if (response.error) {
+        debugLog('Edge function error:', response.error);
+        throw new Error(response.error.message || 'Failed to send test email');
+      }
+      
+      debugLog('Test email response:', response.data);
+      
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to send test email');
+      }
+      
+      return {
+        success: true,
+        message: `Test email sent successfully to ${recipient}`
+      };
+    });
+    
+    return await Promise.race([responsePromise, timeoutPromise]);
+  } catch (error) {
+    debugLog('Error sending test email:', error);
     
     return {
       success: false,
-      message: errorMessage
+      message: error instanceof Error ? error.message : 'Unknown error occurred while sending test email'
     };
   }
 };

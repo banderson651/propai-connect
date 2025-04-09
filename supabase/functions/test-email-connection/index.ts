@@ -100,13 +100,15 @@ async function testConnection(config: TestEmailConfig) {
     return testSmtpConnection(config);
   } else {
     // Return a placeholder for IMAP that doesn't fail but informs the user
+    // that we need to return to implement real IMAP testing
     return {
-      success: true,
-      message: "Connection test simulated for IMAP/POP3",
+      success: false,
+      message: "IMAP connection testing is being implemented in the next update. Please check SMTP credentials for now.",
       details: {
         type: config.type,
         host: config.host,
         port: config.port,
+        error: "IMAP testing is currently unavailable in this version. Use SMTP for verification."
       },
     };
   }

@@ -1,7 +1,7 @@
+
 {
   "imports": {
     "http/": "https://deno.land/std@0.190.0/http/",
-    "imapflow": "npm:imapflow@1.0.162",
     "emailjs": "npm:emailjs@4.0.3"
   },
   "compilerOptions": {
