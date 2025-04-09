@@ -152,6 +152,8 @@ export type Database = {
           email: string
           host: string
           id: string
+          is_active: string | null
+          is_default: string | null
           last_checked: string | null
           name: string
           password: string
@@ -173,6 +175,8 @@ export type Database = {
           email: string
           host: string
           id?: string
+          is_active?: string | null
+          is_default?: string | null
           last_checked?: string | null
           name: string
           password: string
@@ -194,6 +198,8 @@ export type Database = {
           email?: string
           host?: string
           id?: string
+          is_active?: string | null
+          is_default?: string | null
           last_checked?: string | null
           name?: string
           password?: string

@@ -43,16 +43,25 @@ export const getEmailAccountById = async (id: string): Promise<EmailAccount | un
 export const createEmailAccount = async (account: EmailAccountCreate): Promise<EmailAccount> => {
   try {
     console.log('Testing email connection...');
-    const connectionResult = await testEmailConnection({
+    // Make sure we're using a valid type here
+    const testAccount: EmailAccount = {
       id: 'temp-id',
-      type: account.type,
+      type: account.type as EmailAccountType,
       host: account.host,
       port: account.port,
       username: account.username,
       password: account.password,
       email: account.email,
-      secure: account.secure
-    } as EmailAccount);
+      name: account.name,
+      status: 'disconnected',
+      is_default: false,
+      is_active: true,
+      secure: account.secure,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    const connectionResult = await testEmailConnection(testAccount);
 
     if (!connectionResult.success) {
       console.error('Connection test failed:', connectionResult.message);

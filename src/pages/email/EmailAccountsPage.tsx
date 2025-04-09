@@ -162,7 +162,7 @@ const EmailAccountsPage = () => {
     createMutation.mutate({
       name: accountName,
       email,
-      type: accountType as EmailAccountType,
+      type: accountType,
       host,
       port: numPort,
       username,
@@ -489,7 +489,7 @@ const EmailAccountsPage = () => {
                   className="w-full p-2 border rounded-md"
                 >
                   <option value="imap">IMAP</option>
-                  <option value="pop3">POP3</option>
+                  <option value="smtp">SMTP</option>
                 </select>
               </div>
               <div className="space-y-2">

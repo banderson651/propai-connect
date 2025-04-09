@@ -1,5 +1,4 @@
-
-export type EmailAccountType = 'imap' | 'pop3' | 'smtp' | 'gmail' | 'outlook';
+export type EmailAccountType = 'imap' | 'smtp';
 export type EmailAccountStatus = 'active' | 'inactive' | 'error' | 'connected' | 'disconnected';
 
 export interface EmailAccount {
