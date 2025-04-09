@@ -1,3 +1,4 @@
+
 export type EmailAccountType = 'imap' | 'pop3' | 'smtp' | 'gmail' | 'outlook';
 export type EmailAccountStatus = 'active' | 'inactive' | 'error' | 'connected' | 'disconnected';
 
@@ -61,7 +62,7 @@ export interface EmailAccountUpdate extends Partial<Omit<EmailAccount, 'id' | 'c
 export interface EmailCampaign {
   id: string;
   name: string;
-  status: 'draft' | 'scheduled' | 'running' | 'paused' | 'completed' | 'failed' | 'sent';
+  status: 'draft' | 'scheduled' | 'running' | 'paused' | 'completed' | 'failed' | 'sent' | 'sending';
   emailAccountId: string;
   templateId: string;
   subject: string;
@@ -70,6 +71,10 @@ export interface EmailCampaign {
   createdAt: string;
   startedAt?: string;
   completedAt?: string;
+  metadata?: {
+    customRecipients?: Array<{email: string, name?: string}>;
+    [key: string]: any;
+  };
 }
 
 export interface Campaign extends EmailCampaign {

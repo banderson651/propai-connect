@@ -17,7 +17,8 @@ import {
   Users, 
   Clock, 
   Plus,
-  Upload
+  Upload,
+  X
 } from 'lucide-react';
 import { getEmailAccounts, getEmailTemplates, createCampaign } from '@/services/email';
 import { useToast } from '@/hooks/use-toast';
