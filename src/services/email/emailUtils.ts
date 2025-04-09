@@ -1,3 +1,4 @@
+
 import { EmailAccount, EmailTestResult } from '@/types/email';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
