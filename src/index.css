@@ -1,0 +1,195 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Minimal UI inspired palette */
+    --background: 220 23% 99%;
+    --foreground: 220 15% 15%;
+    --primary: 220 80% 56%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 15% 20%;
+    --accent: 262 83% 58%;
+    --accent-foreground: 0 0% 100%;
+    --muted: 220 16% 90%;
+    --muted-foreground: 220 10% 40%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 97 70% 50%;
+    --success-foreground: 0 0% 100%;
+    --warning: 43 100% 50%;
+    --warning-foreground: 0 0% 20%;
+    --info: 210 100% 47%;
+    --info-foreground: 0 0% 100%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 15%;
+    --sidebar: 220 16% 96%;
+    --sidebar-foreground: 220 30% 30%;
+    --timeline-line: 220 10% 85%;
+    --timeline-dot: 220 80% 56%;
+    --timeline-dot-border: 220 80% 80%;
+    --border: 220 16% 90%;
+    --input: 220 16% 90%;
+    --ring: 220 80% 56%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 220 19% 10%;
+    --foreground: 220 23% 98%;
+    --primary: 220 80% 66%;
+    --primary-foreground: 220 23% 98%;
+    --secondary: 220 14% 15%;
+    --secondary-foreground: 220 23% 98%;
+    --accent: 262 83% 58%;
+    --accent-foreground: 220 23% 98%;
+    --muted: 220 14% 18%;
+    --muted-foreground: 220 14% 70%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 97 70% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 43 100% 40%;
+    --warning-foreground: 0 0% 100%;
+    --info: 210 100% 60%;
+    --info-foreground: 0 0% 100%;
+    --card: 220 14% 15%;
+    --card-foreground: 220 23% 98%;
+    --popover: 220 14% 15%;
+    --popover-foreground: 220 23% 98%;
+    --sidebar: 220 14% 15%;
+    --sidebar-foreground: 220 23% 98%;
+    --timeline-line: 220 10% 20%;
+    --timeline-dot: 220 80% 66%;
+    --timeline-dot-border: 220 80% 40%;
+    --border: 220 14% 18%;
+    --input: 220 14% 18%;
+    --ring: 220 80% 66%;
+    --radius: 0.75rem;
+  }
+
+  body {
+    font-family: 'Inter', var(--font-sans), system-ui, sans-serif;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+
+  /* Modern shadow for cards and popovers */
+  .card, .popover {
+    box-shadow: 0 4px 24px 0 rgb(145 158 171 / 12%);
+    border-radius: var(--radius);
+  }
+
+  /* Sidebar mini/collapsed state */
+  .sidebar-collapsed {
+    width: 4rem !important;
+  }
+
+  /* Example: minimal UI button style */
+  .btn-primary {
+    background: linear-gradient(90deg, #2065D1 0%, #103996 100%);
+    color: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px 0 rgb(32 101 209 / 10%);
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(90deg, #103996 0%, #2065D1 100%);
+  }
+
+  /* Remove outline for links in sidebar */
+  .sidebar a:focus {
+    outline: none;
+  }
+
+  /* Optional: smooth transitions for sidebar */
+  .sidebar {
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm;
+  }
+
+  .animate-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .timeline-container {
+    position: relative;
+    padding-left: 2.5rem;
+  }
+  
+  .timeline-line {
+    background-color: hsl(var(--timeline-line));
+    position: absolute;
+    left: 0.75rem;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+  }
+  
+  .timeline-dot {
+    background-color: hsl(var(--timeline-dot));
+    border: 4px solid hsl(var(--timeline-dot-border));
+    position: absolute;
+    left: 0.75rem;
+    top: 0.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-left: -0.6875rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .timeline-dot-empty {
+    background-color: transparent;
+    border: 2px solid hsl(var(--timeline-dot));
+  }
+  
+  .timeline-dot-muted {
+    background-color: hsl(var(--muted));
+  }
+  
+  .timeline-content {
+    margin-bottom: 2rem;
+    margin-left: 0.5rem;
+  }
+  
+  .timeline-date {
+    font-size: 0.875rem;
+    color: hsl(var(--muted-foreground));
+    margin-bottom: 0.5rem;
+  }
+  
+  .timeline-card {
+    padding: 1rem;
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    box-shadow: 0 1px 2px 0 rgb(145 158 171 / 8%);
+  }
+}
