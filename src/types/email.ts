@@ -1,6 +1,6 @@
-export type EmailAccountType = 'imap' | 'smtp';
+export type EmailAccountType = 'smtp';
 export type EmailAccountStatus = 'active' | 'inactive' | 'error' | 'connected' | 'disconnected';
-
+  
 export interface EmailAccount {
   id: string;
   name: string;
@@ -24,11 +24,6 @@ export interface EmailAccount {
   
   // Additional fields needed by components
   display_name?: string;
-  imap_host?: string;
-  imap_port?: number;
-  imap_username?: string;
-  imap_password?: string;
-  imap_secure?: boolean;
   smtp_host?: string;
   smtp_port?: number;
   smtp_username?: string;
@@ -45,7 +40,7 @@ export interface EmailTestResult {
   success: boolean;
   message: string;
   details?: {
-    type: string;
+    type: EmailAccountType;
     host: string;
     port: number;
     error?: string;

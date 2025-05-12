@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 interface TestEmailConfig {
-  type: 'imap' | 'smtp';
+  type: 'smtp';
   host: string;
   port: number;
   username: string;
@@ -55,7 +55,7 @@ serve(async (req) => {
       throw new Error("Missing email configuration");
     }
     if (!config.type) {
-      throw new Error("Missing required field: 'type' (must be 'smtp' or 'imap')");
+      throw new Error("Missing required field: 'type' (must be 'smtp')");
     }
     if (!config.host) {
       throw new Error("Missing required field: 'host'");
@@ -70,28 +70,11 @@ serve(async (req) => {
       throw new Error("Missing required field: 'password'");
     }
 
-    console.log(`Testing ${config.type.toUpperCase()} connection to ${config.host}:${config.port}`);
+    console.log(`Testing SMTP connection to ${config.host}:${config.port}`);
 
-    // Always test SMTP, regardless of the type requested
     if (config.type.toLowerCase() === "smtp") {
       const results = await testSmtpConnection(config);
       return new Response(JSON.stringify(results), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
-    } else if (config.type.toLowerCase() === "imap") {
-      // For IMAP requests, return a valid response that indicates IMAP is supported
-      // but would require additional configuration from the admin
-      return new Response(JSON.stringify({
-        success: true, // Change to true so the flow can continue
-        message: "IMAP connection validated (Note: Full IMAP testing will be available in the next update)",
-        details: {
-          type: "IMAP",
-          host: config.host,
-          port: config.port,
-          note: "IMAP testing is simplified in the current version. Your settings look valid based on our validation rules."
-        }
-      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
@@ -114,6 +97,7 @@ serve(async (req) => {
   }
 });
 
+//Only test the SMTP connection
 async function testSmtpConnection(config: TestEmailConfig) {
   console.log(`Testing SMTP connection to ${config.host}:${config.port} with credentials ${config.username}`);
   console.log(`SMTP secure mode: ${config.secure ? "TLS/SSL" : "Plain/STARTTLS"}`);

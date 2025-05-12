@@ -20,13 +20,13 @@ const debugLog = (message: string, data?: any) => {
  */
 export const testEmailConnection = async (account: EmailAccount): Promise<EmailTestResult> => {
   try {
-    debugLog('Testing connection to', { 
-      host: account.host || account.smtp_host,
-      port: account.port || account.smtp_port,
-      user: account.username || account.smtp_username,
-      secure: account.secure !== undefined ? account.secure : (account.smtp_secure !== undefined ? account.smtp_secure : true)
+    debugLog('Testing SMTP connection to', {
+      host: account.smtp_host,
+      port: account.smtp_port,
+      user: account.smtp_username,
+      secure: account.smtp_secure,
     });
-    
+
     const config = {
       type: account.type.toLowerCase(),
       host: account.host || account.smtp_host,
@@ -34,25 +34,25 @@ export const testEmailConnection = async (account: EmailAccount): Promise<EmailT
       username: account.username || account.smtp_username,
       password: account.password || account.smtp_password,
       secure: account.secure !== undefined ? account.secure : (account.smtp_secure !== undefined ? account.smtp_secure : true)
-    };
-    
+    }
+
     debugLog('Test connection config:', {
       ...config,
       password: '********' // Don't log actual password
     });
-    
+
     // Use a Promise with timeout rather than AbortController
     const timeoutPromise = new Promise<EmailTestResult>((_, reject) => {
       setTimeout(() => reject(new Error('Connection test timed out after 20 seconds')), 20000);
     });
-    
+
     try {
       // Call the Edge Function to test connection
       const resultPromise = supabase.functions.invoke('test-email-connection', {
         body: { config }
       }).then(response => {
         if (response.error) {
-          debugLog('Edge function error:', response.error);
+            debugLog('Edge function error:', response.error);
           throw new Error(response.error.message || 'Connection test failed');
         }
         
@@ -76,21 +76,18 @@ export const testEmailConnection = async (account: EmailAccount): Promise<EmailT
     debugLog('Error testing connection:', error);
     
     // Provide specific user-friendly error messages based on common issues
-    let errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    
-    if (errorMessage.includes('CORS')) {
-      errorMessage = 'Cross-origin request blocked. This is likely an issue with the server configuration.';
-    } else if (errorMessage.includes('NetworkError')) {
-      errorMessage = 'Network error occurred. Check your internet connection and server availability.';
-    }
-    
+    let errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';    
+
     return {
       success: false,
       message: errorMessage,
       details: {
-        type: account.type,
-        host: account.host || account.smtp_host,
-        port: account.port || account.smtp_port,
+        type: 'SMTP',
+        host: account.smtp_host,
+        port: account.smtp_port,
+        username: account.smtp_username,
+        password: account.smtp_password,
+        secure: account.smtp_secure,
         error: errorMessage
       }
     };

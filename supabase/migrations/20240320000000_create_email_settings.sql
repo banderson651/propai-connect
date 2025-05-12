@@ -1,13 +1,14 @@
 -- Create email_settings table
-CREATE TABLE IF NOT EXISTS email_settings (
+CREATE TABLE IF NOT EXISTS email_accounts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  smtp_host TEXT NOT NULL,
-  smtp_port INTEGER NOT NULL,
-  smtp_secure BOOLEAN NOT NULL DEFAULT true,
-  smtp_user TEXT NOT NULL,
-  smtp_password TEXT NOT NULL,
+  type TEXT NOT NULL DEFAULT 'smtp',
+  host TEXT NOT NULL,
+  port INTEGER NOT NULL,
+  username TEXT NOT NULL,
+  password TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+  secure BOOLEAN NOT NULL DEFAULT true
 );
 
 -- Create email_logs table
@@ -20,16 +21,6 @@ CREATE TABLE IF NOT EXISTS email_logs (
   error TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
-
--- Create RLS policies
-ALTER TABLE email_settings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE email_logs ENABLE ROW LEVEL SECURITY;
-
--- Only allow admins to manage email settings
-CREATE POLICY "Only admins can manage email settings"
-  ON email_settings
-  FOR ALL
-  USING (auth.jwt() ->> 'role' = 'admin');
 
 -- Allow users to view email logs
 CREATE POLICY "Users can view email logs"
@@ -48,6 +39,6 @@ $$ language 'plpgsql';
 
 -- Create trigger for email_settings
 CREATE TRIGGER update_email_settings_updated_at
-  BEFORE UPDATE ON email_settings
+  BEFORE UPDATE ON email_accounts
   FOR EACH ROW
-  EXECUTE FUNCTION update_updated_at_column(); 
+  EXECUTE FUNCTION update_updated_at_column();

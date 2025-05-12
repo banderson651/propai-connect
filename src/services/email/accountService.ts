@@ -3,7 +3,6 @@ import { EmailAccount, EmailAccountType, EmailTestResult, EmailAccountCreate, Em
 import { supabase } from '@/lib/supabase';
 import { testEmailConnection } from './emailUtils';
 
-// Email Accounts
 export const getEmailAccounts = async (): Promise<EmailAccount[]> => {
   const { data, error } = await supabase
     .from('email_accounts')
@@ -43,22 +42,25 @@ export const getEmailAccountById = async (id: string): Promise<EmailAccount | un
 export const createEmailAccount = async (account: EmailAccountCreate): Promise<EmailAccount> => {
   try {
     console.log('Testing email connection...');
-    // Make sure we're using a valid type here
+
     const testAccount: EmailAccount = {
       id: 'temp-id',
       type: account.type as EmailAccountType,
-      host: account.host,
-      port: account.port,
-      username: account.username,
-      password: account.password,
-      email: account.email,
+      host: account.smtp_host || account.host,
+      port: account.smtp_port || account.port,
+      username: account.smtp_username || account.username,
+      secure: account.smtp_secure ?? account.secure,
       name: account.name,
+      email: account.email,
+      password: account.password,
+      display_name: account.name,
+      
       status: 'disconnected',
       is_default: false,
       is_active: true,
       secure: account.secure,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
     
     const connectionResult = await testEmailConnection(testAccount);
@@ -114,18 +116,38 @@ export const createEmailAccount = async (account: EmailAccountCreate): Promise<E
 };
 
 export const updateEmailAccount = async (id: string, updates: Partial<EmailAccount>): Promise<EmailAccount | undefined> => {
-  const dbUpdates = {
-    ...updates,
-    last_checked: updates.last_checked,
-    updated_at: new Date().toISOString(),
-  };
+  let data;
+  let error;
+  try {
+      const testAccount: EmailAccount = {
+        id: 'temp-id',
+        type: updates.type as EmailAccountType,
+        host: updates.smtp_host || updates.host,
+        port: updates.smtp_port || updates.port,
+        username: updates.smtp_username || updates.username,
+        secure: updates.smtp_secure ?? updates.secure,
 
-  const { data, error } = await supabase
-    .from('email_accounts')
-    .update(dbUpdates)
-    .eq('id', id)
-    .select()
-    .single();
+        //The following are mandatory, but we are not using them for testing, so we use a fallback
+        name: updates.name || "",
+        email: updates.email || "",
+        status: 'disconnected',
+        is_default: false,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      const connectionResult = await testEmailConnection(testAccount);
+      if (!connectionResult.success) {
+        console.error('Connection test failed:', connectionResult.message);
+        throw new Error(connectionResult.message);
+      }
+      const dbUpdates = {
+        ...updates,
+        last_checked: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      ({ data, error } = await supabase.from('email_accounts').update(dbUpdates).eq('id', id).select().single());
+  } catch (err) { error = err as any; }
   
   if (error) {
     console.error(`Error updating email account with id ${id}:`, error);
@@ -282,29 +304,19 @@ export class EmailAccountService {
 
   async testConnection(account: EmailAccount): Promise<EmailTestResult[]> {
     const results: EmailTestResult[] = [];
-
-    // Test IMAP connection
-    try {
-      const imapResult = await this.testImapConnection(account);
-      results.push(imapResult);
-    } catch (error) {
-      results.push({
-        success: false,
-        message: 'IMAP connection failed',
-        details: {
-          type: 'IMAP',
-          host: account.imap_host || account.host,
-          port: account.imap_port || account.port,
-          error: error instanceof Error ? error.message : 'Unknown error'
-        }
-      });
-    }
-
-    // Test SMTP connection
+  
     try {
       const smtpResult = await this.testSmtpConnection(account);
       results.push(smtpResult);
-    } catch (error) {
+    } catch (error) {     
+        const { data, error: getError } = await supabase
+          .from('email_accounts')
+          .select('*')
+          .eq('id', account.id).single();
+    
+          if(getError)
+            console.log(`Error fetching the account.`, getError);
+      
       results.push({
         success: false,
         message: 'SMTP connection failed',
@@ -320,29 +332,22 @@ export class EmailAccountService {
     return results;
   }
 
-  private async testImapConnection(account: EmailAccount): Promise<EmailTestResult> {
-    // Implementation will be added in the next step
-    return {
-      success: true,
-      message: 'IMAP connection successful',
-      details: {
-        type: 'IMAP',
-        host: account.imap_host || account.host,
-        port: account.imap_port || account.port
-      }
-    };
-  }
-
   private async testSmtpConnection(account: EmailAccount): Promise<EmailTestResult> {
-    // Implementation will be added in the next step
-    return {
-      success: true,
-      message: 'SMTP connection successful',
-      details: {
-        type: 'SMTP',
-        host: account.smtp_host,
-        port: account.smtp_port
+      try {
+        const res = await testEmailConnection(account);
+        return res;
       }
-    };
+      catch(err)
+      {
+        return {
+          success: false,
+          message: 'SMTP connection failed',
+          details: {
+            type: 'SMTP',
+            host: account.smtp_host,
+            port: account.smtp_port
+          }
+        };
+      }
   }
 }
