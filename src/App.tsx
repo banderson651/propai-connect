@@ -5,10 +5,10 @@ import { ThemeProvider } from '@/components/ui/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import ErrorBoundary from '@/components/ErrorBoundary';
-import { AuthRoute } from '@/components/auth/AuthRoute'; // Changed import to named import
+import { ErrorBoundary } from '@/components/ErrorBoundary'; // Corrected import to named import
+import { AuthRoute } from '@/components/auth/AuthRoute';
 import PublicRoute from '@/components/auth/PublicRoute';
-import LoadingSpinner from '@/components/LoadingSpinner';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { WhatsAppProvider } from '@/contexts/WhatsAppContext';
 import { AutomationProvider } from '@/contexts/AutomationContext';
@@ -43,9 +43,10 @@ const queryClient = new QueryClient();
 
 const App = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  
+
   return (
     <ErrorBoundary>
+      {/* Content wrapped by ErrorBoundary */}
       <ThemeProvider defaultTheme="light">
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
@@ -61,7 +62,7 @@ const App = () => {
                       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
                       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
                       <Route path="/properties/public/:slug" element={<PublicPropertyPage />} />
-                      
+
                       {/* Protected routes */}
                       <Route path="/dashboard" element={<AuthRoute><IndexPage /></AuthRoute>} />
                       <Route path="/analytics" element={<AuthRoute><AnalyticsPage /></AuthRoute>} />
@@ -75,7 +76,7 @@ const App = () => {
                       <Route path="/properties" element={<AuthRoute><PropertiesPage /></AuthRoute>} />
                       <Route path="/properties/new" element={<AuthRoute><NewPropertyPage /></AuthRoute>} />
                       <Route path="/properties/:id" element={<AuthRoute><PropertyDetailPage /></AuthRoute>} />
-                      <Route path="/tasks" element={<AuthRoute><TaskManagerPage /></AuthRoute>} />
+                      <Route path="/tasks" element={<TaskManagerPage /></AuthRoute>} />
                       <Route path="/whatsapp" element={<AuthRoute><WhatsAppPage /></AuthRoute>} />
                        <Route path="/whatsapp/settings" element={<AuthRoute><WhatsAppSettingsPage /></AuthRoute>} />
                       <Route path="/automation" element={<AuthRoute><AutomationPage /></AuthRoute>} />
@@ -85,7 +86,7 @@ const App = () => {
                       {/* Admin Routes */}
                       <Route path="/admin" element={<AuthRoute adminOnly><AdminDashboard /></AuthRoute>} />
                       <Route path="/admin/users" element={<AuthRoute adminOnly><AdminDashboard /></AuthRoute>} />
-                      
+
                       {/* Catch all route */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>
