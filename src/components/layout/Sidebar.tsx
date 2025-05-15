@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from 'react-router-dom';
 import { 
   Home, 
@@ -36,6 +35,9 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
     { icon: CheckSquare, label: 'Tasks', path: '/tasks' },
     { icon: Calendar, label: 'Calendar', path: '/calendar' },
     { icon: Building2, label: 'Properties', path: '/properties' },
+    { icon: Mail, label: 'Email Accounts', path: '/email/accounts' },
+    { icon: Mail, label: 'Email Templates', path: '/email/templates' },
+    { icon: Mail, label: 'Email Campaigns', path: '/email/campaigns' },
     { icon: Zap, label: 'Automation', path: '/automation' },
     { icon: BarChart3, label: 'Analytics', path: '/analytics' },
     { 
@@ -54,8 +56,11 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
   ];
 
   const isActive = (path: string) => {
-    if (path === '/dashboard' && location.pathname === '/') return true;
+    // Handle root path explicitly if needed, though dashboard is usually the landing for auth
+    if (path === '/dashboard' && location.pathname === '/') return true; // Assuming root is dashboard for logged-in users
+    // Handle nested routes like /email/* or /contacts/*
     if (path !== '/dashboard' && location.pathname.startsWith(path)) return true;
+    // Fallback for exact path match
     return location.pathname === path;
   };
 
