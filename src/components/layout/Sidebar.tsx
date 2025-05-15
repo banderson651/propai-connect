@@ -35,7 +35,6 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
     { icon: Users, label: 'Contacts', path: '/contacts' },
     { icon: CheckSquare, label: 'Tasks', path: '/tasks' },
     { icon: Calendar, label: 'Calendar', path: '/calendar' },
-    { icon: Mail, label: 'Email', path: '/email' },
     { icon: Building2, label: 'Properties', path: '/properties' },
     { icon: Zap, label: 'Automation', path: '/automation' },
     { icon: BarChart3, label: 'Analytics', path: '/analytics' },

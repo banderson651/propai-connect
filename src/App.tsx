@@ -24,11 +24,6 @@ const Register = lazy(() => import("./pages/Register"));
 const ContactsPage = lazy(() => import("./pages/contacts/ContactsPage"));
 const ContactDetailPage = lazy(() => import("./pages/contacts/ContactDetailPage"));
 const NewContactPage = lazy(() => import("./pages/contacts/NewContactPage"));
-const EmailCampaignsPage = lazy(() => import("./pages/email/EmailCampaignsPage"));
-const EmailAccountsPage = lazy(() => import("./pages/email/EmailAccountsPage"));
-const CampaignDetailPage = lazy(() => import("./pages/email/CampaignDetailPage"));
-const NewCampaignPage = lazy(() => import("./pages/email/NewCampaignPage"));
-const EmailTemplatesPage = lazy(() => import("./pages/email/EmailTemplatesPage"));
 const PropertiesPage = lazy(() => import("./pages/properties/PropertiesPage"));
 const PropertyDetailPage = lazy(() => import("./pages/properties/PropertyDetailPage"));
 const NewPropertyPage = lazy(() => import("./pages/properties/NewPropertyPage"));
@@ -112,12 +107,7 @@ const App = () => {
                       {/* Settings Route */}
                       <Route path="/settings/*" element={<AuthRoute><Settings /></AuthRoute>} />
                       
-                      {/* Email Campaign Routes */}
-                      <Route path="/email" element={<AuthRoute><EmailCampaignsPage /></AuthRoute>} />
-                      <Route path="/email/accounts" element={<AuthRoute><EmailAccountsPage /></AuthRoute>} />
-                      <Route path="/email/campaigns/:id" element={<AuthRoute><CampaignDetailPage /></AuthRoute>} />
-                      <Route path="/email/campaigns/new" element={<AuthRoute><NewCampaignPage /></AuthRoute>} />
-                      <Route path="/email/templates" element={<AuthRoute><EmailTemplatesPage /></AuthRoute>} />
+
                       
                       {/* Admin Routes */}
                       <Route path="/admin" element={<AuthRoute adminOnly><AdminDashboard /></AuthRoute>} />

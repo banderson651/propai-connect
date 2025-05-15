@@ -20,34 +20,6 @@ export default function Settings() {
     phone: user?.user_metadata?.phone || '',
     company: user?.user_metadata?.company || '',
   });
-  const [emailSettings, setEmailSettings] = useState({
-    smtp_host: '',
-    smtp_port: 587,
-    smtp_secure: true,
-    smtp_user: '',
-    smtp_password: '',
-  });
-
-  useEffect(() => {
-    fetchEmailSettings();
-  }, []);
-
-  const fetchEmailSettings = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('email_settings')
-        .select('*')
-        .single();
-
-      if (error) throw error;
-
-      if (data) {
-        setEmailSettings(data);
-      }
-    } catch (error) {
-      console.error('Error fetching email settings:', error);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,31 +55,6 @@ export default function Settings() {
     }
   };
 
-  const handleEmailSettingsSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const { error } = await supabase
-        .from('email_settings')
-        .upsert(emailSettings);
-
-      if (error) throw error;
-
-      toast({
-        title: 'Success',
-        description: 'Email settings updated successfully',
-      });
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to update email settings',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <DashboardLayout>
@@ -121,9 +68,6 @@ export default function Settings() {
           <TabsList className="bg-white border border-slate-200">
             <TabsTrigger value="profile" className="data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-600">
               Profile
-            </TabsTrigger>
-            <TabsTrigger value="email" className="data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-600">
-              Email Settings
             </TabsTrigger>
           </TabsList>
 
