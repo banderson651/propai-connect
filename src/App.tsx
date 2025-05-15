@@ -1,3 +1,4 @@
+
 import { Suspense, lazy, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -8,7 +9,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { AuthRoute } from '@/components/auth/AuthRoute'; // Changed import to named import
 import PublicRoute from '@/components/auth/PublicRoute';
-import LoadingSpinner from '@/components/LoadingSpinner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner'; // Fix import path
 import { AuthProvider } from '@/contexts/AuthContext';
 import { WhatsAppProvider } from '@/contexts/WhatsAppContext';
 import { AutomationProvider } from '@/contexts/AutomationContext';
@@ -77,7 +78,7 @@ const App = () => {
                       <Route path="/properties/:id" element={<AuthRoute><PropertyDetailPage /></AuthRoute>} />
                       <Route path="/tasks" element={<AuthRoute><TaskManagerPage /></AuthRoute>} />
                       <Route path="/whatsapp" element={<AuthRoute><WhatsAppPage /></AuthRoute>} />
-                       <Route path="/whatsapp/settings" element={<AuthRoute><WhatsAppSettingsPage /></AuthRoute>} />
+                      <Route path="/whatsapp/settings" element={<AuthRoute><WhatsAppSettingsPage /></AuthRoute>} />
                       <Route path="/automation" element={<AuthRoute><AutomationPage /></AuthRoute>} />
                       <Route path="/automation/new" element={<AuthRoute><NewRulePage /></AuthRoute>} />
                       <Route path="/settings" element={<AuthRoute><SettingsPage /></AuthRoute>} />

@@ -1,131 +1,155 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
-import { User, Session } from '@supabase/supabase-js';
+import { toast } from '@/components/ui/use-toast';
 
-interface AuthContextProps {
-  user: User | null;
-  session: Session | null;
-  isLoading: boolean;
+interface AuthContextValue {
+  user: any | null;
+  loading: boolean;
   isAdmin: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>; // Add signUp method
+  signIn: (email: string, password: string) => Promise<{ error: any | null }>;
+  signUp: (email: string, password: string, name: string) => Promise<{ error: any | null }>;
   signOut: () => Promise<void>;
-  refreshSession: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextProps>({
-  user: null,
-  session: null,
-  isLoading: true,
-  isAdmin: false,
-  signIn: async () => {},
-  signUp: async () => {}, // Add signUp method
-  signOut: async () => {},
-  refreshSession: async () => {}
-});
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-
+  
   useEffect(() => {
-    const getSession = async () => {
+    const session = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    };
-
-    getSession();
-
-    supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user ?? null);
-      setSession(session);
-      setIsLoading(false);
-    });
-
-    const checkAdminStatus = async (userId: string | undefined) => {
-      if (!userId) {
+      
+      setUser(session?.user || null);
+      setLoading(false);
+      
+      if (session?.user) {
+        const adminStatus = await checkAdminStatus(session.user.id);
+        setIsAdmin(adminStatus);
+      } else {
         setIsAdmin(false);
-        return;
       }
-
+    };
+    
+    session();
+    
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      setUser(session?.user || null);
+      setLoading(false);
+      
+      if (session?.user) {
+        const adminStatus = await checkAdminStatus(session.user.id);
+        setIsAdmin(adminStatus);
+      } else {
+        setIsAdmin(false);
+      }
+    });
+  }, []);
+  
+  const checkAdminStatus = async (userId: string) => {
+    try {
       const { data, error } = await supabase
         .from('profiles')
         .select('is_admin')
         .eq('id', userId)
         .single();
-
+      
       if (error) {
         console.error("Error fetching admin status:", error);
-        setIsAdmin(false);
-      } else {
-        setIsAdmin(data?.is_admin || false);
+        // Don't fail completely if the column doesn't exist, just set isAdmin to false
+        if (error.code === '42703') { // Column doesn't exist error
+          return false;
+        }
+        return false;
       }
-    };
-
-    if (user) {
-      checkAdminStatus(user.id);
-    }
-  }, [user?.id]);
-
-  const refreshSession = async () => {
-    const { data, error } = await supabase.auth.refreshSession()
-
-    if (error) {
-      console.error("Error refreshing session:", error);
-    } else {
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
+      
+      return data?.is_admin || false;
+    } catch (err) {
+      console.error("Exception checking admin status:", err);
+      return false;
     }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    setLoading(true);
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-
+    
     if (error) {
-      throw error;
+      toast({
+        title: 'Error signing in',
+        description: error.message,
+        variant: 'destructive',
+      });
     }
+    
+    setLoading(false);
+    return { error };
   };
 
-  // Add signUp method
-  const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
+  const signUp = async (email: string, password: string, name: string) => {
+    setLoading(true);
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          name,
+        },
+      },
     });
-
+    
     if (error) {
-      throw error;
+      toast({
+        title: 'Error signing up',
+        description: error.message,
+        variant: 'destructive',
+      });
     }
+    
+    setLoading(false);
+    return { error };
   };
 
   const signOut = async () => {
+    setLoading(true);
     const { error } = await supabase.auth.signOut();
-
+    
     if (error) {
-      throw error;
+      toast({
+        title: 'Error signing out',
+        description: error.message,
+        variant: 'destructive',
+      });
     }
+    
+    setLoading(false);
   };
-
-  const value = {
-    user,
-    session,
-    isLoading,
-    isAdmin,
-    signIn,
-    signUp, // Add signUp method
-    signOut,
-    refreshSession
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        isAdmin,
+        signIn,
+        signUp,
+        signOut
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};

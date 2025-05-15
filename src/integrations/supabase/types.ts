@@ -156,14 +156,9 @@ export type Database = {
           is_default: string | null
           last_checked: string | null
           name: string
-          password: string
           port: number
           secure: boolean | null
-          smtp_host: string
-          smtp_password: string
-          smtp_port: number
           smtp_secure: boolean
-          smtp_username: string
           status: string | null
           type: string
           updated_at: string
@@ -179,14 +174,9 @@ export type Database = {
           is_default?: string | null
           last_checked?: string | null
           name: string
-          password: string
           port: number
           secure?: boolean | null
-          smtp_host: string
-          smtp_password: string
-          smtp_port: number
           smtp_secure?: boolean
-          smtp_username: string
           status?: string | null
           type: string
           updated_at?: string
@@ -202,19 +192,118 @@ export type Database = {
           is_default?: string | null
           last_checked?: string | null
           name?: string
-          password?: string
           port?: number
           secure?: boolean | null
-          smtp_host?: string
-          smtp_password?: string
-          smtp_port?: number
           smtp_secure?: boolean
-          smtp_username?: string
           status?: string | null
           type?: string
           updated_at?: string
           user_id?: string
           username?: string
+        }
+        Relationships: []
+      }
+      email_campaign_recipients: {
+        Row: {
+          campaign_id: string | null
+          contact_id: string | null
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          sent_at: string | null
+          status: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          contact_id?: string | null
+          email: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          contact_id?: string | null
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_campaign_recipients_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "email_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_campaigns: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          schedule: Json | null
+          sender_account_id: string | null
+          status: string | null
+          template_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          schedule?: Json | null
+          sender_account_id?: string | null
+          status?: string | null
+          template_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          schedule?: Json | null
+          sender_account_id?: string | null
+          status?: string | null
+          template_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      email_templates: {
+        Row: {
+          body: string
+          created_at: string | null
+          id: string
+          name: string
+          subject: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string | null
+          id?: string
+          name: string
+          subject: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+          subject?: string
+          user_id?: string
         }
         Relationships: []
       }
