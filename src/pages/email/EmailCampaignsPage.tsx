@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,15 +7,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Checkbox } from '@/components/ui/checkbox'; // Assuming this is used for contact selection
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/components/ui/use-toast';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { EmailAccount, EmailTemplate, Campaign, Contact, ContactList } from '@/types/email'; // Assuming these types exist
+import { EmailAccount, EmailTemplate, Campaign, Contact, ContactList } from '@/types/email';
 
 interface EmailCampaignsPageProps {}
 
 const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
-  const [contacts, setContacts] = useState<Contact[]>([]); // Assuming contacts are available
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [emailAccounts, setEmailAccounts] = useState<EmailAccount[]>([]);
   const [emailTemplates, setEmailTemplates] = useState<EmailTemplate[]>([]);
@@ -25,9 +26,9 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
     name: '',
     subject: '',
     body: '',
- templateId: undefined,
- templateName: '', // Add templateName state
- contactListId: '',
+    templateId: '',
+    templateName: '',
+    contactListId: '',
     emailAccountId: '',
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -40,25 +41,25 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
     setIsLoading(true);
     // Replace with actual API call to fetch campaigns
     await new Promise(resolve => setTimeout(resolve, 1000));
- setCampaigns([
- { id: '1', name: 'Welcome Series', subject: 'Welcome!', body: '<p>Hello!</p>', senderEmailAccountId: 'acc1', contactListId: 'list1', status: 'Sent', sentAt: new Date().toISOString(), stats: { sent: 100, opened: 50, clicked: 10, bounced: 5 } },
- { id: '2', name: 'Product Update', subject: 'New Feature!', body: '<p>Check out our new feature!</p>', senderEmailAccountId: 'acc2', contactListId: 'list2', status: 'Draft', sentAt: null, stats: { sent: 0, opened: 0, clicked: 0, bounced: 0 } },
- { id: '3', name: 'Holiday Promotion', subject: 'Special Offer', body: '<p>Happy holidays!</p>', senderEmailAccountId: 'acc1', contactListId: 'list1', status: 'Failed', sentAt: new Date().toISOString(), stats: { sent: 0, opened: 0, clicked: 0, bounced: 0 } },
- ]);
+    setCampaigns([
+      { id: '1', name: 'Welcome Series', subject: 'Welcome!', body: '<p>Hello!</p>', senderEmailAccountId: 'acc1', contactListId: 'list1', status: 'Sent', sentAt: new Date().toISOString(), stats: { sent: 100, opened: 50, clicked: 10, bounced: 5 } },
+      { id: '2', name: 'Product Update', subject: 'New Feature!', body: '<p>Check out our new feature!</p>', senderEmailAccountId: 'acc2', contactListId: 'list2', status: 'Draft', sentAt: null, stats: { sent: 0, opened: 0, clicked: 0, bounced: 0 } },
+      { id: '3', name: 'Holiday Promotion', subject: 'Special Offer', body: '<p>Happy holidays!</p>', senderEmailAccountId: 'acc1', contactListId: 'list1', status: 'Failed', sentAt: new Date().toISOString(), stats: { sent: 0, opened: 0, clicked: 0, bounced: 0 } },
+    ]);
     setIsLoading(false);
-
   };
 
   const fetchEmailAccounts = async () => {
     setIsLoading(true);
     // Replace with actual API call to fetch email accounts
     await new Promise(resolve => setTimeout(resolve, 1000));
- setEmailAccounts([{
- id: 'acc1', email: 'user1@example.com', smtpHost: 'smtp.example.com', smtpPort: 587, smtpUser: 'user1@example.com', smtpPass: 'password', domainVerified: true
- },
- {
- id: 'acc2', email: 'user2@anotherdomain.com', smtpHost: 'smtp.anotherdomain.com', smtpPort: 587, smtpUser: 'user2@anotherdomain.com', smtpPass: 'password', domainVerified: false
- }
+    setEmailAccounts([
+      {
+        id: 'acc1', email: 'user1@example.com', smtpHost: 'smtp.example.com', smtpPort: 587, smtpUser: 'user1@example.com', smtpPass: 'password', domainVerified: true
+      },
+      {
+        id: 'acc2', email: 'user2@anotherdomain.com', smtpHost: 'smtp.anotherdomain.com', smtpPort: 587, smtpUser: 'user2@anotherdomain.com', smtpPass: 'password', domainVerified: false
+      }
     ]);
     setIsLoading(false);
   };
@@ -67,12 +68,13 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
     setIsLoading(true);
     // Replace with actual API call to fetch email templates
     await new Promise(resolve => setTimeout(resolve, 1000));
- setEmailTemplates([{
- id: 'tpl1', name: 'Basic Welcome Template', subject: 'Welcome!', body: '<p>Hello, {{name}}!</p><p>Welcome aboard.</p>', isPrebuilt: true
- },
- {
- id: 'tpl2', name: 'Newsletter Template', subject: 'Latest News', body: '<p>Hi,</p><p>Here is the latest news.</p>', isPrebuilt: false
- }
+    setEmailTemplates([
+      {
+        id: 'tpl1', name: 'Basic Welcome Template', subject: 'Welcome!', body: '<p>Hello, {{name}}!</p><p>Welcome aboard.</p>', isPrebuilt: true
+      },
+      {
+        id: 'tpl2', name: 'Newsletter Template', subject: 'Latest News', body: '<p>Hi,</p><p>Here is the latest news.</p>', isPrebuilt: false
+      }
     ]);
     setIsLoading(false);
   };
@@ -81,39 +83,39 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
     setIsLoading(true);
     // Replace with actual API call to fetch individual contacts if needed
     await new Promise(resolve => setTimeout(resolve, 1000));
- setContacts([
- { id: 'c1', name: 'John Doe', email: 'john.doe@example.com' },
- { id: 'c2', name: 'Jane Smith', email: 'jane.smith@anotherdomain.com' },
- { id: 'c3', name: 'Peter Jones', email: 'peter.jones@example.com' },
- { id: 'c4', name: 'Alice Brown', email: 'alice.brown@example.com' },
- { id: 'c5', name: 'Bob Green', email: 'bob.green@anotherdomain.com' }
- ]);
-    setIsLoading(false);
-  };
-
-  const fetchContacts = async () => {
-    setIsLoading(true);
-    // Replace with actual API call to fetch contacts
- await new Promise(resolve => setTimeout(resolve, 1000));
- setContactLists([
- { id: 'list1', name: 'All Contacts', contacts: [
- { id: 'c4', name: 'Alice Brown', email: 'alice.brown@example.com' },
- { id: 'c5', name: 'Bob Green', email: 'bob.green@anotherdomain.com' }
- ] },
+    setContacts([
+      { id: 'c1', name: 'John Doe', email: 'john.doe@example.com' },
+      { id: 'c2', name: 'Jane Smith', email: 'jane.smith@anotherdomain.com' },
+      { id: 'c3', name: 'Peter Jones', email: 'peter.jones@example.com' },
+      { id: 'c4', name: 'Alice Brown', email: 'alice.brown@example.com' },
+      { id: 'c5', name: 'Bob Green', email: 'bob.green@anotherdomain.com' }
     ]);
     setIsLoading(false);
   };
 
- const createCampaign = async (campaignData: Omit<Campaign, 'id' | 'status' | 'sentAt' | 'stats'>) => {
+  const fetchContactLists = async () => {
+    setIsLoading(true);
+    // Replace with actual API call to fetch contact lists
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setContactLists([
+      { id: 'list1', name: 'All Contacts', contacts: [
+        { id: 'c4', name: 'Alice Brown', email: 'alice.brown@example.com' },
+        { id: 'c5', name: 'Bob Green', email: 'bob.green@anotherdomain.com' }
+      ] },
+    ]);
+    setIsLoading(false);
+  };
+
+  const createCampaign = async (campaignData: Omit<Campaign, 'id' | 'status' | 'sentAt' | 'stats'>) => {
     setIsLoading(true);
     try {
       // Replace with actual API call to create a campaign
- await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
       const newCampaignResponse: Campaign = { id: Date.now().toString(), ...campaignData, status: 'Draft', sentAt: null, stats: { sent: 0, opened: 0, clicked: 0, bounced: 0 } };
       setCampaigns([...campaigns, newCampaignResponse]);
- toast({ title: 'Success', description: 'Campaign created successfully.' });
+      toast({ title: 'Success', description: 'Campaign created successfully.' });
       setIsCreateCampaignModalOpen(false);
- setNewCampaign({ name: '', subject: '', body: '', templateId: '', emailAccountId: '', contactListId: '' });
+      setNewCampaign({ name: '', subject: '', body: '', templateId: '', templateName: '', emailAccountId: '', contactListId: '' });
       setSelectedContacts([]);
     } catch (error) {
       toast({ title: 'Failed to create campaign.', variant: 'destructive' });
@@ -161,8 +163,8 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
     fetchCampaigns();
     fetchEmailAccounts();
     fetchEmailTemplates();
-    fetchContacts(); // Fetch individual contacts
- fetchContacts(); // Fetch contact lists
+    fetchContacts();
+    fetchContactLists();
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -175,19 +177,20 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
     if (selectedTemplate) { // Only update subject and body if a template is selected
       setNewCampaign({ ...newCampaign, templateId: templateId, templateName: selectedTemplate.name, subject: selectedTemplate.subject, body: selectedTemplate.body });
     } else { // Clear template selection
-      setNewCampaign({ ...newCampaign, templateId: undefined, templateName: '', subject: '', body: '' });
+      setNewCampaign({ ...newCampaign, templateId: '', templateName: '', subject: '', body: '' });
     }
   };
 
- const handleContactListSelect = (contactListId: string) => {
- setNewCampaign({ ...newCampaign, contactListId });
- const selectedList = contactLists.find(list => list.id === contactListId);
- if (selectedList) {
- setSelectedContacts(selectedList.contacts.map(contact => contact.id));
- } else {
- setSelectedContacts([]);
- }
- };
+  const handleContactListSelect = (contactListId: string) => {
+    setNewCampaign({ ...newCampaign, contactListId });
+    const selectedList = contactLists.find(list => list.id === contactListId);
+    if (selectedList) {
+      setSelectedContacts(selectedList.contacts.map(contact => contact.id));
+    } else {
+      setSelectedContacts([]);
+    }
+  };
+
   const handleContactSelect = (contactId: string) => {
     setSelectedContacts(prev =>
       prev.includes(contactId) ? prev.filter(id => id !== contactId) : [...prev, contactId]
@@ -196,13 +199,12 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
 
   const handleCreateCampaign = () => {
     if (!newCampaign.name || !newCampaign.subject || !newCampaign.body || !newCampaign.emailAccountId || !newCampaign.contactListId || selectedContacts.length === 0) {
- toast({ title: 'Validation Error', description: 'Please fill in all required fields and select a contact list with contacts.', variant: 'destructive' });
+      toast({ title: 'Validation Error', description: 'Please fill in all required fields and select a contact list with contacts.', variant: 'destructive' });
       return;
     }
     // Include selectedContacts in the campaign creation data
     createCampaign({...newCampaign, contacts: selectedContacts });
   };
-
 
   return (
     <div className="container mx-auto py-6">
@@ -240,22 +242,23 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {emailAccounts.map(account => (
- <SelectItem key={account.id} value={account.id}>{account.email} {account.domainVerified ? '(Verified)' : '(Unverified)'}
- </SelectItem>
+                      <SelectItem key={account.id} value={account.id}>
+                        {account.email} {account.domainVerified ? '(Verified)' : '(Unverified)'}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="template" className="text-right">
- Template (Optional)
+                  Template (Optional)
                 </Label>
                 <Select onValueChange={handleTemplateSelect} value={newCampaign.templateId}>
                   <SelectTrigger className="col-span-3" id="template">
                     <SelectValue placeholder="Select a template (Optional)" />
                   </SelectTrigger>
                   <SelectContent>
- {emailTemplates.map(template => (
+                    {emailTemplates.map(template => (
                       <SelectItem key={template.id} value={template.id}>{template.name}</SelectItem>
                     ))}
                   </SelectContent>
@@ -287,7 +290,7 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
               </div>
               <div className="grid grid-cols-4 items-start gap-4">
                 <Label className="text-right">
- Contact List
+                  Contact List
                 </Label>
                 <Select onValueChange={handleContactListSelect} value={newCampaign.contactListId}>
                   <SelectTrigger className="col-span-3" id="contactList">
@@ -295,9 +298,11 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {contactLists.map(list => (
-                      <SelectItem key={list.id} value={list.id}>{list.name} ({list.contacts.length} contacts)</SelectItem>
-
- )})}
+                      <SelectItem key={list.id} value={list.id}>
+                        {list.name} ({list.contacts.length} contacts)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               </div>
 
@@ -305,7 +310,7 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
               {newCampaign.contactListId && contactLists.find(list => list.id === newCampaign.contactListId)?.contacts.length > 0 && (
                 <div className="grid grid-cols-4 items-start gap-4">
                   <Label className="text-right">
- Selected Contacts
+                    Selected Contacts
                   </Label>
                   <div className="col-span-3 max-h-32 overflow-y-auto border rounded-md p-2">
                     {contactLists.find(list => list.id === newCampaign.contactListId)?.contacts.map(contact => (
@@ -316,7 +321,7 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
                     ))}
                   </div>
                 </div>
-              </div>
+              )}
             </div>
             <DialogFooter>
               <Button onClick={handleCreateCampaign} disabled={isLoading}>
@@ -334,14 +339,12 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Campaign Name</TableHead>
- <TableHead>Subject</TableHead>
- <TableHead>Status</TableHead>
- <TableHead>Sent At</TableHead>
-              <TableHead>Sender</TableHead>
- <TableHead>Contact List</TableHead>
- <TableHead>Stats</TableHead>
+              <TableHead>Subject</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Sent At</TableHead>
+              <TableHead>Sender</TableHead>
+              <TableHead>Contact List</TableHead>
+              <TableHead>Stats</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -351,36 +354,35 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
               <TableRow key={campaign.id}>
                 <TableCell className="font-medium">{campaign.name}</TableCell>
                 <TableCell>{campaign.subject}</TableCell>
- <TableCell>
- <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                      campaign.status === 'Sent' ? 'bg-green-100 text-green-800' :
-                      campaign.status === 'Draft' ? 'bg-gray-100 text-gray-800' :
-                      campaign.status === 'Sending' ? 'bg-blue-100 text-blue-800' :
-                      campaign.status === 'Failed' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
- {campaign.status}
- </span>
- </TableCell>
-                <TableCell>{campaign.sentAt ? new Date(campaign.sentAt).toLocaleString() : '-'}</TableCell>
-                <TableCell>{emailAccounts.find(acc => acc.id === campaign.emailAccountId)?.email || 'N/A'}</TableCell>
- <TableCell>{contactLists.find(list => list.id === campaign.contactListId)?.name || 'N/A'}</TableCell>
- <TableCell>
- {campaign.stats ? (
- <div>
- <div>Sent: {campaign.stats.sent}</div>
- <div>Opened: {campaign.stats.opened}</div>
- <div>Clicked: {campaign.stats.clicked}</div>
- </div>
- ) : '-'}
- </TableCell>
                 <TableCell>
- {campaign.status === 'Draft' || campaign.status === 'Failed' ? (
- <Button variant="outline" size="sm" onClick={() => initiateSendCampaign(campaign.id)} disabled={isLoading}>Send</Button>
- ) : (
- <Button variant="outline" size="sm" disabled>Send</Button>
- )}
-                   {/* Add more actions like Edit, View, Delete */}
+                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                    campaign.status === 'Sent' ? 'bg-green-100 text-green-800' :
+                    campaign.status === 'Draft' ? 'bg-gray-100 text-gray-800' :
+                    campaign.status === 'Sending' ? 'bg-blue-100 text-blue-800' :
+                    campaign.status === 'Failed' ? 'bg-red-100 text-red-800' :
+                    'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {campaign.status}
+                  </span>
+                </TableCell>
+                <TableCell>{campaign.sentAt ? new Date(campaign.sentAt).toLocaleString() : '-'}</TableCell>
+                <TableCell>{emailAccounts.find(acc => acc.id === campaign.senderEmailAccountId)?.email || 'N/A'}</TableCell>
+                <TableCell>{contactLists.find(list => list.id === campaign.contactListId)?.name || 'N/A'}</TableCell>
+                <TableCell>
+                  {campaign.stats ? (
+                    <div>
+                      <div>Sent: {campaign.stats.sent}</div>
+                      <div>Opened: {campaign.stats.opened}</div>
+                      <div>Clicked: {campaign.stats.clicked}</div>
+                    </div>
+                  ) : '-'}
+                </TableCell>
+                <TableCell>
+                  {campaign.status === 'Draft' || campaign.status === 'Failed' ? (
+                    <Button variant="outline" size="sm" onClick={() => initiateSendCampaign(campaign.id)} disabled={isLoading}>Send</Button>
+                  ) : (
+                    <Button variant="outline" size="sm" disabled>Send</Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
@@ -405,54 +407,6 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
-};
-
-export default EmailCampaignsPage;
- <TableHead>Stats</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {campaigns.length === 0 && <TableRow><TableCell colSpan={8} className="text-center">No campaigns found.</TableCell></TableRow>}
-            {campaigns.map(campaign => (
-              <TableRow key={campaign.id}>
-                <TableCell className="font-medium">{campaign.name}</TableCell>
-                <TableCell>{campaign.subject}</TableCell>
-                <TableCell>{campaign.status}</TableCell>
-                <TableCell>{campaign.sentAt ? new Date(campaign.sentAt).toLocaleString() : '-'}</TableCell>
-                <TableCell>{emailAccounts.find(acc => acc.id === campaign.emailAccountId)?.email || 'N/A'}</TableCell>
- <TableCell>{contactLists.find(list => list.id === campaign.contactListId)?.name || 'N/A'}</TableCell>
- <TableCell>
- <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                      campaign.status === 'Sent' ? 'bg-green-100 text-green-800' :
-                      campaign.status === 'Draft' ? 'bg-gray-100 text-gray-800' :
-                      campaign.status === 'Sending' ? 'bg-blue-100 text-blue-800' :
-                      campaign.status === 'Failed' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
- {campaign.status}
- </span>
- </TableCell>
- <TableCell>{campaign.sentAt ? new Date(campaign.sentAt).toLocaleString() : '-'}</TableCell>
- <TableCell>
- {campaign.stats ? (
- <div>
- <div>Sent: {campaign.stats.sent}</div>
- <div>Opened: {campaign.stats.opened}</div>
- <div>Clicked: {campaign.stats.clicked}</div>
- </div>
- ) : '-'}
- </TableCell>
-                <TableCell>
-                   {/* Add more actions like Edit, View, Delete */}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
     </div>
   );
 };

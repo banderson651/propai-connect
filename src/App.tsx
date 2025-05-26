@@ -1,3 +1,4 @@
+
 import { Suspense, lazy, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -6,9 +7,15 @@ import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import ErrorBoundary from '@/components/ErrorBoundary';
+<<<<<<< HEAD
 import { AuthRoute } from '@/components/auth/AuthRoute';
 import { PublicRoute } from '@/components/auth/PublicRoute';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+=======
+import { AuthRoute } from '@/components/auth/AuthRoute'; // Changed import to named import
+import PublicRoute from '@/components/auth/PublicRoute';
+import { LoadingSpinner } from '@/components/ui/loading-spinner'; // Fix import path
+>>>>>>> origin/main
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AutomationProvider } from '@/contexts/AutomationContext';
 
@@ -39,6 +46,47 @@ const queryClient = new QueryClient();
 
 const App = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+<<<<<<< HEAD
+=======
+  
+  return (
+    <ErrorBoundary>
+      <ThemeProvider defaultTheme="light">
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <AuthProvider>
+              <WhatsAppProvider>
+                <AutomationProvider>
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <Routes>
+                      {/* Public routes */}
+                      <Route path="/" element={<PublicRoute><Landing /></PublicRoute>} />
+                      <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+                      <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+                      <Route path="/properties/public/:slug" element={<PublicPropertyPage />} />
+                      
+                      {/* Protected routes */}
+                      <Route path="/dashboard" element={<AuthRoute><IndexPage /></AuthRoute>} />
+                      <Route path="/analytics" element={<AuthRoute><AnalyticsPage /></AuthRoute>} />
+                      <Route path="/calendar" element={<AuthRoute><CalendarPage /></AuthRoute>} />
+                      <Route path="/email/accounts" element={<AuthRoute><EmailAccountsPage /></AuthRoute>} />
+                      <Route path="/email/templates" element={<AuthRoute><EmailTemplatesPage /></AuthRoute>} />
+                      <Route path="/email/campaigns" element={<AuthRoute><EmailCampaignsPage /></AuthRoute>} />
+                      <Route path="/contacts" element={<AuthRoute><ContactsPage /></AuthRoute>} />
+                      <Route path="/contacts/new" element={<AuthRoute><NewContactPage /></AuthRoute>} />
+                      <Route path="/contacts/:id" element={<AuthRoute><ContactDetailPage /></AuthRoute>} />
+                      <Route path="/properties" element={<AuthRoute><PropertiesPage /></AuthRoute>} />
+                      <Route path="/properties/new" element={<AuthRoute><NewPropertyPage /></AuthRoute>} />
+                      <Route path="/properties/:id" element={<AuthRoute><PropertyDetailPage /></AuthRoute>} />
+                      <Route path="/tasks" element={<AuthRoute><TaskManagerPage /></AuthRoute>} />
+                      <Route path="/whatsapp" element={<AuthRoute><WhatsAppPage /></AuthRoute>} />
+                      <Route path="/whatsapp/settings" element={<AuthRoute><WhatsAppSettingsPage /></AuthRoute>} />
+                      <Route path="/automation" element={<AuthRoute><AutomationPage /></AuthRoute>} />
+                      <Route path="/automation/new" element={<AuthRoute><NewRulePage /></AuthRoute>} />
+                      <Route path="/settings" element={<AuthRoute><SettingsPage /></AuthRoute>} />
+>>>>>>> origin/main
 
   return (
       <ErrorBoundary>
