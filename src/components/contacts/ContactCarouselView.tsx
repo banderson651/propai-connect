@@ -3,7 +3,6 @@ import React from 'react';
 import { Contact } from '@/types/contact';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { WhatsAppButton, CallButton } from '@/components/whatsapp/WhatsAppButton';
 import { Button } from '@/components/ui/button';
 import { 
   Mail, 
@@ -125,8 +124,8 @@ export const ContactCarouselView: React.FC<ContactCarouselViewProps> = ({
                 </CardContent>
                 
                 <CardFooter className="flex justify-center gap-2 p-4 pt-0">
-                  <WhatsAppButton contact={contact} variant="default" size="sm" />
-                  <CallButton contact={contact} variant="default" size="sm" />
+                  {/* <WhatsAppButton contact={contact} variant="default" size="sm" /> */}
+                  {/* <CallButton contact={contact} variant="default" size="sm" /> */}
                   <Button variant="outline" size="sm" asChild>
                     <Link to={`/contacts/${contact.id}`}>
                       View

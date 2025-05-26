@@ -3,7 +3,6 @@ import React from 'react';
 import { Contact } from '@/types/contact';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { WhatsAppButton, CallButton } from '@/components/whatsapp/WhatsAppButton';
 import { Mail, Clock, MapPin, Phone, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -74,8 +73,6 @@ export const ContactListView: React.FC<ContactListViewProps> = ({ contacts, last
                     </div>
                     
                     <div className="flex items-center space-x-2">
-                      <WhatsAppButton contact={contact} size="icon" />
-                      <CallButton contact={contact} size="icon" />
                       
                       <Button variant="ghost" size="icon" asChild>
                         <Link to={`/contacts/${contact.id}`}>

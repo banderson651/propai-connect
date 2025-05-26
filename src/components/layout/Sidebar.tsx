@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
-import { useWhatsApp } from '@/contexts/WhatsAppContext';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 interface SidebarProps {
@@ -26,7 +25,6 @@ interface SidebarProps {
 
 export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
   const { isAdmin } = useAuth();
-  const { isConnected } = useWhatsApp();
   const location = useLocation();
   
   const menuItems = [
@@ -38,15 +36,7 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
     { icon: Mail, label: 'Email Accounts', path: '/email/accounts' },
     { icon: Mail, label: 'Email Templates', path: '/email/templates' },
     { icon: Mail, label: 'Email Campaigns', path: '/email/campaigns' },
-    { icon: Zap, label: 'Automation', path: '/automation' },
-    { icon: BarChart3, label: 'Analytics', path: '/analytics' },
-    { 
-      icon: MessageSquare, 
-      label: 'WhatsApp', 
-      path: '/settings/whatsapp', 
-      badge: isConnected ? 'Connected' : undefined,
-      badgeColor: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
-    },
+    { icon: Zap, label: 'Automation', path: '/automation' },    { icon: BarChart3, label: 'Analytics', path: '/analytics' },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];
   

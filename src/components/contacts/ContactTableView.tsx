@@ -2,7 +2,6 @@
 import React from 'react';
 import { Contact } from '@/types/contact';
 import { Badge } from '@/components/ui/badge';
-import { WhatsAppButton, CallButton } from '@/components/whatsapp/WhatsAppButton';
 import { MoreHorizontal, Mail, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -102,9 +101,7 @@ export const ContactTableView: React.FC<ContactTableViewProps> = ({ contacts, la
                 </TableCell>
                 
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <WhatsAppButton contact={contact} size="sm" />
-                    <CallButton contact={contact} size="sm" />
+                  <div className="flex items-center gap-2">                    
                     
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

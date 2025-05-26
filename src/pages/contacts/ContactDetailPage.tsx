@@ -29,12 +29,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useToast } from '@/components/ui/use-toast';
-import { WhatsAppChat } from '@/components/whatsapp/WhatsAppChat';
-import { WhatsAppButton, CallButton } from '@/components/whatsapp/WhatsAppButton';
-
-const interactionTypeOptions: InteractionType[] = ['call', 'email', 'meeting', 'note', 'other'];
-
+// Define interaction types and corresponding icons
 const interactionIcons: Record<InteractionType, any> = {
   'call': Phone,
   'email': Mail,
@@ -43,10 +38,11 @@ const interactionIcons: Record<InteractionType, any> = {
   'other': MessageCircle,
 };
 
+const interactionTypeOptions: InteractionType[] = ['call', 'email', 'meeting', 'note', 'other'];
+
 const ContactDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { toast } = useToast();
   
   const [contact, setContact] = useState<any>(null);
   const [interactions, setInteractions] = useState<Interaction[]>([]);
@@ -55,18 +51,11 @@ const ContactDetailPage = () => {
   const [newInteractionOpen, setNewInteractionOpen] = useState(false);
   const [interactionType, setInteractionType] = useState<InteractionType>('call');
   const [interactionContent, setInteractionContent] = useState('');
-  const [interactionSubject, setInteractionSubject] = useState('');
-  
   useEffect(() => {
     if (!id) return;
     
     const contactData = getContactById(id);
     if (!contactData) {
-      toast({
-        title: "Contact not found",
-        description: "The requested contact could not be found.",
-        variant: "destructive",
-      });
       navigate('/contacts');
       return;
     }
@@ -89,7 +78,7 @@ const ContactDetailPage = () => {
       type: interactionType,
       date: new Date().toISOString(),
       content: interactionContent,
-      subject: interactionSubject || undefined,
+      subject: undefined,
     });
     
     setInteractions(prev => [...prev, newInteraction]);
@@ -97,22 +86,17 @@ const ContactDetailPage = () => {
     setInteractionContent('');
     setInteractionSubject('');
     setNewInteractionOpen(false);
-    
-    toast({
-      title: "Interaction added",
-      description: "The interaction has been added successfully.",
-    });
   };
   
   const handleDeleteContact = () => {
     if (!contact) return;
     
     deleteContact(contact.id);
-    toast({
-      title: "Contact deleted",
-      description: "The contact has been deleted successfully.",
-    });
-    navigate('/contacts');
+    // Assuming toast is available from useToast hook somewhere above
+    // If not, make sure to import and initialize useToast.
+    // const { toast } = useToast();
+    // toast({ title: 'Contact deleted', description: `${contact.name} has been successfully deleted.` });
+    navigate('/contacts'); // Navigate back to contacts list after deletion
   };
   
   if (!contact) {
@@ -138,12 +122,6 @@ const ContactDetailPage = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {contact.phone && (
-              <>
-                <CallButton contact={contact} />
-                <WhatsAppButton contact={contact} />
-              </>
-            )}
             <Button variant="outline" size="sm" onClick={() => navigate(`/contacts/${contact.id}/edit`)}>
               <Edit className="mr-2 h-4 w-4" />
               Edit
@@ -308,19 +286,19 @@ const ContactDetailPage = () => {
                 <CardContent>
                   <Tabs defaultValue="all">
                     <TabsList className="mb-4">
-                      <TabsTrigger value="all">All</TabsTrigger>
-                      <TabsTrigger value="calls">Calls</TabsTrigger>
-                      <TabsTrigger value="emails">Emails</TabsTrigger>
-                      <TabsTrigger value="meetings">Meetings</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="all">
-                      <InteractionsList 
-                        interactions={sortedInteractions} 
-                        filter="all" 
-                      />
-                    </TabsContent>
-                    
+ <TabsTrigger value="all">All</TabsTrigger>
+ <TabsTrigger value="calls">Calls</TabsTrigger>
+ <TabsTrigger value="emails">Emails</TabsTrigger>
+ <TabsTrigger value="meetings">Meetings</TabsTrigger>
+ </TabsList>
+
+ <TabsContent value="all">
+ <InteractionsList
+ interactions={sortedInteractions}
+ filter="all"
+ />
+ </TabsContent>
+
                     <TabsContent value="calls">
                       <InteractionsList 
                         interactions={sortedInteractions} 

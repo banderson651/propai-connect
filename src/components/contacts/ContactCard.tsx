@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Mail, Phone, CalendarDays, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Contact, ContactTag } from '@/types/contact';
-import { WhatsAppButton, CallButton } from '@/components/whatsapp/WhatsAppButton';
 
 // Define tag colors mapping
 const TagColors: Record<ContactTag, string> = {
@@ -85,9 +84,7 @@ export const ContactCard = ({ contact, lastInteraction }: ContactCardProps) => {
           </div>
         )}
         
-        <div className="mt-4 pt-4 border-t border-gray-100 flex gap-2">
-          <CallButton contact={contact} />
-          <WhatsAppButton contact={contact} />
+        <div className="mt-4 pt-4 border-t border-gray-100 flex gap-2"> {/* Communication buttons can go here */}
         </div>
       </CardContent>
     </Card>
