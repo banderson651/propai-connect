@@ -2,8 +2,8 @@ import { supabase } from '@/lib/supabase';
 
 const GMAIL_OAUTH_CONFIG = {
   clientId: '242794493271-madsh1jdt8cdm9tk8gk8v5fpr8em2jgl.apps.googleusercontent.com',
-  clientSecret: process.env.GMAIL_CLIENT_SECRET!,
-  redirectUri: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/gmail/callback`,
+  clientSecret: import.meta.env.VITE_GMAIL_CLIENT_SECRET,
+  redirectUri: `${import.meta.env.VITE_APP_URL}/api/auth/gmail/callback`,
   scopes: [
     'https://www.googleapis.com/auth/gmail.readonly',
     'https://www.googleapis.com/auth/gmail.send',

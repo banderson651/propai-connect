@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import * as React from 'react';
+import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,20 +37,22 @@ import {
   Server,
   Stethoscope
 } from 'lucide-react';
-import { EmailAccount, EmailAccountType } from '@/types/email';
+import { EmailAccount } from '@/types/email';
 import { 
   getEmailAccounts, 
   createEmailAccount, 
   deleteEmailAccount, 
   testEmailConnection,
   sendTestEmail
-} from '@/services/email';
+} from '@/services/email/index';
 import { Link } from 'react-router-dom';
 import { EmailDiagnostics } from '@/components/email/EmailDiagnostics';
+import { useAuth } from '@/contexts/AuthContext';
 
 const EmailAccountsPage = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('accounts');
   
   const [isAddAccountOpen, setIsAddAccountOpen] = useState(false);
@@ -61,28 +64,24 @@ const EmailAccountsPage = () => {
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   
-  const [accountName, setAccountName] = useState('');
   const [email, setEmail] = useState('');
-  const [accountType, setAccountType] = useState<EmailAccountType>('imap');
-  const [host, setHost] = useState('');
-  const [port, setPort] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [secure, setSecure] = useState(true);
   const [smtpHost, setSmtpHost] = useState('');
   const [smtpPort, setSmtpPort] = useState('');
-  const [smtpUsername, setSmtpUsername] = useState('');
-  const [smtpPassword, setSmtpPassword] = useState('');
-  const [smtpSecure, setSmtpSecure] = useState(true);
+  const [smtpUser, setSmtpUser] = useState('');
+  const [smtpPass, setSmtpPass] = useState('');
+  const [domainVerified, setDomainVerified] = useState(false);
   
-  const { data: accounts = [], isLoading } = useQuery({
+  const { data: accounts, isLoading, error } = useQuery<EmailAccount[]>({
     queryKey: ['emailAccounts'],
-    queryFn: getEmailAccounts
+    queryFn: getEmailAccounts,
   });
+  
+  console.log('EmailAccountsPage mounted. isLoading:', isLoading, 'error:', error);
   
   const createMutation = useMutation({
     mutationFn: createEmailAccount,
-    onSuccess: () => {
+    onSuccess: (newAccount) => {
+      console.log('New account created successfully:', newAccount);
       queryClient.invalidateQueries({ queryKey: ['emailAccounts'] });
       resetForm();
       setIsAddAccountOpen(false);
@@ -92,9 +91,10 @@ const EmailAccountsPage = () => {
       });
     },
     onError: (error: Error) => {
+      console.error('Error creating account:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to add the email account.",
+        description: `Failed to add the email account: ${error.message}`,
         variant: "destructive",
       });
     }
@@ -119,20 +119,13 @@ const EmailAccountsPage = () => {
   });
   
   const resetForm = () => {
-    setAccountName('');
     setEmail('');
-    setAccountType('imap');
-    setHost('');
-    setPort('');
-    setUsername('');
-    setPassword('');
-    setSecure(true);
-    setTestResult(null);
     setSmtpHost('');
     setSmtpPort('');
-    setSmtpUsername('');
-    setSmtpPassword('');
-    setSmtpSecure(true);
+    setSmtpUser('');
+    setSmtpPass('');
+    setDomainVerified(false);
+    setTestResult(null);
   };
   
   const handleAddAccount = async (e: React.FormEvent) => {
@@ -147,69 +140,76 @@ const EmailAccountsPage = () => {
       return;
     }
     
-    const numPort = parseInt(port, 10);
     const numSmtpPort = parseInt(smtpPort, 10);
     
-    if (isNaN(numPort) || isNaN(numSmtpPort)) {
+    if (isNaN(numSmtpPort)) {
       toast({
         title: "Invalid Port",
-        description: "Please enter valid port numbers.",
+        description: "Please enter a valid port number.",
         variant: "destructive",
       });
       return;
     }
     
-    createMutation.mutate({
-      name: accountName,
+    // Prepare account data matching the backend expectation
+    const accountDataToSend = {
+      id: Date.now().toString(), // Generate a temporary ID for the frontend
+      user_id: user?.id, // Include user_id
       email,
-      type: accountType,
-      host,
-      port: numPort,
-      username,
-      password,
-      secure,
-      smtp_host: smtpHost,
-      smtp_port: numSmtpPort,
-      smtp_username: smtpUsername,
-      smtp_password: smtpPassword,
-      smtp_secure: smtpSecure,
+      name: email, // Default name
+      type: 'smtp', // Default type
+      host: smtpHost,
+      port: numSmtpPort,
+      username: smtpUser,
+      secure: true, // Assuming secure is true for common SMTP ports
+      smtp_secure: true, // Assuming smtp_secure is the same as secure
+      is_active: true,
       is_default: false,
-      is_active: true
-    });
+      status: 'active',
+      last_checked: null, // Will be updated by backend
+      domain_verified: false, // Will be updated by backend
+      created_at: new Date().toISOString(), // Will be set by backend
+      updated_at: new Date().toISOString(), // Will be set by backend
+      smtpPass, // Include password for the backend to encrypt
+    };
+    
+    // Ensure user_id is available before mutating
+    if (!user?.id) {
+      toast({
+        title: "Authentication Error",
+        description: "User not authenticated. Cannot add account.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log('Attempting to add account with data:', accountDataToSend);
+    createMutation.mutate(accountDataToSend as any); // Cast to any temporarily if needed due to partial type match
   };
   
   const testConnection = async () => {
     setIsTesting(true);
     setTestResult(null);
     
-    const numPort = parseInt(port, 10);
-    if (isNaN(numPort)) {
-      setTestResult({ success: false, message: "Please enter a valid port number." });
+    const numSmtpPort = parseInt(smtpPort, 10);
+    if (isNaN(numSmtpPort)) {
+      setTestResult({ success: false, message: "Please enter a valid SMTP port number." });
       setIsTesting(false);
       return;
     }
     
     try {
-      const testAccount: Partial<EmailAccount> = {
-        id: 'temp-id',
-        name: accountName,
-        type: accountType as EmailAccountType,
-        host,
-        port: numPort,
-        username,
-        password,
+      // Send full account data to backend for testing new account
+      const testAccount = {
         email,
-        secure,
-        smtp_host: smtpHost,
-        smtp_port: parseInt(smtpPort, 10),
-        smtp_username: smtpUsername,
-        smtp_password: smtpPassword,
-        smtp_secure: smtpSecure,
-        is_default: false,
-        is_active: true
+        host: smtpHost,
+        port: numSmtpPort,
+        username: smtpUser,
+        smtpPass,
+        secure: true, // Assuming secure is true for common SMTP ports
       };
       
-      const result = await testEmailConnection(testAccount as EmailAccount);
+      const result = await testEmailConnection(testAccount);
       
       setTestResult(result);
     } catch (error) {
@@ -246,7 +246,8 @@ const EmailAccountsPage = () => {
     setIsSendingTestEmail(true);
     
     try {
-      const result = await sendTestEmail(selectedAccount, testEmailRecipient);
+      // Send only account ID and recipient to backend
+      const result = await sendTestEmail({ id: selectedAccount.id }, testEmailRecipient);
       
       if (result.success) {
         toast({
@@ -275,7 +276,7 @@ const EmailAccountsPage = () => {
   
   const handleDeleteAccount = (id: string) => {
     if (window.confirm("Are you sure you want to delete this email account?")) {
-      deleteMutation.mutate(id);
+      deleteMutation.mutate(id as any);
     }
   };
 
@@ -289,9 +290,8 @@ const EmailAccountsPage = () => {
     setTestResult(null);
     
     try {
-      const result = await testEmailConnection(account);
-      
-      setTestResult(result);
+      // Send only account ID to backend for testing existing account
+      const result = await testEmailConnection({ id: account.id });
       
       if (result.success) {
         toast({
@@ -339,66 +339,24 @@ const EmailAccountsPage = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mailbox className="h-5 w-5 text-red-500" /> Gmail Integration
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-500 mb-4">
-              Connect your Gmail account for seamless email integration.
-            </p>
-            <Button className="w-full" variant="outline">
-              Connect Gmail
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Server className="h-5 w-5 text-blue-500" /> IMAP/POP3
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-500 mb-4">
-              Add any email account using IMAP or POP3 protocol.
-            </p>
-            <Button className="w-full" variant="outline" onClick={() => setIsAddAccountOpen(true)}>
-              Add Account
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5 text-green-500" /> Third-party Services
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-500 mb-4">
-              Connect with popular email service providers.
-            </p>
-            <Button className="w-full" variant="outline">
-              View Integrations
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-
       <Card className="mt-6">
         <CardHeader>
           <CardTitle>Connected Accounts</CardTitle>
         </CardHeader>
         <CardContent>
+          {error && (
+            <div className="text-red-500 text-center py-4">
+              Failed to load email accounts: {error.message}
+              <pre style={{whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: 12, color: 'red'}}>
+                {JSON.stringify(error, null, 2)}
+              </pre>
+            </div>
+          )}
           {isLoading ? (
             <div className="flex justify-center items-center h-32">
               <Loader2 className="h-8 w-8 animate-spin" />
             </div>
-          ) : accounts.length === 0 ? (
+          ) : !Array.isArray(accounts) || accounts.length === 0 ? (
             <div className="text-center py-8">
               <Mail className="h-12 w-12 mx-auto text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">No email accounts</h3>
@@ -408,20 +366,17 @@ const EmailAccountsPage = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {accounts.map((account) => (
+              {Array.isArray(accounts) && accounts.map((account) => (
                 <div
                   key={account.id}
                   className="flex items-center justify-between p-4 border rounded-lg"
                 >
                   <div className="flex items-center space-x-4">
                     <div className={`h-3 w-3 rounded-full ${
-                      account.status === 'active' || account.status === 'connected' ? 'bg-green-500' :
-                      account.status === 'inactive' || account.status === 'disconnected' ? 'bg-red-500' :
-                      'bg-yellow-500'
+                      account.domain_verified ? 'bg-green-500' : 'bg-yellow-500'
                     }`} />
                     <div>
-                      <h3 className="font-medium">{account.name}</h3>
-                      <p className="text-sm text-gray-500">{account.email}</p>
+                      <h3 className="font-medium">{account.email}</h3>
                     </div>
                   </div>
                   <DropdownMenu>
@@ -431,9 +386,6 @@ const EmailAccountsPage = () => {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => openSendTestEmailDialog(account)}>
-                        <Send className="h-4 w-4 mr-2" /> Send Test Email
-                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => openDiagnosticsDialog(account)}>
                         <Stethoscope className="h-4 w-4 mr-2" /> Run Diagnostics
                       </DropdownMenuItem>
@@ -460,16 +412,6 @@ const EmailAccountsPage = () => {
           <form onSubmit={handleAddAccount} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="accountName">Account Name</Label>
-                <Input
-                  id="accountName"
-                  value={accountName}
-                  onChange={(e) => setAccountName(e.target.value)}
-                  placeholder="My Work Email"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="email">Email Address</Label>
                 <Input
                   id="email"
@@ -481,120 +423,45 @@ const EmailAccountsPage = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="accountType">Account Type</Label>
-                <select
-                  id="accountType"
-                  value={accountType}
-                  onChange={(e) => setAccountType(e.target.value as EmailAccountType)}
-                  className="w-full p-2 border rounded-md"
-                >
-                  <option value="imap">IMAP</option>
-                  <option value="smtp">SMTP</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="host">Server Host</Label>
+                <Label htmlFor="smtpHost">SMTP Server</Label>
                 <Input
-                  id="host"
-                  value={host}
-                  onChange={(e) => setHost(e.target.value)}
-                  placeholder="imap.domain.com"
+                  id="smtpHost"
+                  value={smtpHost}
+                  onChange={(e) => setSmtpHost(e.target.value)}
+                  placeholder="smtp.example.com"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="port">Port</Label>
+                <Label htmlFor="smtpPort">SMTP Port</Label>
                 <Input
-                  id="port"
+                  id="smtpPort"
                   type="number"
-                  value={port}
-                  onChange={(e) => setPort(e.target.value)}
-                  placeholder="993"
+                  value={smtpPort}
+                  onChange={(e) => setSmtpPort(e.target.value)}
+                  placeholder="587"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="smtpUser">SMTP Username</Label>
                 <Input
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="username"
+                  id="smtpUser"
+                  value={smtpUser}
+                  onChange={(e) => setSmtpUser(e.target.value)}
+                  placeholder="username@example.com"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="smtpPass">SMTP Password</Label>
                 <Input
-                  id="password"
+                  id="smtpPass"
                   type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={smtpPass}
+                  onChange={(e) => setSmtpPass(e.target.value)}
                   required
                 />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="secure"
-                  checked={secure}
-                  onCheckedChange={setSecure}
-                />
-                <Label htmlFor="secure">Use SSL/TLS</Label>
-              </div>
-            </div>
-
-            <div className="space-y-4 pt-4 border-t">
-              <h3 className="text-lg font-medium">SMTP Settings (Outgoing Mail)</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="smtpHost">SMTP Server</Label>
-                  <Input
-                    id="smtpHost"
-                    value={smtpHost}
-                    onChange={(e) => setSmtpHost(e.target.value)}
-                    placeholder="smtp.example.com"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="smtpPort">SMTP Port</Label>
-                  <Input
-                    id="smtpPort"
-                    type="number"
-                    value={smtpPort}
-                    onChange={(e) => setSmtpPort(e.target.value)}
-                    placeholder="587"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="smtpUsername">SMTP Username</Label>
-                  <Input
-                    id="smtpUsername"
-                    value={smtpUsername}
-                    onChange={(e) => setSmtpUsername(e.target.value)}
-                    placeholder="username@example.com"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="smtpPassword">SMTP Password</Label>
-                  <Input
-                    id="smtpPassword"
-                    type="password"
-                    value={smtpPassword}
-                    onChange={(e) => setSmtpPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="smtpSecure"
-                    checked={smtpSecure}
-                    onCheckedChange={setSmtpSecure}
-                  />
-                  <Label htmlFor="smtpSecure">Use SSL/TLS</Label>
-                </div>
               </div>
             </div>
 

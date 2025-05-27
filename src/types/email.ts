@@ -2,12 +2,22 @@ import { Contact } from './contact'; // Assuming Contact type is defined in cont
 
 export interface EmailAccount {
   id: string;
+  user_id: string;
   email: string;
-  smtpHost: string;
-  smtpPort: number;
-  smtpUser: string;
-  smtpPass: string;
-  domainVerified: boolean;
+  name: string;
+  type: string;
+  host: string;
+  port: number;
+  username: string;
+  secure: boolean;
+  smtp_secure: boolean;
+  is_active: boolean;
+  is_default: boolean;
+  status: string | null;
+  last_checked: string | null;
+  created_at: string;
+  updated_at: string;
+  domain_verified: boolean;
 }
 
 export interface EmailTemplate {

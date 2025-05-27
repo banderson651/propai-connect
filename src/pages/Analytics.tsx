@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, Mail, MessageSquare, CheckCircle, Clock, DollarSign, Users, TrendingUp, BarChart3 } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import type { Property, Lead, Communication, Task } from '@/types/database';
+import { MetricsGrid } from '@/components/analytics/MetricsGrid';
+import { MonthlyTrendsChart } from '@/components/analytics/MonthlyTrendsChart';
 
 interface AnalyticsData {
   totalProperties: number;
@@ -166,82 +167,8 @@ const Analytics = () => {
         </div>
       </div>
 
-      {/* Key Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Properties</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.totalProperties}</div>
-            <p className="text-xs text-muted-foreground">
-              Total Value: ${data.totalValue.toLocaleString()}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.totalLeads}</div>
-            <p className="text-xs text-muted-foreground">
-              Hot: {data.hotLeads} | Warm: {data.warmLeads} | Cold: {data.coldLeads}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Communications</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.totalEmails + data.totalWhatsappSent + data.totalWhatsappReceived}</div>
-            <p className="text-xs text-muted-foreground">
-              Emails: {data.totalEmails} | WhatsApp: {data.totalWhatsappSent + data.totalWhatsappReceived}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tasks</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.pendingTasks + data.completedTasks}</div>
-            <p className="text-xs text-muted-foreground">
-              Pending: {data.pendingTasks} | Completed: {data.completedTasks}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Monthly Trends Chart */}
-      <Card className="col-span-3">
-        <CardHeader>
-          <CardTitle>Monthly Trends</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data.monthlyStats}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="properties" stroke="#8884d8" name="Properties" />
-                <Line type="monotone" dataKey="leads" stroke="#82ca9d" name="Leads" />
-                <Line type="monotone" dataKey="value" stroke="#ffc658" name="Value" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
+      <MetricsGrid data={data} />
+      <MonthlyTrendsChart data={data.monthlyStats} />
     </div>
   );
 };

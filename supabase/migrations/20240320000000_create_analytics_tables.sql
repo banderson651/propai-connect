@@ -51,11 +51,32 @@ CREATE TABLE IF NOT EXISTS tasks (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
+-- Create email_accounts table if it doesn't exist
+CREATE TABLE IF NOT EXISTS email_accounts (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    email TEXT NOT NULL,
+    name TEXT,
+    type TEXT NOT NULL,
+    host TEXT NOT NULL,
+    port INTEGER NOT NULL,
+    username TEXT NOT NULL,
+    secure BOOLEAN DEFAULT true,
+    smtp_secure BOOLEAN DEFAULT true,
+    is_active BOOLEAN DEFAULT true,
+    is_default BOOLEAN DEFAULT false,
+    status TEXT,
+    last_checked TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
 -- Create RLS policies
 ALTER TABLE properties ENABLE ROW LEVEL SECURITY;
 ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE communications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE email_accounts ENABLE ROW LEVEL SECURITY;
 
 -- Properties policies
 CREATE POLICY "Users can view their own properties"
@@ -120,8 +141,22 @@ CREATE POLICY "Users can update their own tasks"
     USING (auth.uid() = user_id)
     WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can delete their own tasks"
-    ON tasks FOR DELETE
+-- Email accounts policies
+CREATE POLICY "Users can view their own email accounts"
+    ON email_accounts FOR SELECT
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own email accounts"
+    ON email_accounts FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own email accounts"
+    ON email_accounts FOR UPDATE
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own email accounts"
+    ON email_accounts FOR DELETE
     USING (auth.uid() = user_id);
 
 -- Create updated_at triggers

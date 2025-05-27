@@ -33,8 +33,6 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
     { icon: CheckSquare, label: 'Tasks', path: '/tasks' },
     { icon: Calendar, label: 'Calendar', path: '/calendar' },
     { icon: Building2, label: 'Properties', path: '/properties' },
-    { icon: Mail, label: 'Email Accounts', path: '/email/accounts' },
-    { icon: Mail, label: 'Email Templates', path: '/email/templates' },
     { icon: Mail, label: 'Email Campaigns', path: '/email/campaigns' },
     { icon: Zap, label: 'Automation', path: '/automation' },    { icon: BarChart3, label: 'Analytics', path: '/analytics' },
     { icon: Settings, label: 'Settings', path: '/settings' },
@@ -94,11 +92,6 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
                   <item.icon className="h-5 w-5 flex-shrink-0" />
                   {open && (
                     <span className="truncate">{item.label}</span>
-                  )}
-                  {open && item.badge && (
-                    <span className={`text-xs px-1.5 py-0.5 rounded-full ml-auto ${item.badgeColor || 'bg-gray-100 text-gray-800'}`}>
-                      {item.badge}
-                    </span>
                   )}
                 </Link>
               </li>

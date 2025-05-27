@@ -1,4 +1,3 @@
-
 import { Suspense, lazy, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -35,6 +34,7 @@ const AutomationPage = lazy(() => import('./pages/automation/AutomationPage')); 
 const NewRulePage = lazy(() => import('./pages/automation/NewRulePage'));
 const SettingsPage = lazy(() => import('./pages/Settings')); // Assuming SettingsPage is directly in pages
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const EmailCampaignsUnifiedPage = lazy(() => import('@/pages/email/EmailCampaignsUnifiedPage'));
 
 const queryClient = new QueryClient();
 
@@ -62,7 +62,7 @@ const App = () => {
                     <Route path="/calendar" element={<AuthRoute><CalendarPage /></AuthRoute>} />
                     <Route path="/email/accounts" element={<AuthRoute><EmailAccountsPage /></AuthRoute>} />
                     <Route path="/email/templates" element={<AuthRoute><EmailTemplatesPage /></AuthRoute>} />
-                    <Route path="/email/campaigns" element={<AuthRoute><EmailCampaignsPage /></AuthRoute>} />
+                    <Route path="/email/campaigns" element={<AuthRoute><EmailCampaignsUnifiedPage /></AuthRoute>} />
                     <Route path="/contacts" element={<AuthRoute><ContactsPage /></AuthRoute>} />
                     <Route path="/contacts/new" element={<AuthRoute><NewContactPage /></AuthRoute>} />
                     <Route path="/contacts/:id" element={<AuthRoute><ContactDetailPage /></AuthRoute>} />

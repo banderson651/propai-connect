@@ -7,10 +7,10 @@ interface AuthRouteProps {
 }
 
 export const AuthRoute = ({ children, adminOnly = false }: AuthRouteProps) => {
-  const { user, isAdmin, isLoading } = useAuth();
+  const { user, isAdmin, loading } = useAuth();
   const location = useLocation();
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -19,7 +19,6 @@ export const AuthRoute = ({ children, adminOnly = false }: AuthRouteProps) => {
   }
 
   if (!user) {
-    // Redirect to login but save the attempted URL
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

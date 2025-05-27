@@ -164,6 +164,7 @@ export type Database = {
           updated_at: string
           user_id: string
           username: string
+          domain_verified: boolean
         }
         Insert: {
           created_at?: string
@@ -182,6 +183,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           username: string
+          domain_verified?: boolean
         }
         Update: {
           created_at?: string
@@ -200,6 +202,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           username?: string
+          domain_verified?: boolean
         }
         Relationships: []
       }
