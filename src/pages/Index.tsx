@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { ActivityTimeline } from '@/components/dashboard/ActivityTimeline';
 import { TasksDashboard } from '@/components/tasks/TasksDashboard';
-import { Building2, Calendar, CheckSquare, MailOpen, MessageSquare, PlusCircle, User } from 'lucide-react';
+import { Building2, Calendar, CheckSquare, MailOpen, MessageSquare, PlusCircle, User, TrendingUp, TrendingDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
@@ -15,39 +15,98 @@ export default function Index() {
   const { user } = useAuth();
   const displayName = user?.email ? user.email.split('@')[0] : 'User';
 
-  // Mock statistics
+  // Mock statistics with trend indicators
   const stats = [
-    { id: 1, name: 'Properties', value: '24', icon: Building2, color: 'text-blue-500' },
-    { id: 2, name: 'Contacts', value: '142', icon: User, color: 'text-green-500' },
-    { id: 3, name: 'Active Tasks', value: '8', icon: CheckSquare, color: 'text-amber-500' },
-    { id: 4, name: 'Meetings Today', value: '3', icon: Calendar, color: 'text-purple-500' },
-    { id: 5, name: 'Email Campaigns', value: '5', icon: MailOpen, color: 'text-rose-500' },
-    { id: 6, name: 'WhatsApp Messages', value: '28', icon: MessageSquare, color: 'text-teal-500' },
+    { 
+      id: 1, 
+      name: 'Properties', 
+      value: '24', 
+      icon: Building2, 
+      color: 'text-blue-500',
+      trend: '+5%',
+      trendUp: true
+    },
+    { 
+      id: 2, 
+      name: 'Contacts', 
+      value: '142', 
+      icon: User, 
+      color: 'text-green-500',
+      trend: '+12%',
+      trendUp: true
+    },
+    { 
+      id: 3, 
+      name: 'Active Tasks', 
+      value: '8', 
+      icon: CheckSquare, 
+      color: 'text-amber-500',
+      trend: '-3%',
+      trendUp: false
+    },
+    { 
+      id: 4, 
+      name: 'Meetings Today', 
+      value: '3', 
+      icon: Calendar, 
+      color: 'text-purple-500',
+      trend: '+2%',
+      trendUp: true
+    },
+    { 
+      id: 5, 
+      name: 'Email Campaigns', 
+      value: '5', 
+      icon: MailOpen, 
+      color: 'text-rose-500',
+      trend: '+8%',
+      trendUp: true
+    },
+    { 
+      id: 6, 
+      name: 'WhatsApp Messages', 
+      value: '28', 
+      icon: MessageSquare, 
+      color: 'text-teal-500',
+      trend: '+15%',
+      trendUp: true
+    },
   ];
 
   return (
-    <DashboardLayout pageTitle="Dashboard">
+    <DashboardLayout pageTitle="Analytics Dashboard">
       <div className="space-y-6">
-        <div className="flex flex-col space-y-2">
-          <h1 className="text-2xl md:text-3xl font-bold">Welcome back, {displayName}!</h1>
-          <p className="text-muted-foreground">
-            Here's what's happening with your properties today.
-          </p>
+        {/* Welcome Section */}
+        <div className="flex flex-wrap justify-between items-center gap-4">
+          <div className="flex flex-col gap-1">
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Welcome back, {displayName}!</h1>
+            <p className="text-gray-600 text-base">Track key performance indicators for your property portfolio.</p>
+          </div>
         </div>
 
-        <DashboardNav />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {stats.map((stat) => (
-            <Card key={stat.id} className="shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">{stat.name}</CardTitle>
+            <div key={stat.id} className="stat-card">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-gray-600 text-sm font-medium">{stat.name}</p>
                 <stat.icon className={cn("h-5 w-5", stat.color)} />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-              </CardContent>
-            </Card>
+              </div>
+              <div className="flex items-end justify-between">
+                <p className="text-3xl font-bold text-gray-900 tracking-tight">{stat.value}</p>
+                <div className={cn(
+                  "flex items-center text-sm font-semibold",
+                  stat.trendUp ? "text-green-600" : "text-red-600"
+                )}>
+                  {stat.trendUp ? (
+                    <TrendingUp className="w-4 h-4 mr-1" />
+                  ) : (
+                    <TrendingDown className="w-4 h-4 mr-1" />
+                  )}
+                  {stat.trend}
+                </div>
+              </div>
+            </div>
           ))}
         </div>
 
@@ -66,18 +125,18 @@ export default function Index() {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="bg-white shadow-lg border border-gray-200">
+            <CardHeader>
               <div className="space-y-1">
-                <CardTitle>Quick Actions</CardTitle>
-                <CardDescription>Common tasks you can perform</CardDescription>
+                <CardTitle className="text-lg font-semibold text-gray-900">Quick Actions</CardTitle>
+                <CardDescription className="text-gray-600">Common tasks you can perform</CardDescription>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
               <Button 
                 variant="outline" 
-                className="w-full justify-start"
+                className="w-full justify-start hover:bg-slate-50"
                 onClick={() => navigate('/contacts/new')}
               >
                 <PlusCircle className="mr-2 h-4 w-4" />
@@ -85,7 +144,7 @@ export default function Index() {
               </Button>
               <Button 
                 variant="outline" 
-                className="w-full justify-start"
+                className="w-full justify-start hover:bg-slate-50"
                 onClick={() => navigate('/properties/new')}
               >
                 <PlusCircle className="mr-2 h-4 w-4" />
@@ -93,7 +152,7 @@ export default function Index() {
               </Button>
               <Button 
                 variant="outline" 
-                className="w-full justify-start"
+                className="w-full justify-start hover:bg-slate-50"
                 onClick={() => navigate('/tasks')}
               >
                 <PlusCircle className="mr-2 h-4 w-4" />
@@ -101,7 +160,7 @@ export default function Index() {
               </Button>
               <Button 
                 variant="outline" 
-                className="w-full justify-start"
+                className="w-full justify-start hover:bg-slate-50"
                 onClick={() => navigate('/email/campaigns/new')}
               >
                 <PlusCircle className="mr-2 h-4 w-4" />
@@ -110,16 +169,16 @@ export default function Index() {
             </CardContent>
           </Card>
           
-          <Card className="md:col-span-2">
+          <Card className="md:col-span-2 bg-white shadow-lg border border-gray-200">
             <CardHeader>
-              <CardTitle>Upcoming Deadlines</CardTitle>
-              <CardDescription>Tasks and activities due soon</CardDescription>
+              <CardTitle className="text-lg font-semibold text-gray-900">Upcoming Deadlines</CardTitle>
+              <CardDescription className="text-gray-600">Tasks and activities due soon</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground text-sm">Coming soon...</p>
+              <p className="text-gray-500 text-sm">Coming soon...</p>
             </CardContent>
             <CardFooter>
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="text-gray-600 hover:text-primary">
                 View calendar
               </Button>
             </CardFooter>

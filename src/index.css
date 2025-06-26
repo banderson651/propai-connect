@@ -7,79 +7,84 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 248 250 252;
+    --foreground: 17 20 24;
     
-    --sidebar: 215 100% 10%;
-    --sidebar-foreground: 0 0% 100%;
+    --sidebar: 255 255 255;
+    --sidebar-foreground: 17 20 24;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 255 255 255;
+    --card-foreground: 17 20 24;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 255 255 255;
+    --popover-foreground: 17 20 24;
 
-    --primary: 172 75% 40%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 61 152 244;
+    --primary-foreground: 255 255 255;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 240 242 245;
+    --secondary-foreground: 96 117 138;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 240 242 245;
+    --muted-foreground: 96 117 138;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 240 242 245;
+    --accent-foreground: 17 20 24;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 231 57 8;
+    --destructive-foreground: 255 255 255;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 172 75% 40%;
+    --border: 240 242 245;
+    --input: 240 242 245;
+    --ring: 61 152 244;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
     
-    --timeline-line: 220 13% 91%;
-    --timeline-dot: 50 100% 50%;
-    --timeline-dot-border: 0 0% 100%;
+    --timeline-line: 240 242 245;
+    --timeline-dot: 61 152 244;
+    --timeline-dot-border: 255 255 255;
+    
+    --accent-green: 7 136 56;
+    --accent-red: 231 57 8;
+    --text-primary: 17 20 24;
+    --text-secondary: 96 117 138;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 17 20 24;
+    --foreground: 248 250 252;
     
-    --sidebar: 215 100% 8%;
-    --sidebar-foreground: 0 0% 100%;
+    --sidebar: 30 35 41;
+    --sidebar-foreground: 248 250 252;
 
-    --card: 222.2 84% 9.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 30 35 41;
+    --card-foreground: 248 250 252;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 30 35 41;
+    --popover-foreground: 248 250 252;
 
-    --primary: 172 75% 40%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 61 152 244;
+    --primary-foreground: 255 255 255;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 45 52 61;
+    --secondary-foreground: 156 163 175;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 45 52 61;
+    --muted-foreground: 156 163 175;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 45 52 61;
+    --accent-foreground: 248 250 252;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 231 57 8;
+    --destructive-foreground: 248 250 252;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --border: 45 52 61;
+    --input: 45 52 61;
+    --ring: 61 152 244;
     
-    --timeline-line: 217.2 32.6% 17.5%;
-    --timeline-dot: 50 100% 50%;
-    --timeline-dot-border: 222.2 84% 9.9%;
+    --timeline-line: 45 52 61;
+    --timeline-dot: 61 152 244;
+    --timeline-dot-border: 30 35 41;
   }
 
   * {
@@ -87,11 +92,11 @@
   }
 
   body {
-    @apply bg-background text-foreground font-inter antialiased;
+    @apply bg-slate-50 text-foreground font-inter antialiased;
   }
 
   .glass-card {
-    @apply bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm;
+    @apply bg-white/95 backdrop-blur-sm border border-gray-200 shadow-lg;
   }
 
   .animate-in {
@@ -140,5 +145,17 @@
   
   .timeline-card {
     @apply p-4 bg-card border rounded-lg shadow-sm;
+  }
+
+  .nav-link-active {
+    @apply bg-primary text-primary-foreground font-semibold shadow-md;
+  }
+
+  .chart-bar {
+    @apply bg-primary opacity-60 transition-opacity duration-200 ease-in-out hover:opacity-100;
+  }
+
+  .stat-card {
+    @apply bg-white rounded-xl p-6 shadow-lg border border-gray-200;
   }
 }

@@ -1,5 +1,5 @@
 
-import { Bell, Menu, Search, LogOut, User, ChevronLeft } from 'lucide-react';
+import { Bell, Menu, Search, LogOut, User, ChevronLeft, Filter, Download } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -24,12 +24,11 @@ export const TopBar = ({ onMenuClick, pageTitle }: TopBarProps) => {
   const displayName = user?.email ? user.email.split('@')[0] : 'User';
   const navigate = useNavigate();
   const location = useLocation();
-  const today = new Date();
   
   const canGoBack = location.pathname !== '/' && location.pathname !== '/dashboard';
 
   return (
-    <header className="h-16 bg-background border-b border-border px-4 md:px-6 flex items-center justify-between">
+    <header className="flex items-center justify-between whitespace-nowrap border-b border-gray-200 px-10 py-4 bg-white shadow-sm">
       <div className="flex items-center gap-4 flex-1">
         <div className="flex items-center">
           <Button variant="ghost" size="icon" onClick={onMenuClick} className="md:hidden">
@@ -48,23 +47,26 @@ export const TopBar = ({ onMenuClick, pageTitle }: TopBarProps) => {
           )}
           
           <div>
-            <h1 className="text-xl font-medium">{pageTitle || 'Dashboard'}</h1>
-            <p className="text-sm text-muted-foreground">{formatDate(today)}</p>
+            <h1 className="text-xl font-semibold text-gray-900">{pageTitle || 'Dashboard'}</h1>
           </div>
         </div>
       </div>
       
-      <div className="hidden md:flex items-center max-w-md flex-1">
-        <div className="relative w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search..."
-            className="pl-10 bg-background border w-full"
-          />
-        </div>
-      </div>
-      
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
+        {/* Action Buttons */}
+        <Button 
+          variant="outline" 
+          className="flex items-center gap-2 text-primary border-primary hover:bg-primary hover:text-white transition-colors"
+        >
+          <Filter className="w-4 h-4" />
+          <span className="hidden sm:inline">Filter</span>
+        </Button>
+        
+        <Button className="flex items-center gap-2 bg-primary hover:bg-blue-600 text-white">
+          <Download className="w-4 h-4" />
+          <span className="hidden sm:inline">Export</span>
+        </Button>
+        
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
           <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full" />
@@ -76,10 +78,12 @@ export const TopBar = ({ onMenuClick, pageTitle }: TopBarProps) => {
               variant="ghost"
               className="flex items-center gap-2"
             >
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <User className="h-4 w-4 text-primary" />
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary">
+                <span className="text-primary font-semibold text-sm">
+                  {displayName.charAt(0).toUpperCase()}
+                </span>
               </div>
-              <span className="font-medium hidden md:inline">{displayName}</span>
+              <span className="font-medium hidden md:inline text-gray-900">{displayName}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
