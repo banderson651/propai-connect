@@ -8,6 +8,9 @@ export interface Contact {
   updatedAt: string;
 }
 
+export type EmailAccountStatus = 'connected' | 'error' | 'disconnected';
+export type EmailAccountType = 'smtp' | 'imap' | 'pop3';
+
 export interface EmailAccount {
   id: string;
   user_id: string;
@@ -40,6 +43,12 @@ export interface EmailAccount {
   sync_frequency?: number;
   max_emails_per_sync?: number;
   last_sync_at?: string;
+  // Additional fields for mock data compatibility
+  provider?: string;
+  userId?: string;
+  createdAt?: string;
+  lastSyncAt?: string;
+  errorMessage?: string;
 }
 
 export interface EmailTemplate {
@@ -48,6 +57,11 @@ export interface EmailTemplate {
   subject: string;
   body: string;
   isPrebuilt: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  userId?: string;
+  tags?: string[];
+  content?: string; // For backward compatibility
 }
 
 export interface CampaignStats {
@@ -67,6 +81,18 @@ export interface Campaign {
   status: 'draft' | 'sending' | 'sent' | 'cancelled' | 'failed';
   sentAt: string | null;
   stats: CampaignStats;
+  // Additional fields for mock data compatibility
+  templateId?: string;
+  scheduledDate?: string | null;
+  sentDate?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  userId?: string;
+  recipientCount?: number;
+  openRate?: number;
+  clickRate?: number;
+  tags?: string[];
+  accountId?: string;
 }
 
 export interface ContactList {

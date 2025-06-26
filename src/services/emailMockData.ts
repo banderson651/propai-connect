@@ -1,36 +1,47 @@
+
 import { Campaign, EmailAccount, EmailAccountStatus, EmailAccountType, EmailTemplate } from '@/types/email';
 
 export const mockEmailAccounts: EmailAccount[] = [
   {
     id: '1',
-    userId: 'current-user',
+    user_id: 'current-user',
     email: 'john.doe@gmail.com',
     name: 'John Doe',
     provider: 'Gmail',
-    type: 'smtp' as EmailAccountType, // Updated from 'gmail' to a valid type
+    type: 'smtp' as EmailAccountType,
     status: 'connected' as EmailAccountStatus,
-    createdAt: new Date().toISOString(),
-    lastSyncAt: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    last_checked: new Date().toISOString(),
     host: 'smtp.gmail.com',
     port: 587,
     secure: true,
-    username: 'john.doe@gmail.com'
+    smtp_secure: true,
+    username: 'john.doe@gmail.com',
+    is_active: true,
+    is_default: true,
+    domain_verified: true
   },
   {
     id: '2',
-    userId: 'current-user',
+    user_id: 'current-user',
     email: 'john.business@outlook.com',
     name: 'John Business',
     provider: 'Outlook',
-    type: 'smtp' as EmailAccountType, // Updated from 'outlook' to a valid type
+    type: 'smtp' as EmailAccountType,
     status: 'error' as EmailAccountStatus,
-    createdAt: new Date().toISOString(),
-    lastSyncAt: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    last_checked: new Date().toISOString(),
     host: 'smtp-mail.outlook.com',
     port: 587,
     secure: true,
+    smtp_secure: true,
     username: 'john.business@outlook.com',
-    errorMessage: 'Authentication failed. Please check your credentials.'
+    errorMessage: 'Authentication failed. Please check your credentials.',
+    is_active: false,
+    is_default: false,
+    domain_verified: false
   },
 ];
 
@@ -39,7 +50,7 @@ export const mockTemplates: EmailTemplate[] = [
     id: '1',
     name: 'Property Listing Announcement',
     subject: 'New Property Just Listed!',
-    content: `
+    body: `
       <h2>Exciting New Property Listing</h2>
       <p>Dear {{contact_name}},</p>
       <p>We're excited to share this new property that just came on the market:</p>
@@ -58,13 +69,14 @@ export const mockTemplates: EmailTemplate[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     userId: 'current-user',
-    tags: ['property', 'announcement', 'listing']
+    tags: ['property', 'announcement', 'listing'],
+    isPrebuilt: false
   },
   {
     id: '2',
     name: 'Monthly Newsletter',
     subject: 'Real Estate Market Update - {{month}}',
-    content: `
+    body: `
       <h2>Monthly Real Estate Update</h2>
       <p>Hello {{contact_name}},</p>
       <p>Here's what's happening in the real estate market this month:</p>
@@ -81,7 +93,8 @@ export const mockTemplates: EmailTemplate[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     userId: 'current-user',
-    tags: ['newsletter', 'market update']
+    tags: ['newsletter', 'market update'],
+    isPrebuilt: false
   }
 ];
 
@@ -89,8 +102,13 @@ export const mockCampaigns: Campaign[] = [
   {
     id: '1',
     name: 'New Listings July 2023',
-    templateId: '1',
+    subject: 'New Property Just Listed!',
+    body: 'Check out our new property listings...',
+    senderEmailAccountId: '1',
+    contactListId: 'list1',
     status: 'draft',
+    sentAt: null,
+    stats: { sent: 0, opened: 0, clicked: 0, bounced: 0 },
     scheduledDate: null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -102,8 +120,13 @@ export const mockCampaigns: Campaign[] = [
   {
     id: '2',
     name: 'Monthly Newsletter - August 2023',
-    templateId: '2',
-    status: 'scheduled',
+    subject: 'Real Estate Market Update - August',
+    body: 'Monthly market update content...',
+    senderEmailAccountId: '1',
+    contactListId: 'list2',
+    status: 'sent',
+    sentAt: new Date(new Date().setDate(new Date().getDate() + 5)).toISOString(),
+    stats: { sent: 120, opened: 80, clicked: 25, bounced: 2 },
     scheduledDate: new Date(new Date().setDate(new Date().getDate() + 5)).toISOString(),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -115,8 +138,13 @@ export const mockCampaigns: Campaign[] = [
   {
     id: '3',
     name: 'Price Reduction Announcement',
-    templateId: '1',
+    subject: 'Price Reduced - Don\'t Miss Out!',
+    body: 'Great news! Property prices have been reduced...',
+    senderEmailAccountId: '1',
+    contactListId: 'list1',
     status: 'sent',
+    sentAt: new Date(new Date().setDate(new Date().getDate() - 10)).toISOString(),
+    stats: { sent: 45, opened: 31, clicked: 11, bounced: 1 },
     scheduledDate: new Date(new Date().setDate(new Date().getDate() - 10)).toISOString(),
     sentDate: new Date(new Date().setDate(new Date().getDate() - 10)).toISOString(),
     createdAt: new Date().toISOString(),
