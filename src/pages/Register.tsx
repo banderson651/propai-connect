@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -8,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface RegisterFormData {
+  name: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -33,12 +35,14 @@ export default function Register() {
       setLoading(true);
       setError(null);
       
-      if (signUp) {
-        await signUp(data.email, data.password);
-      } else {
-        setError('Authentication service is not available');
+      console.log('Registration form submitted for:', data.email);
+      const { error } = await signUp(data.email, data.password, data.name);
+      
+      if (error) {
+        setError(error.message);
       }
     } catch (err) {
+      console.error('Registration error:', err);
       setError(err instanceof Error ? err.message : 'An error occurred during registration');
     } finally {
       setLoading(false);
@@ -52,11 +56,30 @@ export default function Register() {
           Create an Account
         </h2>
         {error && (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="mb-4">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div>
+            <Label htmlFor="name">Name</Label>
+            <Input
+              type="text"
+              id="name"
+              placeholder="Full Name"
+              {...register('name', {
+                required: 'Name is required',
+                minLength: {
+                  value: 2,
+                  message: 'Name must be at least 2 characters',
+                },
+              })}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            />
+            {errors.name && (
+              <p className="text-red-500 text-xs italic">{errors.name.message}</p>
+            )}
+          </div>
           <div>
             <Label htmlFor="email">Email</Label>
             <Input
@@ -115,10 +138,10 @@ export default function Register() {
           </div>
           <Button
             type="submit"
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
             disabled={loading}
           >
-            {loading ? 'Loading...' : 'Register'}
+            {loading ? 'Creating Account...' : 'Register'}
           </Button>
         </form>
         <div className="text-center mt-4">

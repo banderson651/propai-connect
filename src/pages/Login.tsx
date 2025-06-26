@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,20 +21,31 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email.trim() || !password) {
+      toast({
+        title: 'Error',
+        description: 'Please enter both email and password.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      await signIn(email, password);
-      navigate(from, { replace: true });
-      toast({
-        title: 'Welcome back!',
-        description: 'You have successfully signed in.',
-      });
+      console.log('Login form submitted for:', email);
+      const { error } = await signIn(email, password);
+      
+      if (!error) {
+        console.log('Login successful, navigating to:', from);
+        navigate(from, { replace: true });
+      }
     } catch (error) {
       console.error('Login error:', error);
       toast({
         title: 'Error',
-        description: 'Invalid email or password. Please try again.',
+        description: 'An unexpected error occurred. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -77,6 +89,7 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 placeholder="Email address"
+                disabled={isLoading}
               />
             </div>
             <div>
@@ -93,6 +106,7 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 placeholder="Password"
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -101,7 +115,7 @@ export default function Login() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             >
               {isLoading ? (
                 <>

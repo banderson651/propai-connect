@@ -121,6 +121,7 @@ export type Database = {
           phone: string | null
           tags: string[] | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           address?: string | null
@@ -132,6 +133,7 @@ export type Database = {
           phone?: string | null
           tags?: string[] | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           address?: string | null
@@ -143,12 +145,14 @@ export type Database = {
           phone?: string | null
           tags?: string[] | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
       email_accounts: {
         Row: {
           created_at: string
+          domain_verified: boolean | null
           email: string
           host: string
           id: string
@@ -158,16 +162,17 @@ export type Database = {
           name: string
           port: number
           secure: boolean | null
+          smtp_password_encrypted: string | null
           smtp_secure: boolean
           status: string | null
           type: string
           updated_at: string
           user_id: string
           username: string
-          domain_verified: boolean
         }
         Insert: {
           created_at?: string
+          domain_verified?: boolean | null
           email: string
           host: string
           id?: string
@@ -177,16 +182,17 @@ export type Database = {
           name: string
           port: number
           secure?: boolean | null
+          smtp_password_encrypted?: string | null
           smtp_secure?: boolean
           status?: string | null
           type: string
           updated_at?: string
           user_id: string
           username: string
-          domain_verified?: boolean
         }
         Update: {
           created_at?: string
+          domain_verified?: boolean | null
           email?: string
           host?: string
           id?: string
@@ -196,13 +202,13 @@ export type Database = {
           name?: string
           port?: number
           secure?: boolean | null
+          smtp_password_encrypted?: string | null
           smtp_secure?: boolean
           status?: string | null
           type?: string
           updated_at?: string
           user_id?: string
           username?: string
-          domain_verified?: boolean
         }
         Relationships: []
       }
@@ -350,6 +356,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          read: boolean
+          related_entity_id: string | null
+          related_entity_type: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          read?: boolean
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          read?: boolean
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
