@@ -1,400 +1,422 @@
-import { useState, useEffect, useMemo } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { getContactById, getInteractionsByContactId, saveInteraction, deleteContact } from '@/services/mockData';
-import { Interaction, InteractionType } from '@/types/contact';
-import { 
-  Edit, Trash2, Phone, Mail, MapPin, Tag, 
-  MessageCircle, Calendar, Clock, File, Plus 
-} from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-// Define interaction types and corresponding icons
-const interactionIcons: Record<InteractionType, any> = {
-  'call': Phone,
-  'email': Mail,
-  'meeting': Calendar,
-  'note': File,
-  'other': MessageCircle,
-};
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/components/ui/use-toast';
+import { ArrowLeft, Phone, Mail, MapPin, Tag, MessageSquare, Calendar, Plus } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
-const interactionTypeOptions: InteractionType[] = ['call', 'email', 'meeting', 'note', 'other'];
+interface Contact {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  tags: string[];
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
 
-const ContactDetailPage = () => {
+interface Interaction {
+  id: string;
+  type: string;
+  content: string;
+  subject?: string;
+  date: string;
+}
+
+export default function ContactDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
   
-  const [contact, setContact] = useState<any>(null);
+  const [contact, setContact] = useState<Contact | null>(null);
   const [interactions, setInteractions] = useState<Interaction[]>([]);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  
-  const [newInteractionOpen, setNewInteractionOpen] = useState(false);
-  const [interactionType, setInteractionType] = useState<InteractionType>('call');
-  const [interactionContent, setInteractionContent] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContact, setEditedContact] = useState<Contact | null>(null);
+  const [newInteraction, setNewInteraction] = useState({
+    type: 'note',
+    content: '',
+    subject: ''
+  });
+  const [showAddInteraction, setShowAddInteraction] = useState(false);
+
   useEffect(() => {
-    if (!id) return;
-    
-    const contactData = getContactById(id);
-    if (!contactData) {
-      navigate('/contacts');
-      return;
+    if (id) {
+      fetchContact();
+      fetchInteractions();
     }
-    
-    setContact(contactData);
-    setInteractions(getInteractionsByContactId(id));
-  }, [id, navigate, toast]);
-  
-  const sortedInteractions = useMemo(() => {
-    return [...interactions].sort((a, b) => 
-      new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
-  }, [interactions]);
-  
-  const handleAddInteraction = () => {
-    if (!contact || !interactionContent.trim()) return;
-    
-    const newInteraction = saveInteraction({
-      contactId: contact.id,
-      type: interactionType,
-      date: new Date().toISOString(),
-      content: interactionContent,
-      subject: undefined,
-    });
-    
-    setInteractions(prev => [...prev, newInteraction]);
-    setInteractionType('call');
-    setInteractionContent('');
-    setInteractionSubject('');
-    setNewInteractionOpen(false);
+  }, [id]);
+
+  const fetchContact = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      setContact(data);
+      setEditedContact(data);
+    } catch (error) {
+      console.error('Error fetching contact:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load contact details',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
-  
-  const handleDeleteContact = () => {
-    if (!contact) return;
-    
-    deleteContact(contact.id);
-    // Assuming toast is available from useToast hook somewhere above
-    // If not, make sure to import and initialize useToast.
-    // const { toast } = useToast();
-    // toast({ title: 'Contact deleted', description: `${contact.name} has been successfully deleted.` });
-    navigate('/contacts'); // Navigate back to contacts list after deletion
+
+  const fetchInteractions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('interactions')
+        .select('*')
+        .eq('contact_id', id)
+        .order('date', { ascending: false });
+
+      if (error) throw error;
+      setInteractions(data || []);
+    } catch (error) {
+      console.error('Error fetching interactions:', error);
+    }
   };
-  
-  if (!contact) {
+
+  const handleSave = async () => {
+    if (!editedContact) return;
+
+    try {
+      const { error } = await supabase
+        .from('contacts')
+        .update({
+          name: editedContact.name,
+          email: editedContact.email,
+          phone: editedContact.phone,
+          address: editedContact.address,
+          tags: editedContact.tags,
+          notes: editedContact.notes,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setContact(editedContact);
+      setIsEditing(false);
+      toast({
+        title: 'Success',
+        description: 'Contact updated successfully'
+      });
+    } catch (error) {
+      console.error('Error updating contact:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update contact',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleAddInteraction = async () => {
+    if (!newInteraction.content.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from('interactions')
+        .insert([{
+          contact_id: id,
+          type: newInteraction.type,
+          content: newInteraction.content,
+          subject: newInteraction.subject || null,
+          date: new Date().toISOString()
+        }]);
+
+      if (error) throw error;
+
+      setNewInteraction({ type: 'note', content: '', subject: '' });
+      setShowAddInteraction(false);
+      fetchInteractions();
+      toast({
+        title: 'Success',
+        description: 'Interaction added successfully'
+      });
+    } catch (error) {
+      console.error('Error adding interaction:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to add interaction',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  if (isLoading) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
-          <p className="text-gray-500">Loading contact details...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       </DashboardLayout>
     );
   }
-  
+
+  if (!contact) {
+    return (
+      <DashboardLayout>
+        <div className="text-center py-8">
+          <h2 className="text-2xl font-bold text-gray-900">Contact not found</h2>
+          <Button onClick={() => navigate('/contacts')} className="mt-4">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Contacts
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">{contact.name}</h1>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {contact.tags.map((tag: string) => (
-                <Badge key={tag} variant="outline">{tag}</Badge>
-              ))}
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigate(`/contacts/${contact.id}/edit`)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </Button>
-            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
+      <div className="max-w-4xl mx-auto py-6">
+        <div className="flex items-center justify-between mb-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/contacts')}
+            className="flex items-center"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Contacts
+          </Button>
+          <div className="flex gap-2">
+            {isEditing ? (
+              <>
+                <Button variant="outline" onClick={() => setIsEditing(false)}>
+                  Cancel
                 </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Delete Contact</DialogTitle>
-                  <DialogDescription>
-                    Are you sure you want to delete {contact.name}? This action cannot be undone.
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-                  <Button variant="destructive" onClick={handleDeleteContact}>Delete</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                <Button onClick={handleSave}>Save Changes</Button>
+              </>
+            ) : (
+              <Button onClick={() => setIsEditing(true)}>Edit Contact</Button>
+            )}
           </div>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="md:col-span-1">
-            <CardHeader>
-              <CardTitle className="text-lg">Contact Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-start gap-3">
-                <Mail className="h-5 w-5 text-gray-500 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Email</p>
-                  <p>{contact.email}</p>
-                </div>
-              </div>
-              
-              {contact.phone && (
-                <div className="flex items-start gap-3">
-                  <Phone className="h-5 w-5 text-gray-500 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Phone</p>
-                    <p>{contact.phone}</p>
-                  </div>
-                </div>
-              )}
-              
-              {contact.address && (
-                <div className="flex items-start gap-3">
-                  <MapPin className="h-5 w-5 text-gray-500 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Address</p>
-                    <p>{contact.address}</p>
-                  </div>
-                </div>
-              )}
-              
-              <div className="flex items-start gap-3">
-                <Tag className="h-5 w-5 text-gray-500 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Tags</p>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {contact.tags.map((tag: string) => (
-                      <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              
-              {contact.notes && (
-                <div className="pt-4 border-t border-gray-100">
-                  <p className="text-sm font-medium text-gray-500 mb-2">Notes</p>
-                  <p className="text-sm">{contact.notes}</p>
-                </div>
-              )}
-              
-              <div className="pt-4 border-t border-gray-100">
-                <p className="text-sm font-medium text-gray-500 mb-2">Created</p>
-                <p className="text-sm">{new Date(contact.createdAt).toLocaleDateString()}</p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Tabs className="md:col-span-2" defaultValue="interactions">
-            <TabsList>
-              <TabsTrigger value="interactions">Interactions</TabsTrigger>
-              <TabsTrigger value="whatsapp">WhatsApp Chat</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="interactions">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-lg">Interaction History</CardTitle>
-                  <Dialog open={newInteractionOpen} onOpenChange={setNewInteractionOpen}>
-                    <DialogTrigger asChild>
-                      <Button size="sm">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Interaction
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Add New Interaction</DialogTitle>
-                        <DialogDescription>
-                          Record a new interaction with this contact.
-                        </DialogDescription>
-                      </DialogHeader>
-                      
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">Interaction Type</label>
-                          <Select 
-                            value={interactionType} 
-                            onValueChange={(value) => setInteractionType(value as InteractionType)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select interaction type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {interactionTypeOptions.map(type => (
-                                <SelectItem key={type} value={type}>
-                                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        
-                        {(interactionType === 'email') && (
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">Subject</label>
-                            <Input
-                              value={interactionSubject}
-                              onChange={(e) => setInteractionSubject(e.target.value)}
-                              placeholder="Email subject"
-                            />
-                          </div>
-                        )}
-                        
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">Content</label>
-                          <Textarea
-                            value={interactionContent}
-                            onChange={(e) => setInteractionContent(e.target.value)}
-                            placeholder={`Details about this ${interactionType}`}
-                            rows={5}
-                          />
-                        </div>
-                      </div>
-                      
-                      <DialogFooter>
-                        <Button variant="outline" onClick={() => setNewInteractionOpen(false)}>Cancel</Button>
-                        <Button onClick={handleAddInteraction}>Save Interaction</Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </CardHeader>
-                <CardContent>
-                  <Tabs defaultValue="all">
-                    <TabsList className="mb-4">
- <TabsTrigger value="all">All</TabsTrigger>
- <TabsTrigger value="calls">Calls</TabsTrigger>
- <TabsTrigger value="emails">Emails</TabsTrigger>
- <TabsTrigger value="meetings">Meetings</TabsTrigger>
- </TabsList>
 
- <TabsContent value="all">
- <InteractionsList
- interactions={sortedInteractions}
- filter="all"
- />
- </TabsContent>
-
-                    <TabsContent value="calls">
-                      <InteractionsList 
-                        interactions={sortedInteractions} 
-                        filter="call" 
-                      />
-                    </TabsContent>
-                    
-                    <TabsContent value="emails">
-                      <InteractionsList 
-                        interactions={sortedInteractions} 
-                        filter="email" 
-                      />
-                    </TabsContent>
-                    
-                    <TabsContent value="meetings">
-                      <InteractionsList 
-                        interactions={sortedInteractions} 
-                        filter="meeting" 
-                      />
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="whatsapp">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">WhatsApp Conversation</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {contact.phone ? (
-                    <WhatsAppChat contact={contact} />
-                  ) : (
-                    <div className="text-center py-8">
-                      <p className="text-gray-500">This contact doesn't have a phone number for WhatsApp messaging.</p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Contact Information */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  Contact Information
+                  {contact.tags.length > 0 && (
+                    <div className="flex gap-1">
+                      {contact.tags.map((tag, index) => (
+                        <Badge key={index} variant="secondary">
+                          <Tag className="h-3 w-3 mr-1" />
+                          {tag}
+                        </Badge>
+                      ))}
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {isEditing ? (
+                  <>
+                    <div>
+                      <Label htmlFor="name">Name</Label>
+                      <Input
+                        id="name"
+                        value={editedContact?.name || ''}
+                        onChange={(e) => setEditedContact(prev => prev ? { ...prev, name: e.target.value } : null)}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={editedContact?.email || ''}
+                        onChange={(e) => setEditedContact(prev => prev ? { ...prev, email: e.target.value } : null)}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="phone">Phone</Label>
+                      <Input
+                        id="phone"
+                        value={editedContact?.phone || ''}
+                        onChange={(e) => setEditedContact(prev => prev ? { ...prev, phone: e.target.value } : null)}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="address">Address</Label>
+                      <Textarea
+                        id="address"
+                        value={editedContact?.address || ''}
+                        onChange={(e) => setEditedContact(prev => prev ? { ...prev, address: e.target.value } : null)}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="notes">Notes</Label>
+                      <Textarea
+                        id="notes"
+                        value={editedContact?.notes || ''}
+                        onChange={(e) => setEditedContact(prev => prev ? { ...prev, notes: e.target.value } : null)}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-gray-500" />
+                      <span>{contact.email}</span>
+                    </div>
+                    {contact.phone && (
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-gray-500" />
+                        <span>{contact.phone}</span>
+                      </div>
+                    )}
+                    {contact.address && (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-gray-500" />
+                        <span>{contact.address}</span>
+                      </div>
+                    )}
+                    {contact.notes && (
+                      <div>
+                        <h4 className="font-medium mb-2">Notes</h4>
+                        <p className="text-gray-600">{contact.notes}</p>
+                      </div>
+                    )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Quick Actions */}
+          <div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Button variant="outline" className="w-full justify-start">
+                  <Mail className="h-4 w-4 mr-2" />
+                  Send Email
+                </Button>
+                <Button variant="outline" className="w-full justify-start">
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Send WhatsApp
+                </Button>
+                <Button variant="outline" className="w-full justify-start">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Schedule Meeting
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
+
+        {/* Interactions */}
+        <Card className="mt-6">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Interactions</CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAddInteraction(!showAddInteraction)}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Interaction
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {showAddInteraction && (
+              <div className="mb-6 p-4 border rounded-lg">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="interactionType">Type</Label>
+                    <select
+                      id="interactionType"
+                      value={newInteraction.type}
+                      onChange={(e) => setNewInteraction(prev => ({ ...prev, type: e.target.value }))}
+                      className="w-full mt-1 block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+                      <option value="note">Note</option>
+                      <option value="call">Call</option>
+                      <option value="email">Email</option>
+                      <option value="meeting">Meeting</option>
+                    </select>
+                  </div>
+                  <div>
+                    <Label htmlFor="subject">Subject</Label>
+                    <Input
+                      id="subject"
+                      value={newInteraction.subject}
+                      onChange={(e) => setNewInteraction(prev => ({ ...prev, subject: e.target.value }))}
+                      placeholder="Brief description"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="content">Content</Label>
+                    <Textarea
+                      id="content"
+                      value={newInteraction.content}
+                      onChange={(e) => setNewInteraction(prev => ({ ...prev, content: e.target.value }))}
+                      placeholder="Detailed notes..."
+                      rows={3}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={handleAddInteraction}>Add Interaction</Button>
+                    <Button variant="outline" onClick={() => setShowAddInteraction(false)}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              {interactions.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">No interactions yet</p>
+              ) : (
+                interactions.map((interaction) => (
+                  <div key={interaction.id} className="border-l-4 border-blue-200 pl-4 py-2">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">{interaction.type}</Badge>
+                        {interaction.subject && (
+                          <span className="font-medium">{interaction.subject}</span>
+                        )}
+                      </div>
+                      <span className="text-sm text-gray-500">
+                        {new Date(interaction.date).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <p className="text-gray-700">{interaction.content}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );
-};
-
-interface InteractionsListProps {
-  interactions: Interaction[];
-  filter: 'all' | InteractionType;
 }
-
-const InteractionsList = ({ interactions, filter }: InteractionsListProps) => {
-  const filteredInteractions = filter === 'all' 
-    ? interactions 
-    : interactions.filter(i => i.type === filter);
-  
-  if (filteredInteractions.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">No interactions found.</p>
-      </div>
-    );
-  }
-  
-  return (
-    <div className="space-y-4">
-      {filteredInteractions.map(interaction => {
-        const Icon = interactionIcons[interaction.type] || MessageCircle;
-        
-        return (
-          <div key={interaction.id} className="border-b border-gray-100 pb-4 last:border-0">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="bg-blue-50 h-8 w-8 rounded-full flex items-center justify-center">
-                <Icon className="h-4 w-4 text-blue-600" />
-              </div>
-              <div>
-                <p className="font-medium">
-                  {interaction.type.charAt(0).toUpperCase() + interaction.type.slice(1)}
-                  {interaction.subject && `: ${interaction.subject}`}
-                </p>
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <Calendar className="h-3 w-3" />
-                  <span>{new Date(interaction.date).toLocaleDateString()}</span>
-                  <Clock className="h-3 w-3 ml-2" />
-                  <span>{new Date(interaction.date).toLocaleTimeString()}</span>
-                </div>
-              </div>
-            </div>
-            <p className="pl-10 text-gray-700">{interaction.content}</p>
-          </div>
-        );
-      })}
-    </div>
-  );
-};
-
-export default ContactDetailPage;

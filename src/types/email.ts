@@ -1,4 +1,12 @@
-import { Contact } from './contact'; // Assuming Contact type is defined in contact.ts
+
+export interface Contact {
+  id: string;
+  name: string;
+  email: string;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface EmailAccount {
   id: string;
@@ -18,6 +26,20 @@ export interface EmailAccount {
   created_at: string;
   updated_at: string;
   domain_verified: boolean;
+  // Optional fields for extended functionality
+  display_name?: string;
+  imap_host?: string;
+  imap_port?: number;
+  imap_username?: string;
+  imap_secure?: boolean;
+  smtp_host?: string;
+  smtp_port?: number;
+  smtp_username?: string;
+  smtp_password?: string;
+  password?: string;
+  sync_frequency?: number;
+  max_emails_per_sync?: number;
+  last_sync_at?: string;
 }
 
 export interface EmailTemplate {
@@ -42,7 +64,7 @@ export interface Campaign {
   body: string;
   senderEmailAccountId: string;
   contactListId: string;
-  status: 'draft' | 'sending' | 'sent' | 'cancelled';
+  status: 'draft' | 'sending' | 'sent' | 'cancelled' | 'failed';
   sentAt: string | null;
   stats: CampaignStats;
 }
@@ -52,11 +74,3 @@ export interface ContactList {
   name: string;
   contacts: Contact[];
 }
-
-// Placeholder if Contact is not defined elsewhere
-// export interface Contact {
-//   id: string;
-//   name: string;
-//   email: string;
-//   // Add other contact fields as needed
-// }

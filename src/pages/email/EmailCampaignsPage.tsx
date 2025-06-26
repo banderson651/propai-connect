@@ -39,26 +39,56 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
   // Placeholder API calls
   const fetchCampaigns = async () => {
     setIsLoading(true);
-    // Replace with actual API call to fetch campaigns
     await new Promise(resolve => setTimeout(resolve, 1000));
     setCampaigns([
-      { id: '1', name: 'Welcome Series', subject: 'Welcome!', body: '<p>Hello!</p>', senderEmailAccountId: 'acc1', contactListId: 'list1', status: 'Sent', sentAt: new Date().toISOString(), stats: { sent: 100, opened: 50, clicked: 10, bounced: 5 } },
-      { id: '2', name: 'Product Update', subject: 'New Feature!', body: '<p>Check out our new feature!</p>', senderEmailAccountId: 'acc2', contactListId: 'list2', status: 'Draft', sentAt: null, stats: { sent: 0, opened: 0, clicked: 0, bounced: 0 } },
-      { id: '3', name: 'Holiday Promotion', subject: 'Special Offer', body: '<p>Happy holidays!</p>', senderEmailAccountId: 'acc1', contactListId: 'list1', status: 'Failed', sentAt: new Date().toISOString(), stats: { sent: 0, opened: 0, clicked: 0, bounced: 0 } },
+      { id: '1', name: 'Welcome Series', subject: 'Welcome!', body: '<p>Hello!</p>', senderEmailAccountId: 'acc1', contactListId: 'list1', status: 'sent', sentAt: new Date().toISOString(), stats: { sent: 100, opened: 50, clicked: 10, bounced: 5 } },
+      { id: '2', name: 'Product Update', subject: 'New Feature!', body: '<p>Check out our new feature!</p>', senderEmailAccountId: 'acc2', contactListId: 'list2', status: 'draft', sentAt: null, stats: { sent: 0, opened: 0, clicked: 0, bounced: 0 } },
+      { id: '3', name: 'Holiday Promotion', subject: 'Special Offer', body: '<p>Happy holidays!</p>', senderEmailAccountId: 'acc1', contactListId: 'list1', status: 'failed', sentAt: new Date().toISOString(), stats: { sent: 0, opened: 0, clicked: 0, bounced: 0 } },
     ]);
     setIsLoading(false);
   };
 
   const fetchEmailAccounts = async () => {
     setIsLoading(true);
-    // Replace with actual API call to fetch email accounts
     await new Promise(resolve => setTimeout(resolve, 1000));
     setEmailAccounts([
       {
-        id: 'acc1', email: 'user1@example.com', smtpHost: 'smtp.example.com', smtpPort: 587, smtpUser: 'user1@example.com', smtpPass: 'password', domainVerified: true
+        id: 'acc1', 
+        user_id: 'user1',
+        email: 'user1@example.com', 
+        name: 'User 1',
+        type: 'smtp',
+        host: 'smtp.example.com', 
+        port: 587, 
+        username: 'user1@example.com',
+        secure: true,
+        smtp_secure: true,
+        is_active: true,
+        is_default: false,
+        status: 'active',
+        last_checked: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        domain_verified: true
       },
       {
-        id: 'acc2', email: 'user2@anotherdomain.com', smtpHost: 'smtp.anotherdomain.com', smtpPort: 587, smtpUser: 'user2@anotherdomain.com', smtpPass: 'password', domainVerified: false
+        id: 'acc2', 
+        user_id: 'user1',
+        email: 'user2@anotherdomain.com', 
+        name: 'User 2',
+        type: 'smtp',
+        host: 'smtp.anotherdomain.com', 
+        port: 587, 
+        username: 'user2@anotherdomain.com',
+        secure: true,
+        smtp_secure: true,
+        is_active: true,
+        is_default: false,
+        status: 'active',
+        last_checked: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        domain_verified: false
       }
     ]);
     setIsLoading(false);
@@ -66,7 +96,6 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
 
   const fetchEmailTemplates = async () => {
     setIsLoading(true);
-    // Replace with actual API call to fetch email templates
     await new Promise(resolve => setTimeout(resolve, 1000));
     setEmailTemplates([
       {
@@ -81,26 +110,24 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
 
   const fetchContacts = async () => {
     setIsLoading(true);
-    // Replace with actual API call to fetch individual contacts if needed
     await new Promise(resolve => setTimeout(resolve, 1000));
     setContacts([
-      { id: 'c1', name: 'John Doe', email: 'john.doe@example.com' },
-      { id: 'c2', name: 'Jane Smith', email: 'jane.smith@anotherdomain.com' },
-      { id: 'c3', name: 'Peter Jones', email: 'peter.jones@example.com' },
-      { id: 'c4', name: 'Alice Brown', email: 'alice.brown@example.com' },
-      { id: 'c5', name: 'Bob Green', email: 'bob.green@anotherdomain.com' }
+      { id: 'c1', name: 'John Doe', email: 'john.doe@example.com', tags: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+      { id: 'c2', name: 'Jane Smith', email: 'jane.smith@anotherdomain.com', tags: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+      { id: 'c3', name: 'Peter Jones', email: 'peter.jones@example.com', tags: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+      { id: 'c4', name: 'Alice Brown', email: 'alice.brown@example.com', tags: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+      { id: 'c5', name: 'Bob Green', email: 'bob.green@anotherdomain.com', tags: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
     ]);
     setIsLoading(false);
   };
 
   const fetchContactLists = async () => {
     setIsLoading(true);
-    // Replace with actual API call to fetch contact lists
     await new Promise(resolve => setTimeout(resolve, 1000));
     setContactLists([
       { id: 'list1', name: 'All Contacts', contacts: [
-        { id: 'c4', name: 'Alice Brown', email: 'alice.brown@example.com' },
-        { id: 'c5', name: 'Bob Green', email: 'bob.green@anotherdomain.com' }
+        { id: 'c4', name: 'Alice Brown', email: 'alice.brown@example.com', tags: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+        { id: 'c5', name: 'Bob Green', email: 'bob.green@anotherdomain.com', tags: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
       ] },
     ]);
     setIsLoading(false);
@@ -109,16 +136,21 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
   const createCampaign = async (campaignData: Omit<Campaign, 'id' | 'status' | 'sentAt' | 'stats'>) => {
     setIsLoading(true);
     try {
-      // Replace with actual API call to create a campaign
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      const newCampaignResponse: Campaign = { id: Date.now().toString(), ...campaignData, status: 'Draft', sentAt: null, stats: { sent: 0, opened: 0, clicked: 0, bounced: 0 } };
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const newCampaignResponse: Campaign = { 
+        id: Date.now().toString(), 
+        ...campaignData, 
+        status: 'draft', 
+        sentAt: null, 
+        stats: { sent: 0, opened: 0, clicked: 0, bounced: 0 } 
+      };
       setCampaigns([...campaigns, newCampaignResponse]);
       toast({ title: 'Success', description: 'Campaign created successfully.' });
       setIsCreateCampaignModalOpen(false);
       setNewCampaign({ name: '', subject: '', body: '', templateId: '', templateName: '', emailAccountId: '', contactListId: '' });
       setSelectedContacts([]);
     } catch (error) {
-      toast({ title: 'Failed to create campaign.', variant: 'destructive' });
+      toast({ title: 'Error', description: 'Failed to create campaign.', variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
@@ -132,28 +164,23 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
   const sendCampaign = async () => {
     if (!campaignToSendId) return;
 
-    setIsSendConfirmModalOpen(false); // Close confirmation modal
+    setIsSendConfirmModalOpen(false);
     setIsLoading(true);
 
-    // Find the campaign to get its associated contact list and contacts
     const campaignToSent = campaigns.find(camp => camp.id === campaignToSendId);
     const contactList = contactLists.find(list => list.id === campaignToSent?.contactListId);
     const contactIdsToSend = contactList?.contacts.map(contact => contact.id) || [];
 
     try {
-      // Update status to Sending immediately
-      setCampaigns(campaigns.map(camp => camp.id === campaignToSendId ? { ...camp, status: 'Sending' } : camp));
+      setCampaigns(campaigns.map(camp => camp.id === campaignToSendId ? { ...camp, status: 'sending' as const } : camp));
 
-      // Replace with actual API call to send a campaign
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Simulate success: update status to Sent and add sentAt date
-      setCampaigns(campaigns.map(camp => camp.id === campaignToSendId ? { ...camp, status: 'Sent', sentAt: new Date().toISOString() } : camp));
-      toast({ title: 'Campaign sending initiated.' });
+      setCampaigns(campaigns.map(camp => camp.id === campaignToSendId ? { ...camp, status: 'sent' as const, sentAt: new Date().toISOString() } : camp));
+      toast({ title: 'Success', description: 'Campaign sending initiated.' });
     } catch (error) {
-      // Simulate failure: update status to Failed
-      setCampaigns(campaigns.map(camp => camp.id === campaignToSendId ? { ...camp, status: 'Failed' } : camp));
-      toast({ title: 'Failed to send campaign.', variant: 'destructive' });
+      setCampaigns(campaigns.map(camp => camp.id === campaignToSendId ? { ...camp, status: 'failed' as const } : camp));
+      toast({ title: 'Error', description: 'Failed to send campaign.', variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
@@ -174,9 +201,9 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
 
   const handleTemplateSelect = (templateId: string) => {
     const selectedTemplate = emailTemplates.find(tpl => tpl.id === templateId);
-    if (selectedTemplate) { // Only update subject and body if a template is selected
+    if (selectedTemplate) {
       setNewCampaign({ ...newCampaign, templateId: templateId, templateName: selectedTemplate.name, subject: selectedTemplate.subject, body: selectedTemplate.body });
-    } else { // Clear template selection
+    } else {
       setNewCampaign({ ...newCampaign, templateId: '', templateName: '', subject: '', body: '' });
     }
   };
@@ -202,8 +229,13 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
       toast({ title: 'Validation Error', description: 'Please fill in all required fields and select a contact list with contacts.', variant: 'destructive' });
       return;
     }
-    // Include selectedContacts in the campaign creation data
-    createCampaign({...newCampaign, contacts: selectedContacts });
+    createCampaign({
+      name: newCampaign.name,
+      subject: newCampaign.subject,
+      body: newCampaign.body,
+      senderEmailAccountId: newCampaign.emailAccountId,
+      contactListId: newCampaign.contactListId
+    });
   };
 
   return (
@@ -243,7 +275,7 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
                   <SelectContent>
                     {emailAccounts.map(account => (
                       <SelectItem key={account.id} value={account.id}>
-                        {account.email} {account.domainVerified ? '(Verified)' : '(Unverified)'}
+                        {account.email} {account.domain_verified ? '(Verified)' : '(Unverified)'}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -306,7 +338,6 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
                 </Select>
               </div>
 
-              {/* Display selected contacts for confirmation (Optional) */}
               {newCampaign.contactListId && contactLists.find(list => list.id === newCampaign.contactListId)?.contacts.length > 0 && (
                 <div className="grid grid-cols-4 items-start gap-4">
                   <Label className="text-right">
@@ -356,10 +387,10 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
                 <TableCell>{campaign.subject}</TableCell>
                 <TableCell>
                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                    campaign.status === 'Sent' ? 'bg-green-100 text-green-800' :
-                    campaign.status === 'Draft' ? 'bg-gray-100 text-gray-800' :
-                    campaign.status === 'Sending' ? 'bg-blue-100 text-blue-800' :
-                    campaign.status === 'Failed' ? 'bg-red-100 text-red-800' :
+                    campaign.status === 'sent' ? 'bg-green-100 text-green-800' :
+                    campaign.status === 'draft' ? 'bg-gray-100 text-gray-800' :
+                    campaign.status === 'sending' ? 'bg-blue-100 text-blue-800' :
+                    campaign.status === 'failed' ? 'bg-red-100 text-red-800' :
                     'bg-yellow-100 text-yellow-800'
                   }`}>
                     {campaign.status}
@@ -378,7 +409,7 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
                   ) : '-'}
                 </TableCell>
                 <TableCell>
-                  {campaign.status === 'Draft' || campaign.status === 'Failed' ? (
+                  {campaign.status === 'draft' || campaign.status === 'failed' ? (
                     <Button variant="outline" size="sm" onClick={() => initiateSendCampaign(campaign.id)} disabled={isLoading}>Send</Button>
                   ) : (
                     <Button variant="outline" size="sm" disabled>Send</Button>
@@ -390,7 +421,6 @@ const EmailCampaignsPage: React.FC<EmailCampaignsPageProps> = () => {
         </Table>
       )}
 
-      {/* Send Confirmation Dialog */}
       <Dialog open={isSendConfirmModalOpen} onOpenChange={setIsSendConfirmModalOpen}>
         <DialogContent>
           <DialogHeader>

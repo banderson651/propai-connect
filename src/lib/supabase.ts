@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -9,7 +10,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// For debugging, attach to window
+// Make supabase available globally for debugging
 if (typeof window !== 'undefined') {
-  window.supabase = supabase;
+  (window as any).supabase = supabase;
 }

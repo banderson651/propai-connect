@@ -60,14 +60,13 @@ export function EmailDiagnostics({ account, onSuccess, onError }: EmailDiagnosti
       updateStep(0, { status: 'running' });
       setProgress(10);
       
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate processing
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Check for missing required fields
       const configIssues = [];
-      if (!account.smtp_host && !account.host) configIssues.push('Missing SMTP host');
-      if (!account.smtp_port && !account.port) configIssues.push('Missing SMTP port');
-      if (!account.smtp_username && !account.username) configIssues.push('Missing SMTP username');
-      if (!account.smtp_password && !account.password) configIssues.push('Missing SMTP password');
+      if (!account.host) configIssues.push('Missing SMTP host');
+      if (!account.port) configIssues.push('Missing SMTP port');
+      if (!account.username) configIssues.push('Missing SMTP username');
       
       if (configIssues.length > 0) {
         updateStep(0, { 
@@ -85,10 +84,9 @@ export function EmailDiagnostics({ account, onSuccess, onError }: EmailDiagnosti
       setCurrentStep(1);
       updateStep(1, { status: 'running' });
       
-      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate DNS lookup
+      await new Promise(resolve => setTimeout(resolve, 800));
       
-      // We'll simulate DNS lookup for now
-      const host = account.smtp_host || account.host;
+      const host = account.host;
       const dnsResult = {
         success: true,
         message: `DNS lookup for ${host} successful`,
@@ -104,7 +102,6 @@ export function EmailDiagnostics({ account, onSuccess, onError }: EmailDiagnosti
       setCurrentStep(2);
       updateStep(2, { status: 'running' });
       
-      // This will test both connection and auth - pass the actual account type
       const connectionResult = await testEmailConnection(account);
       
       if (!connectionResult.success) {

@@ -137,7 +137,7 @@ export function EmailAccountList() {
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
                   <CardTitle className="flex items-center gap-2">
-                    {account.display_name || account.email}
+                    {account.name || account.email}
                     {account.is_default && (
                       <Badge variant="secondary">Default</Badge>
                     )}
@@ -164,36 +164,19 @@ export function EmailAccountList() {
               <CardContent>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <h3 className="font-medium mb-2">IMAP Settings</h3>
+                    <h3 className="font-medium mb-2">SMTP Settings</h3>
                     <dl className="space-y-1 text-sm">
                       <div>
                         <dt className="text-gray-500">Host</dt>
-                        <dd>{account.imap_host}:{account.imap_port}</dd>
+                        <dd>{account.host}:{account.port}</dd>
                       </div>
                       <div>
                         <dt className="text-gray-500">Username</dt>
-                        <dd>{account.imap_username}</dd>
+                        <dd>{account.username}</dd>
                       </div>
                       <div>
                         <dt className="text-gray-500">Security</dt>
-                        <dd>{account.imap_secure ? 'SSL/TLS' : 'None'}</dd>
-                      </div>
-                    </dl>
-                  </div>
-                  <div>
-                    <h3 className="font-medium mb-2">SMTP Settings (Direct Send)</h3>
-                    <dl className="space-y-1 text-sm">
-                      <div>
-                        <dt className="text-gray-500">Host</dt>
-                        <dd>{account.smtp_host}:{account.smtp_port}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-gray-500">Username</dt>
-                        <dd>{account.smtp_username}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-gray-500">Security</dt>
-                        <dd>{account.smtp_secure ? 'SSL/TLS' : 'None'}</dd>
+                        <dd>{account.secure ? 'SSL/TLS' : 'None'}</dd>
                       </div>
                     </dl>
                   </div>
@@ -209,18 +192,10 @@ export function EmailAccountList() {
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-gray-500">Sync Frequency</dt>
-                      <dd>Every {account.sync_frequency} minutes</dd>
-                    </div>
-                    <div>
-                      <dt className="text-gray-500">Max Emails per Sync</dt>
-                      <dd>{account.max_emails_per_sync}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-gray-500">Last Sync</dt>
+                      <dt className="text-gray-500">Last Checked</dt>
                       <dd>
-                        {account.last_sync_at
-                          ? formatDistanceToNow(new Date(account.last_sync_at), { addSuffix: true })
+                        {account.last_checked
+                          ? formatDistanceToNow(new Date(account.last_checked), { addSuffix: true })
                           : 'Never'}
                       </dd>
                     </div>
