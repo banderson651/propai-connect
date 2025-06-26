@@ -159,3 +159,93 @@
     @apply bg-white rounded-xl p-6 shadow-lg border border-gray-200;
   }
 }
+
+/* Custom scrollbar - removed yellow styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+/* Custom styling for specific components - removed yellow highlights */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  border-radius: 9999px;
+  font-weight: 500;
+}
+
+.dark .glass-card {
+  @apply bg-card/80 backdrop-blur-sm border border-muted shadow-sm;
+}
+
+/* Animations */
+.fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.scale-in {
+  animation: scaleIn 0.3s ease-out forwards;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Remove any yellow highlights and focus states */
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Ensure no yellow background on any elements */
+* {
+  background-color: inherit;
+}
+
+/* Override any yellow selection highlights */
+::selection {
+  background-color: hsl(var(--primary) / 0.2);
+  color: inherit;
+}
+
+::-moz-selection {
+  background-color: hsl(var(--primary) / 0.2);
+  color: inherit;
+}
