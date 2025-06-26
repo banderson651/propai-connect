@@ -40,7 +40,7 @@ export const TopBar = ({
       
       <div className="flex items-center gap-4">
         {/* Action Buttons */}
-        <Button variant="outline" className="flex items-center gap-2 text-primary border-primary hover:text-white transition-colors bg-indigo-700 hover:bg-indigo-600">
+        <Button variant="outline" className="flex items-center gap-2 border-primary transition-colors bg-indigo-700 hover:bg-indigo-600 text-base text-zinc-50">
           <Filter className="w-4 h-4" />
           <span className="hidden sm:inline">Filter</span>
         </Button>
