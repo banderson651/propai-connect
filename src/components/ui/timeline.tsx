@@ -34,7 +34,7 @@ export function TimelineItem({
   children
 }: TimelineItemProps) {
   return <div className="timeline-content">
-      {date && <div className="timeline-date">{date}</div>}
+      {date && <div className="timeline-date bg-white">{date}</div>}
       <div className={cn("timeline-dot", getDotColor(dotStatus))}>
         {icon && <span className="text-white">{icon}</span>}
       </div>
@@ -51,7 +51,7 @@ export function Timeline({
   children
 }: TimelineProps) {
   return <div className="timeline-container">
-      <div className="timeline-line" />
+      <div className="timeline-line bg-zinc-950" />
       {children}
     </div>;
 }
