@@ -96,7 +96,7 @@ export default function Index() {
           <div className="lg:col-span-2">
             <TasksDashboard />
             <div className="mt-4 flex justify-end">
-              <Button onClick={() => navigate('/tasks')}>
+              <Button onClick={() => navigate('/tasks')} className="text-white">
                 View All Tasks
               </Button>
             </div>
