@@ -87,10 +87,6 @@
     --timeline-dot-border: 30 35 41;
   }
 
-  * {
-    @apply border-border;
-  }
-
   body {
     @apply bg-slate-50 text-foreground font-inter antialiased;
   }
@@ -160,14 +156,14 @@
   }
 }
 
-/* Custom scrollbar - ensure no yellow styling */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: hsl(var(--muted) / 0.1);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -179,57 +175,31 @@
   background: hsl(var(--muted-foreground));
 }
 
-/* Remove all yellow backgrounds and focus states */
-*:focus {
-  outline: none !important;
-  background: inherit !important;
-}
-
-*:focus-visible {
-  outline: 2px solid hsl(var(--ring)) !important;
-  outline-offset: 2px;
-  background: inherit !important;
-}
-
-/* Ensure no yellow background on any elements */
-*, *:before, *:after {
-  background-color: inherit;
-}
-
-/* Override any yellow selection highlights */
-::selection {
-  background-color: hsl(var(--primary) / 0.2) !important;
-  color: inherit;
-}
-
-::-moz-selection {
-  background-color: hsl(var(--primary) / 0.2) !important;
-  color: inherit;
-}
-
-/* Remove yellow from input autofill */
+/* Prevent yellow autofill on inputs */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 30px white inset !important;
   -webkit-text-fill-color: hsl(var(--foreground)) !important;
-  background-color: white !important;
 }
 
-/* Override button focus states */
-button:focus,
-button:focus-visible {
-  background-color: inherit !important;
-  outline: 2px solid hsl(var(--ring)) !important;
-  outline-offset: 2px;
+/* Override selection highlights */
+::selection {
+  background-color: hsl(var(--primary) / 0.2);
+  color: inherit;
 }
 
-/* Override link focus states */
-a:focus,
-a:focus-visible {
-  background-color: inherit !important;
-  outline: 2px solid hsl(var(--ring)) !important;
+::-moz-selection {
+  background-color: hsl(var(--primary) / 0.2);
+  color: inherit;
+}
+
+/* Focus styles - be specific to avoid affecting buttons */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
 }
 
