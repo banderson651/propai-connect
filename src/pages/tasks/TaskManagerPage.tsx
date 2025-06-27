@@ -214,9 +214,9 @@ const TaskManagerPage = () => {
       <div className="container py-6 max-w-7xl">
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-4 bg-slate-50">
-            <TabsTrigger value="all" className="bg-sky-600 hover:bg-sky-500 text-slate-50">All Tasks</TabsTrigger>
-            <TabsTrigger value="todo">To Do</TabsTrigger>
-            <TabsTrigger value="in-progress">In Progress</TabsTrigger>
+            <TabsTrigger value="all" className="bg-indigo-600 hover:bg-indigo-500 text-white">All Tasks</TabsTrigger>
+            <TabsTrigger value="todo" className="text-white bg-indigo-600 hover:bg-indigo-500">To Do</TabsTrigger>
+            <TabsTrigger value="in-progress" className="bg-blue-600 hover:bg-blue-500 text-white">In Progress</TabsTrigger>
             <TabsTrigger value="completed">Completed</TabsTrigger>
             <TabsTrigger value="high-priority">High Priority</TabsTrigger>
             <TabsTrigger value="overdue">Overdue</TabsTrigger>
