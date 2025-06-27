@@ -61,7 +61,7 @@
     --card-foreground: 248 250 252;
 
     --popover: 30 35 41;
-    --popover-foreground: 248 250 252;
+    --popover-foreground: 17 20 24;
 
     --primary: 61 152 244;
     --primary-foreground: 255 255 255;
@@ -160,7 +160,7 @@
   }
 }
 
-/* Custom scrollbar - removed yellow styling */
+/* Custom scrollbar - ensure no yellow styling */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -179,7 +179,61 @@
   background: hsl(var(--muted-foreground));
 }
 
-/* Custom styling for specific components - removed yellow highlights */
+/* Remove all yellow backgrounds and focus states */
+*:focus {
+  outline: none !important;
+  background: inherit !important;
+}
+
+*:focus-visible {
+  outline: 2px solid hsl(var(--ring)) !important;
+  outline-offset: 2px;
+  background: inherit !important;
+}
+
+/* Ensure no yellow background on any elements */
+*, *:before, *:after {
+  background-color: inherit;
+}
+
+/* Override any yellow selection highlights */
+::selection {
+  background-color: hsl(var(--primary) / 0.2) !important;
+  color: inherit;
+}
+
+::-moz-selection {
+  background-color: hsl(var(--primary) / 0.2) !important;
+  color: inherit;
+}
+
+/* Remove yellow from input autofill */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+  -webkit-text-fill-color: hsl(var(--foreground)) !important;
+  background-color: white !important;
+}
+
+/* Override button focus states */
+button:focus,
+button:focus-visible {
+  background-color: inherit !important;
+  outline: 2px solid hsl(var(--ring)) !important;
+  outline-offset: 2px;
+}
+
+/* Override link focus states */
+a:focus,
+a:focus-visible {
+  background-color: inherit !important;
+  outline: 2px solid hsl(var(--ring)) !important;
+  outline-offset: 2px;
+}
+
+/* Custom styling for specific components */
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -222,30 +276,4 @@
     transform: scale(1);
     opacity: 1;
   }
-}
-
-/* Remove any yellow highlights and focus states */
-*:focus {
-  outline: none;
-}
-
-*:focus-visible {
-  outline: 2px solid hsl(var(--ring));
-  outline-offset: 2px;
-}
-
-/* Ensure no yellow background on any elements */
-* {
-  background-color: inherit;
-}
-
-/* Override any yellow selection highlights */
-::selection {
-  background-color: hsl(var(--primary) / 0.2);
-  color: inherit;
-}
-
-::-moz-selection {
-  background-color: hsl(var(--primary) / 0.2);
-  color: inherit;
 }
