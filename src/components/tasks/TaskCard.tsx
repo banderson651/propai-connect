@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Task } from "@/types/task";
 import { formatDistanceToNow } from "date-fns";
@@ -7,32 +6,23 @@ import { TaskPriorityBadge } from "./TaskPriorityBadge";
 import { TaskStatusBadge } from "./TaskStatusBadge";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-
 interface TaskCardProps {
   task: Task;
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
   onStatusChange: (taskId: string, status: Task['status']) => void;
 }
-
-export const TaskCard = ({ task, onEdit, onDelete, onStatusChange }: TaskCardProps) => {
+export const TaskCard = ({
+  task,
+  onEdit,
+  onDelete,
+  onStatusChange
+}: TaskCardProps) => {
   const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed' && task.status !== 'canceled';
-  
-  return (
-    <Card className={cn(
-      "mb-4 transition-all hover:shadow-md",
-      isOverdue ? 'border-red-300 dark:border-red-800' : '',
-      task.status === 'completed' && 'opacity-75'
-    )}>
+  return <Card className={cn("mb-4 transition-all hover:shadow-md", isOverdue ? 'border-red-300 dark:border-red-800' : '', task.status === 'completed' && 'opacity-75')}>
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <h3 className="text-lg font-semibold line-clamp-2">{task.title}</h3>
@@ -49,26 +39,17 @@ export const TaskCard = ({ task, onEdit, onDelete, onStatusChange }: TaskCardPro
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                {task.status !== 'completed' && (
-                  <DropdownMenuItem onClick={() => onStatusChange(task.id, 'completed')}>
+                {task.status !== 'completed' && <DropdownMenuItem onClick={() => onStatusChange(task.id, 'completed')}>
                     Mark as completed
-                  </DropdownMenuItem>
-                )}
-                {task.status !== 'in-progress' && task.status !== 'completed' && (
-                  <DropdownMenuItem onClick={() => onStatusChange(task.id, 'in-progress')}>
+                  </DropdownMenuItem>}
+                {task.status !== 'in-progress' && task.status !== 'completed' && <DropdownMenuItem onClick={() => onStatusChange(task.id, 'in-progress')}>
                     Start progress
-                  </DropdownMenuItem>
-                )}
-                {task.status !== 'todo' && task.status !== 'completed' && (
-                  <DropdownMenuItem onClick={() => onStatusChange(task.id, 'todo')}>
+                  </DropdownMenuItem>}
+                {task.status !== 'todo' && task.status !== 'completed' && <DropdownMenuItem onClick={() => onStatusChange(task.id, 'todo')}>
                     Move to to-do
-                  </DropdownMenuItem>
-                )}
+                  </DropdownMenuItem>}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={() => onDelete(task.id)}
-                  className="text-destructive"
-                >
+                <DropdownMenuItem onClick={() => onDelete(task.id)} className="text-destructive">
                   Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -77,53 +58,49 @@ export const TaskCard = ({ task, onEdit, onDelete, onStatusChange }: TaskCardPro
         </div>
         <div className="flex justify-between items-center mt-1">
           <TaskStatusBadge status={task.status} />
-          {task.dueDate && (
-            <TooltipProvider>
+          {task.dueDate && <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="flex items-center text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3 mr-1" />
                     <span className={isOverdue ? 'text-destructive font-medium' : ''}>
                       {isOverdue ? 'Overdue: ' : 'Due: '}
-                      {formatDistanceToNow(new Date(task.dueDate), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(task.dueDate), {
+                    addSuffix: true
+                  })}
                     </span>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  {new Date(task.dueDate).toLocaleDateString()} at {new Date(task.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {new Date(task.dueDate).toLocaleDateString()} at {new Date(task.dueDate).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
                 </TooltipContent>
               </Tooltip>
-            </TooltipProvider>
-          )}
+            </TooltipProvider>}
         </div>
       </CardHeader>
       <CardContent className="py-2">
         {task.description && <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{task.description}</p>}
         
         <div className="space-y-2">
-          {task.relatedPropertyId && (
-            <div className="flex items-center text-xs text-muted-foreground">
+          {task.relatedPropertyId && <div className="flex items-center text-xs text-muted-foreground">
               <MapPin className="h-3 w-3 mr-1" />
               <span>Connected to property</span>
-            </div>
-          )}
+            </div>}
           
-          {task.relatedContactId && (
-            <div className="flex items-center text-xs text-muted-foreground">
+          {task.relatedContactId && <div className="flex items-center text-xs text-muted-foreground">
               <User className="h-3 w-3 mr-1" />
               <span>Connected to contact</span>
-            </div>
-          )}
+            </div>}
           
-          {task.relatedCampaignId && (
-            <div className="flex items-center text-xs text-muted-foreground">
+          {task.relatedCampaignId && <div className="flex items-center text-xs text-muted-foreground">
               <MessageSquare className="h-3 w-3 mr-1" />
               <span>Connected to campaign</span>
-            </div>
-          )}
+            </div>}
           
-          {task.reminders.length > 0 && (
-            <TooltipProvider>
+          {task.reminders.length > 0 && <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="flex items-center text-xs text-muted-foreground">
@@ -133,60 +110,43 @@ export const TaskCard = ({ task, onEdit, onDelete, onStatusChange }: TaskCardPro
                 </TooltipTrigger>
                 <TooltipContent>
                   <div className="space-y-1">
-                    {task.reminders.map((reminder, index) => (
-                      <div key={reminder.id} className="text-xs">
-                        {reminder.type}: {new Date(reminder.time).toLocaleDateString()} at {new Date(reminder.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                    ))}
+                    {task.reminders.map((reminder, index) => <div key={reminder.id} className="text-xs">
+                        {reminder.type}: {new Date(reminder.time).toLocaleDateString()} at {new Date(reminder.time).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                      </div>)}
                   </div>
                 </TooltipContent>
               </Tooltip>
-            </TooltipProvider>
-          )}
+            </TooltipProvider>}
           
-          {task.assignedTo && (
-            <div className="flex items-center text-xs text-muted-foreground">
+          {task.assignedTo && <div className="flex items-center text-xs text-muted-foreground">
               <User className="h-3 w-3 mr-1" />
               <span>Assigned to: {task.assignedTo === 'current-user' ? 'You' : task.assignedTo}</span>
-            </div>
-          )}
+            </div>}
         </div>
         
-        {task.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-2">
-            {task.tags.map((tag, index) => (
-              <Badge key={index} variant="secondary" className="text-xs">
+        {task.tags.length > 0 && <div className="flex flex-wrap gap-1 mt-2">
+            {task.tags.map((tag, index) => <Badge key={index} variant="secondary" className="text-xs">
                 {tag}
-              </Badge>
-            ))}
-          </div>
-        )}
+              </Badge>)}
+          </div>}
       </CardContent>
       <CardFooter className="pt-2 flex justify-between">
         <div className="text-xs text-muted-foreground">
-          Created {formatDistanceToNow(new Date(task.createdAt), { addSuffix: true })}
+          Created {formatDistanceToNow(new Date(task.createdAt), {
+          addSuffix: true
+        })}
         </div>
         <div className="flex space-x-2">
-          {task.status !== 'completed' && task.status !== 'canceled' && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="text-xs"
-              onClick={() => onStatusChange(task.id, 'completed')}
-            >
+          {task.status !== 'completed' && task.status !== 'canceled' && <Button variant="outline" size="sm" onClick={() => onStatusChange(task.id, 'completed')} className="text-xs bg-white text-gray-950">
               Complete
-            </Button>
-          )}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-xs"
-            onClick={() => onEdit(task)}
-          >
+            </Button>}
+          <Button variant="ghost" size="sm" className="text-xs" onClick={() => onEdit(task)}>
             Edit
           </Button>
         </div>
       </CardFooter>
-    </Card>
-  );
+    </Card>;
 };
