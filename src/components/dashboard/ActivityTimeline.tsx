@@ -127,7 +127,7 @@ export function ActivityTimeline() {
       
       <Timeline>
         {activities.map(activity => <TimelineItem key={activity.id} date={formatActivityDate(activity.timestamp)} title={activity.title} dotStatus={getActivityDotStatus(activity.type)} icon={getActivityIcon(activity.type)}>
-            <p className="text-sm text-muted-foreground mb-2">{activity.description}</p>
+            <p className="text-sm mb-2 text-inherit">{activity.description}</p>
             {activity.relatedLink && <Button variant="ghost" size="sm" className="text-xs p-0 h-auto hover:bg-transparent hover:underline" onClick={() => handleNavigate(activity)}>
                 View details
               </Button>}
