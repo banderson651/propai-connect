@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { EmailAccount } from '@/types/email';
-import { EmailAccountService } from '@/services/email/accountService';
+import { getEmailAccounts, createEmailAccount, updateEmailAccount, deleteEmailAccount } from '@/services/email/accountService';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -18,8 +18,6 @@ export function EmailAccountList() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<EmailAccount | null>(null);
 
-  const emailService = EmailAccountService.getInstance();
-
   useEffect(() => {
     loadAccounts();
   }, []);
@@ -27,7 +25,7 @@ export function EmailAccountList() {
   const loadAccounts = async () => {
     try {
       setIsLoading(true);
-      const data = await emailService.getAccounts();
+      const data = await getEmailAccounts();
       setAccounts(data);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to load email accounts');
@@ -38,7 +36,7 @@ export function EmailAccountList() {
 
   const handleCreateAccount = async (data: EmailAccount) => {
     try {
-      await emailService.createAccount(data);
+      await createEmailAccount(data);
       await loadAccounts();
       setIsFormOpen(false);
       setEditingAccount(null);
@@ -51,7 +49,7 @@ export function EmailAccountList() {
     if (!editingAccount) return;
     
     try {
-      await emailService.updateAccount(editingAccount.id, data);
+      await updateEmailAccount(editingAccount.id, data);
       await loadAccounts();
       setIsFormOpen(false);
       setEditingAccount(null);
@@ -64,7 +62,7 @@ export function EmailAccountList() {
     if (!confirm('Are you sure you want to delete this email account?')) return;
     
     try {
-      await emailService.deleteAccount(id);
+      await deleteEmailAccount(id);
       await loadAccounts();
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to delete email account');

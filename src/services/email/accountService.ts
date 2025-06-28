@@ -164,3 +164,31 @@ export const deleteEmailAccount = async (id: string): Promise<boolean> => {
     return false;
   }
 };
+
+// EmailAccountService class for compatibility
+export class EmailAccountService {
+  private static instance: EmailAccountService;
+
+  static getInstance(): EmailAccountService {
+    if (!EmailAccountService.instance) {
+      EmailAccountService.instance = new EmailAccountService();
+    }
+    return EmailAccountService.instance;
+  }
+
+  async getAccounts(): Promise<EmailAccount[]> {
+    return getEmailAccounts();
+  }
+
+  async createAccount(account: Omit<EmailAccount, 'id' | 'created_at' | 'updated_at'>): Promise<EmailAccount | null> {
+    return createEmailAccount(account);
+  }
+
+  async updateAccount(id: string, updates: Partial<Omit<EmailAccount, 'id' | 'created_at' | 'updated_at'>>): Promise<EmailAccount | null> {
+    return updateEmailAccount(id, updates);
+  }
+
+  async deleteAccount(id: string): Promise<boolean> {
+    return deleteEmailAccount(id);
+  }
+}
