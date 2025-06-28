@@ -47,7 +47,7 @@ export const getProperties = async (filters?: {
       id: property.id,
       title: property.title,
       description: property.description,
-      address: '', // These fields don't exist in the simplified table
+      address: property.location || '',
       city: '',
       state: '',
       zipCode: '',
@@ -90,7 +90,7 @@ export const getPropertyById = async (id: string): Promise<Property | null> => {
       id: data.id,
       title: data.title,
       description: data.description,
-      address: '',
+      address: data.location || '',
       city: '',
       state: '',
       zipCode: '',
@@ -130,7 +130,7 @@ export const createProperty = async (propertyData: Omit<Property, 'id' | 'create
         title: propertyData.title,
         description: propertyData.description,
         price: propertyData.price,
-        location: `${propertyData.city}, ${propertyData.state}`,
+        location: propertyData.address || `${propertyData.city}, ${propertyData.state}`,
         property_type: propertyData.propertyType,
         status: propertyData.status
       })
@@ -178,7 +178,9 @@ export const updateProperty = async (id: string, propertyData: Partial<Omit<Prop
     if (propertyData.title !== undefined) updateData.title = propertyData.title;
     if (propertyData.description !== undefined) updateData.description = propertyData.description;
     if (propertyData.price !== undefined) updateData.price = propertyData.price;
-    if (propertyData.city && propertyData.state) {
+    if (propertyData.address) {
+      updateData.location = propertyData.address;
+    } else if (propertyData.city && propertyData.state) {
       updateData.location = `${propertyData.city}, ${propertyData.state}`;
     }
     if (propertyData.propertyType !== undefined) updateData.property_type = propertyData.propertyType;
@@ -197,7 +199,7 @@ export const updateProperty = async (id: string, propertyData: Partial<Omit<Prop
       id: data.id,
       title: data.title,
       description: data.description,
-      address: propertyData.address || '',
+      address: propertyData.address || data.location || '',
       city: propertyData.city || '',
       state: propertyData.state || '',
       zipCode: propertyData.zipCode || '',
