@@ -1,66 +1,9 @@
 
-import { v4 as uuidv4 } from 'uuid';
+import { supabase } from '@/integrations/supabase/client';
 import { Task, TaskStatus, TaskPriority, TaskReminder } from '@/types/task';
+import { useUser } from '@/hooks/useUser';
 
-// Mock data for tasks
-const mockTasks: Task[] = [
-  {
-    id: "task-1",
-    title: "Follow up with John Smith about property listing",
-    description: "Need to discuss pricing and availability for the downtown condo",
-    status: "todo",
-    priority: "high",
-    dueDate: new Date(Date.now() + 86400000 * 2).toISOString(), // 2 days from now
-    assignedTo: "current-user",
-    createdBy: "current-user",
-    createdAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-    updatedAt: new Date(Date.now() - 86400000).toISOString(),
-    relatedContactId: "contact-1",
-    relatedPropertyId: "property-2",
-    reminders: [
-      {
-        id: "reminder-1",
-        time: new Date(Date.now() + 3600000).toISOString(), // 1 hour from now
-        type: "notification"
-      }
-    ],
-    tags: ["follow-up", "high-value"]
-  },
-  {
-    id: "task-2",
-    title: "Prepare email campaign for new listings",
-    description: "Create email template and select target audience for the new properties in the east side",
-    status: "in-progress",
-    priority: "medium",
-    dueDate: new Date(Date.now() + 86400000 * 1).toISOString(), // 1 day from now
-    assignedTo: "current-user",
-    createdBy: "current-user",
-    createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), // 3 days ago
-    updatedAt: new Date(Date.now() - 86400000 * 1).toISOString(),
-    relatedCampaignId: "campaign-1",
-    reminders: [],
-    tags: ["marketing", "email"]
-  },
-  {
-    id: "task-3",
-    title: "Schedule property viewing with interested buyers",
-    description: "Coordinate with the owner for showing the beachfront property to 3 potential buyers",
-    status: "completed",
-    priority: "high",
-    dueDate: new Date(Date.now() - 86400000 * 1).toISOString(), // 1 day ago
-    assignedTo: "current-user",
-    createdBy: "current-user",
-    createdAt: new Date(Date.now() - 86400000 * 5).toISOString(), // 5 days ago
-    updatedAt: new Date(Date.now() - 86400000 * 1).toISOString(),
-    completedAt: new Date(Date.now() - 86400000 * 1).toISOString(),
-    relatedPropertyId: "property-5",
-    relatedContactId: "contact-3",
-    reminders: [],
-    tags: ["viewing", "closed"]
-  }
-];
-
-// Get all tasks
+// Get all tasks for the current user
 export const getTasks = async (filters?: {
   status?: TaskStatus;
   priority?: TaskPriority;
@@ -71,119 +14,257 @@ export const getTasks = async (filters?: {
   relatedCampaignId?: string;
   relatedAutomationId?: string;
 }): Promise<Task[]> => {
-  let filteredTasks = [...mockTasks];
-  
-  if (filters) {
-    if (filters.status) {
-      filteredTasks = filteredTasks.filter(task => task.status === filters.status);
+  try {
+    let query = supabase
+      .from('tasks')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (filters) {
+      if (filters.status) {
+        query = query.eq('status', filters.status);
+      }
+      if (filters.priority) {
+        query = query.eq('priority', filters.priority);
+      }
+      if (filters.dueDate) {
+        const filterDate = new Date(filters.dueDate).toISOString().split('T')[0];
+        query = query.gte('due_date', filterDate).lt('due_date', filterDate + 'T23:59:59.999Z');
+      }
+      if (filters.assignedTo) {
+        query = query.eq('assigned_to', filters.assignedTo);
+      }
+      if (filters.relatedPropertyId) {
+        query = query.eq('related_property_id', filters.relatedPropertyId);
+      }
+      if (filters.relatedContactId) {
+        query = query.eq('related_contact_id', filters.relatedContactId);
+      }
+      if (filters.relatedCampaignId) {
+        query = query.eq('related_campaign_id', filters.relatedCampaignId);
+      }
+      if (filters.relatedAutomationId) {
+        query = query.eq('related_automation_id', filters.relatedAutomationId);
+      }
     }
-    if (filters.priority) {
-      filteredTasks = filteredTasks.filter(task => task.priority === filters.priority);
-    }
-    if (filters.dueDate) {
-      filteredTasks = filteredTasks.filter(task => {
-        if (!task.dueDate) return false;
-        const taskDate = new Date(task.dueDate).toDateString();
-        const filterDate = new Date(filters.dueDate!).toDateString();
-        return taskDate === filterDate;
-      });
-    }
-    if (filters.assignedTo) {
-      filteredTasks = filteredTasks.filter(task => task.assignedTo === filters.assignedTo);
-    }
-    if (filters.relatedPropertyId) {
-      filteredTasks = filteredTasks.filter(task => task.relatedPropertyId === filters.relatedPropertyId);
-    }
-    if (filters.relatedContactId) {
-      filteredTasks = filteredTasks.filter(task => task.relatedContactId === filters.relatedContactId);
-    }
-    if (filters.relatedCampaignId) {
-      filteredTasks = filteredTasks.filter(task => task.relatedCampaignId === filters.relatedCampaignId);
-    }
-    if (filters.relatedAutomationId) {
-      filteredTasks = filteredTasks.filter(task => task.relatedAutomationId === filters.relatedAutomationId);
-    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    return data.map(task => ({
+      ...task,
+      dueDate: task.due_date,
+      assignedTo: task.assigned_to,
+      createdBy: task.created_by,
+      createdAt: task.created_at,
+      updatedAt: task.updated_at,
+      relatedPropertyId: task.related_property_id,
+      relatedContactId: task.related_contact_id,
+      relatedCampaignId: task.related_campaign_id,
+      relatedAutomationId: task.related_automation_id,
+      completedAt: task.completed_at,
+      reminders: task.reminders || []
+    })) as Task[];
+  } catch (error) {
+    console.error('Error fetching tasks:', error);
+    return [];
   }
-  
-  return Promise.resolve(filteredTasks);
 };
 
 // Get task by ID
 export const getTaskById = async (id: string): Promise<Task | undefined> => {
-  const task = mockTasks.find(t => t.id === id);
-  return Promise.resolve(task);
+  try {
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) return undefined;
+
+    return {
+      ...data,
+      dueDate: data.due_date,
+      assignedTo: data.assigned_to,
+      createdBy: data.created_by,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      relatedPropertyId: data.related_property_id,
+      relatedContactId: data.related_contact_id,
+      relatedCampaignId: data.related_campaign_id,
+      relatedAutomationId: data.related_automation_id,
+      completedAt: data.completed_at,
+      reminders: data.reminders || []
+    } as Task;
+  } catch (error) {
+    console.error('Error fetching task:', error);
+    return undefined;
+  }
 };
 
 // Create a new task
 export const createTask = async (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<Task> => {
-  const newTask: Task = {
-    ...task,
-    id: uuidv4(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-  
-  mockTasks.push(newTask);
-  return Promise.resolve(newTask);
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('tasks')
+      .insert({
+        user_id: user.id,
+        title: task.title,
+        description: task.description,
+        status: task.status,
+        priority: task.priority,
+        due_date: task.dueDate,
+        assigned_to: task.assignedTo,
+        created_by: task.createdBy,
+        related_property_id: task.relatedPropertyId,
+        related_contact_id: task.relatedContactId,
+        related_campaign_id: task.relatedCampaignId,
+        related_automation_id: task.relatedAutomationId,
+        reminders: task.reminders,
+        tags: task.tags,
+        completed_at: task.completedAt
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return {
+      ...data,
+      dueDate: data.due_date,
+      assignedTo: data.assigned_to,
+      createdBy: data.created_by,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      relatedPropertyId: data.related_property_id,
+      relatedContactId: data.related_contact_id,
+      relatedCampaignId: data.related_campaign_id,
+      relatedAutomationId: data.related_automation_id,
+      completedAt: data.completed_at,
+      reminders: data.reminders || []
+    } as Task;
+  } catch (error) {
+    console.error('Error creating task:', error);
+    throw error;
+  }
 };
 
 // Update an existing task
 export const updateTask = async (id: string, updates: Partial<Omit<Task, 'id' | 'createdAt' | 'updatedAt'>>): Promise<Task | undefined> => {
-  const index = mockTasks.findIndex(t => t.id === id);
-  if (index === -1) return Promise.resolve(undefined);
-  
-  // If the task is being marked as completed, add completedAt timestamp
-  if (updates.status === 'completed' && mockTasks[index].status !== 'completed') {
-    updates.completedAt = new Date().toISOString();
+  try {
+    const updateData: any = {};
+
+    if (updates.title !== undefined) updateData.title = updates.title;
+    if (updates.description !== undefined) updateData.description = updates.description;
+    if (updates.status !== undefined) updateData.status = updates.status;
+    if (updates.priority !== undefined) updateData.priority = updates.priority;
+    if (updates.dueDate !== undefined) updateData.due_date = updates.dueDate;
+    if (updates.assignedTo !== undefined) updateData.assigned_to = updates.assignedTo;
+    if (updates.createdBy !== undefined) updateData.created_by = updates.createdBy;
+    if (updates.relatedPropertyId !== undefined) updateData.related_property_id = updates.relatedPropertyId;
+    if (updates.relatedContactId !== undefined) updateData.related_contact_id = updates.relatedContactId;
+    if (updates.relatedCampaignId !== undefined) updateData.related_campaign_id = updates.relatedCampaignId;
+    if (updates.relatedAutomationId !== undefined) updateData.related_automation_id = updates.relatedAutomationId;
+    if (updates.reminders !== undefined) updateData.reminders = updates.reminders;
+    if (updates.tags !== undefined) updateData.tags = updates.tags;
+    if (updates.completedAt !== undefined) updateData.completed_at = updates.completedAt;
+
+    // If the task is being marked as completed, add completedAt timestamp
+    if (updates.status === 'completed') {
+      updateData.completed_at = new Date().toISOString();
+    }
+
+    // If the task is being marked as not completed, remove completedAt
+    if (updates.status && updates.status !== 'completed') {
+      updateData.completed_at = null;
+    }
+
+    const { data, error } = await supabase
+      .from('tasks')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return {
+      ...data,
+      dueDate: data.due_date,
+      assignedTo: data.assigned_to,
+      createdBy: data.created_by,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      relatedPropertyId: data.related_property_id,
+      relatedContactId: data.related_contact_id,
+      relatedCampaignId: data.related_campaign_id,
+      relatedAutomationId: data.related_automation_id,
+      completedAt: data.completed_at,
+      reminders: data.reminders || []
+    } as Task;
+  } catch (error) {
+    console.error('Error updating task:', error);
+    return undefined;
   }
-  
-  // If the task is being marked as not completed, remove completedAt
-  if (updates.status && updates.status !== 'completed') {
-    updates.completedAt = undefined;
-  }
-  
-  mockTasks[index] = {
-    ...mockTasks[index],
-    ...updates,
-    updatedAt: new Date().toISOString()
-  };
-  
-  return Promise.resolve(mockTasks[index]);
 };
 
 // Delete a task
 export const deleteTask = async (id: string): Promise<boolean> => {
-  const index = mockTasks.findIndex(t => t.id === id);
-  if (index === -1) return Promise.resolve(false);
-  
-  mockTasks.splice(index, 1);
-  return Promise.resolve(true);
+  try {
+    const { error } = await supabase
+      .from('tasks')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error deleting task:', error);
+    return false;
+  }
 };
 
 // Add a reminder to a task
 export const addTaskReminder = async (taskId: string, reminder: Omit<TaskReminder, 'id'>): Promise<TaskReminder | undefined> => {
-  const task = mockTasks.find(t => t.id === taskId);
-  if (!task) return Promise.resolve(undefined);
-  
-  const newReminder: TaskReminder = {
-    ...reminder,
-    id: uuidv4()
-  };
-  
-  task.reminders.push(newReminder);
-  task.updatedAt = new Date().toISOString();
-  
-  return Promise.resolve(newReminder);
+  try {
+    // First get the current task
+    const task = await getTaskById(taskId);
+    if (!task) return undefined;
+
+    const newReminder: TaskReminder = {
+      ...reminder,
+      id: crypto.randomUUID()
+    };
+
+    const updatedReminders = [...task.reminders, newReminder];
+
+    const updatedTask = await updateTask(taskId, { reminders: updatedReminders });
+    if (!updatedTask) return undefined;
+
+    return newReminder;
+  } catch (error) {
+    console.error('Error adding task reminder:', error);
+    return undefined;
+  }
 };
 
 // Remove a reminder from a task
 export const removeTaskReminder = async (taskId: string, reminderId: string): Promise<boolean> => {
-  const task = mockTasks.find(t => t.id === taskId);
-  if (!task) return Promise.resolve(false);
-  
-  const initialLength = task.reminders.length;
-  task.reminders = task.reminders.filter(r => r.id !== reminderId);
-  task.updatedAt = new Date().toISOString();
-  
-  return Promise.resolve(task.reminders.length < initialLength);
+  try {
+    const task = await getTaskById(taskId);
+    if (!task) return false;
+
+    const updatedReminders = task.reminders.filter(r => r.id !== reminderId);
+    const updatedTask = await updateTask(taskId, { reminders: updatedReminders });
+
+    return !!updatedTask;
+  } catch (error) {
+    console.error('Error removing task reminder:', error);
+    return false;
+  }
 };

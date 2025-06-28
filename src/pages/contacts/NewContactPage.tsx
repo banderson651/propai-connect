@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -7,11 +8,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { analyzeTextForTags } from '@/services/mockData';
+import { analyzeTextForTags, saveContact } from '@/services/contactService';
 import { ContactTag } from '@/types/contact';
 import { Badge } from '@/components/ui/badge';
 import { X, Loader2 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 
 const tagOptions: ContactTag[] = [
   'buyer', 'seller', 'agent', 'investor', 'first-time-buyer',
@@ -74,28 +74,24 @@ const NewContactPage = () => {
     const contactData = {
       name,
       email,
-      phone: phone || null,
-      address: address || null,
+      phone: phone || undefined,
+      address: address || undefined,
       tags,
-      notes: notes || null,
+      notes: notes || undefined,
     };
     
     try {
-      // Save to Supabase instead of localStorage
-      const { data, error } = await supabase
-        .from('contacts')
-        .insert(contactData)
-        .select()
-        .single();
+      const newContact = await saveContact(contactData);
       
-      if (error) throw error;
-      
-      toast({
-        title: "Contact created",
-        description: `${name} has been added to your contacts.`,
-      });
-      
-      navigate('/contacts');
+      if (newContact) {
+        toast({
+          title: "Contact created",
+          description: `${name} has been added to your contacts.`,
+        });
+        navigate('/contacts');
+      } else {
+        throw new Error('Failed to create contact');
+      }
     } catch (error) {
       console.error('Error saving contact:', error);
       toast({

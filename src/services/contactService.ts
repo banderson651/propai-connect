@@ -1,9 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Contact, Interaction, ContactTag } from '@/types/contact';
-import { v4 as uuidv4 } from 'uuid';
 
-// Get all contacts from Supabase
+// Get all contacts from Supabase for the current user
 export const getContacts = async (): Promise<Contact[]> => {
   try {
     const { data, error } = await supabase
@@ -53,21 +52,19 @@ export const getContactById = async (id: string): Promise<Contact | null> => {
 // Create a new contact
 export const saveContact = async (contact: Omit<Contact, 'id' | 'createdAt' | 'updatedAt'>): Promise<Contact | null> => {
   try {
-    const contactId = uuidv4();
-    const now = new Date().toISOString();
-    
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
     const { data, error } = await supabase
       .from('contacts')
       .insert({
-        id: contactId,
+        user_id: user.id,
         name: contact.name,
         email: contact.email,
         phone: contact.phone || null,
         address: contact.address || null,
         tags: contact.tags || [],
-        notes: contact.notes || null,
-        created_at: now,
-        updated_at: now
+        notes: contact.notes || null
       })
       .select()
       .single();
@@ -89,12 +86,14 @@ export const saveContact = async (contact: Omit<Contact, 'id' | 'createdAt' | 'u
 // Update a contact
 export const updateContact = async (id: string, updates: Partial<Omit<Contact, 'id' | 'createdAt' | 'updatedAt'>>): Promise<Contact | null> => {
   try {
-    const now = new Date().toISOString();
+    const updateData: any = {};
     
-    const updateData = {
-      ...updates,
-      updated_at: now
-    };
+    if (updates.name !== undefined) updateData.name = updates.name;
+    if (updates.email !== undefined) updateData.email = updates.email;
+    if (updates.phone !== undefined) updateData.phone = updates.phone;
+    if (updates.address !== undefined) updateData.address = updates.address;
+    if (updates.tags !== undefined) updateData.tags = updates.tags;
+    if (updates.notes !== undefined) updateData.notes = updates.notes;
     
     const { data, error } = await supabase
       .from('contacts')
@@ -157,23 +156,43 @@ export const getInteractionsByContactId = async (contactId: string): Promise<Int
   }
 };
 
+// Get all interactions for the current user
+export const getInteractions = async (): Promise<Interaction[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('interactions')
+      .select('*')
+      .order('date', { ascending: false });
+      
+    if (error) throw error;
+    
+    return data.map(interaction => ({
+      ...interaction,
+      contactId: interaction.contact_id,
+      createdAt: interaction.created_at,
+      updatedAt: interaction.updated_at
+    })) as Interaction[];
+  } catch (error) {
+    console.error('Error fetching interactions:', error);
+    return [];
+  }
+};
+
 // Create a new interaction
 export const saveInteraction = async (interaction: Omit<Interaction, 'id' | 'createdAt' | 'updatedAt'>): Promise<Interaction | null> => {
   try {
-    const interactionId = uuidv4();
-    const now = new Date().toISOString();
-    
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
     const { data, error } = await supabase
       .from('interactions')
       .insert({
-        id: interactionId,
+        user_id: user.id,
         contact_id: interaction.contactId,
         type: interaction.type,
         date: interaction.date,
         content: interaction.content,
-        subject: interaction.subject || null,
-        created_at: now,
-        updated_at: now
+        subject: interaction.subject || null
       })
       .select()
       .single();
@@ -190,4 +209,46 @@ export const saveInteraction = async (interaction: Omit<Interaction, 'id' | 'cre
     console.error('Error creating interaction:', error);
     return null;
   }
+};
+
+// NLP auto-tagging (simplified mock implementation)
+export const analyzeTextForTags = (text: string): ContactTag[] => {
+  const tags: ContactTag[] = [];
+  
+  // Very simplified NLP analysis - in a real app, this would use an actual NLP service
+  const lowerText = text.toLowerCase();
+  
+  if (lowerText.includes('buy') || lowerText.includes('purchase') || lowerText.includes('looking for')) {
+    tags.push('buyer');
+  }
+  
+  if (lowerText.includes('sell') || lowerText.includes('selling')) {
+    tags.push('seller');
+  }
+  
+  if (lowerText.includes('first time') || lowerText.includes('first home')) {
+    tags.push('first-time-buyer');
+  }
+  
+  if (lowerText.includes('luxury') || lowerText.includes('high-end') || lowerText.includes('premium')) {
+    tags.push('luxury');
+  }
+  
+  if (lowerText.includes('commercial') || lowerText.includes('business') || lowerText.includes('office')) {
+    tags.push('commercial');
+  }
+  
+  if (lowerText.includes('house') || lowerText.includes('condo') || lowerText.includes('apartment')) {
+    tags.push('residential');
+  }
+  
+  if (lowerText.includes('invest') || lowerText.includes('roi') || lowerText.includes('portfolio')) {
+    tags.push('investor');
+  }
+  
+  if (lowerText.includes('urgent') || lowerText.includes('asap') || lowerText.includes('immediately')) {
+    tags.push('hot-lead');
+  }
+  
+  return tags;
 };

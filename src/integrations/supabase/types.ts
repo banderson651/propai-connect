@@ -326,6 +326,7 @@ export type Database = {
           subject: string | null
           type: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           contact_id: string
@@ -336,6 +337,7 @@ export type Database = {
           subject?: string | null
           type: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           contact_id?: string
@@ -346,6 +348,7 @@ export type Database = {
           subject?: string | null
           type?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -417,6 +420,108 @@ export type Database = {
           name?: string | null
           role?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      properties: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          location: string | null
+          price: number | null
+          property_type: string | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          price?: number | null
+          property_type?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          price?: number | null
+          property_type?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          assigned_to: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string
+          related_automation_id: string | null
+          related_campaign_id: string | null
+          related_contact_id: string | null
+          related_property_id: string | null
+          reminders: Json | null
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          related_automation_id?: string | null
+          related_campaign_id?: string | null
+          related_contact_id?: string | null
+          related_property_id?: string | null
+          reminders?: Json | null
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          related_automation_id?: string | null
+          related_campaign_id?: string | null
+          related_contact_id?: string | null
+          related_property_id?: string | null
+          reminders?: Json | null
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
