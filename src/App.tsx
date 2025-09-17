@@ -79,8 +79,8 @@ const App = () => {
                   <Route path="/settings" element={<AuthRoute><SettingsPage /></AuthRoute>} />
 
                   {/* Admin Routes */}
-                  <Route path="/admin" element={<AuthRoute adminOnly><AdminDashboard /></AuthRoute>} />
-                  <Route path="/admin/users" element={<AuthRoute adminOnly><AdminDashboard /></AuthRoute>} />
+                  <Route path="/admin-panel" element={<AuthRoute adminOnly><AdminDashboard /></AuthRoute>} />
+                  <Route path="/admin-panel/users" element={<AuthRoute adminOnly><AdminDashboard /></AuthRoute>} />
 
                   {/* Catch all route */}
                   <Route path="*" element={<NotFound />} />

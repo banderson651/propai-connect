@@ -40,7 +40,7 @@ export const Sidebar = ({ open }: SidebarProps) => {
   ];
   
   const adminItems = [
-    { icon: Shield, label: 'Admin', path: '/admin' },
+    { icon: Shield, label: 'Admin Panel', path: '/admin-panel' },
   ];
 
   const isActive = (path: string) => {

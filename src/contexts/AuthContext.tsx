@@ -17,6 +17,33 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+const runtimeEnv = typeof process !== 'undefined' ? process.env : undefined;
+const adminEmailEnv = (import.meta.env?.VITE_ADMIN_EMAILS ?? runtimeEnv?.VITE_ADMIN_EMAILS ?? '') as string;
+const adminEmailSet = new Set(
+  adminEmailEnv
+    .split(',')
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean)
+);
+
+const deriveAdminFromUser = (user: User | null) => {
+  if (!user) {
+    return false;
+  }
+
+  const metadataRole = (user.user_metadata?.role ?? user.app_metadata?.role ?? '') as string;
+  if (typeof metadataRole === 'string' && metadataRole.toLowerCase() === 'admin') {
+    return true;
+  }
+
+  const email = user.email?.toLowerCase();
+  if (email && adminEmailSet.has(email)) {
+    return true;
+  }
+
+  return false;
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -28,32 +55,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
-      // Handle admin status check without blocking
+
       if (session?.user) {
-        // Use setTimeout to prevent blocking the auth state change
-        setTimeout(async () => {
-          try {
-            const { data, error } = await supabase
-              .from('profiles')
-              .select('role')
-              .eq('id', session.user.id)
-              .single();
-            
-            if (!error && data?.role === 'admin') {
-              setIsAdmin(true);
-            } else {
+        const isAdminFromMetadata = deriveAdminFromUser(session.user);
+        if (isAdminFromMetadata) {
+          setIsAdmin(true);
+        } else {
+          setTimeout(async () => {
+            try {
+              const { data, error } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', session.user.id)
+                .maybeSingle();
+
+              if (!error && data?.role === 'admin') {
+                setIsAdmin(true);
+              } else {
+                setIsAdmin(false);
+              }
+            } catch (err) {
+              console.error('Error checking admin status:', err);
               setIsAdmin(false);
             }
-          } catch (err) {
-            console.error('Error checking admin status:', err);
-            setIsAdmin(false);
-          }
-        }, 100);
+          }, 100);
+        }
       } else {
         setIsAdmin(false);
       }
-      
+
       setLoading(false);
     });
 
@@ -65,6 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setSession(session);
       setUser(session?.user ?? null);
+      setIsAdmin(deriveAdminFromUser(session?.user ?? null));
       setLoading(false);
     });
 
@@ -91,11 +122,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
         return { error };
       }
-      
+
       toast({
         title: 'Welcome back!',
         description: 'You have successfully signed in.',
       });
+
+      if (data?.user) {
+        const metadataAdmin = deriveAdminFromUser(data.user);
+        setIsAdmin(metadataAdmin);
+
+        if (!metadataAdmin) {
+          try {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('role')
+              .eq('id', data.user.id)
+              .maybeSingle();
+
+            if (profileData?.role === 'admin') {
+              setIsAdmin(true);
+            }
+          } catch (err) {
+            console.error('Error checking admin status on sign-in:', err);
+          }
+        }
+      }
       
       return { error: null };
     } catch (err) {
