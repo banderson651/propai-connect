@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { EmailTemplate } from '@/types/email';
 
 // Get all email templates for the current user

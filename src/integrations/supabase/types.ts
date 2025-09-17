@@ -156,8 +156,8 @@ export type Database = {
           email: string
           host: string
           id: string
-          is_active: string | null
-          is_default: string | null
+          is_active: boolean | null
+          is_default: boolean | null
           last_checked: string | null
           name: string
           port: number
@@ -176,8 +176,8 @@ export type Database = {
           email: string
           host: string
           id?: string
-          is_active?: string | null
-          is_default?: string | null
+          is_active?: boolean | null
+          is_default?: boolean | null
           last_checked?: string | null
           name: string
           port: number
@@ -196,8 +196,8 @@ export type Database = {
           email?: string
           host?: string
           id?: string
-          is_active?: string | null
-          is_default?: string | null
+          is_active?: boolean | null
+          is_default?: boolean | null
           last_checked?: string | null
           name?: string
           port?: number

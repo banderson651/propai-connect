@@ -29,14 +29,14 @@ export function DashboardLayout({
       setSidebarOpen(false);
     }
   }, [location.pathname]);
-  return <div className="min-h-screen bg-slate-50 relative">
+  return <div className="min-h-screen bg-background relative">
       <Sidebar open={sidebarOpen} onOpenChange={setSidebarOpen} />
       
       <div className={cn("transition-all duration-300", sidebarOpen ? "md:ml-64" : "md:ml-16")}>
         <TopBar onMenuClick={() => setSidebarOpen(!sidebarOpen)} pageTitle={pageTitle} />
         
-        <main className="px-10 lg:px-12 xl:px-16 py-8 bg-slate-50 min-h-[calc(100vh-80px)]">
-          <div className="max-w-screen-2xl mx-auto bg-white">
+        <main className="px-6 lg:px-10 xl:px-14 py-8 bg-background min-h-[calc(100vh-80px)]">
+          <div className="max-w-screen-2xl mx-auto bg-card text-card-foreground rounded-2xl shadow-sm border border-border">
             {children}
           </div>
         </main>

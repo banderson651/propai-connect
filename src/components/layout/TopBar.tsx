@@ -23,10 +23,10 @@ export const TopBar = ({
   const canGoBack = location.pathname !== '/' && location.pathname !== '/dashboard';
 
   return (
-    <header className="flex items-center justify-between whitespace-nowrap border-b border-gray-200 px-10 py-4 bg-white shadow-sm">
+    <header className="flex items-center justify-between whitespace-nowrap border-b border-border px-8 lg:px-10 py-4 bg-card text-card-foreground shadow-sm">
       <div className="flex items-center gap-4 flex-1">
         <div className="flex items-center">
-          <Button variant="ghost" size="icon" onClick={onMenuClick} className="md:hidden focus:bg-transparent hover:bg-slate-50">
+          <Button variant="ghost" size="icon" onClick={onMenuClick} className="md:hidden text-muted-foreground hover:bg-secondary">
             <Menu className="h-5 w-5" />
           </Button>
           
@@ -35,14 +35,14 @@ export const TopBar = ({
               variant="ghost" 
               size="icon" 
               onClick={() => navigate(-1)} 
-              className="mr-2 focus:bg-transparent hover:bg-slate-50"
+              className="mr-2 text-muted-foreground hover:bg-secondary"
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
           )}
           
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">{pageTitle || 'Dashboard'}</h1>
+            <h1 className="text-xl font-semibold text-foreground">{pageTitle || 'Dashboard'}</h1>
           </div>
         </div>
       </div>
@@ -51,41 +51,41 @@ export const TopBar = ({
         {/* Action Buttons */}
         <Button 
           variant="outline" 
-          className="flex items-center gap-2 border-primary transition-colors bg-white text-primary hover:bg-primary hover:text-white focus:bg-white focus:text-primary"
+          className="flex items-center gap-2 border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
         >
           <Filter className="w-4 h-4" />
           <span className="hidden sm:inline">Filter</span>
         </Button>
         
-        <Button className="flex items-center gap-2 bg-primary hover:bg-blue-600 text-white focus:bg-primary focus-visible:bg-primary">
+        <Button className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground focus:bg-primary">
           <Download className="w-4 h-4" />
           <span className="hidden sm:inline">Export</span>
         </Button>
         
-        <Button variant="ghost" size="icon" className="relative focus:bg-transparent hover:bg-slate-50">
+        <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:bg-secondary">
           <Bell className="h-5 w-5" />
-          <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full" />
+          <span className="absolute top-1 right-1 h-2 w-2 bg-destructive rounded-full" />
         </Button>
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center gap-2 focus:bg-transparent hover:bg-slate-50">
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary">
+            <Button variant="ghost" className="flex items-center gap-2 text-muted-foreground hover:bg-secondary">
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/60">
                 <span className="text-primary font-semibold text-sm">
                   {displayName.charAt(0).toUpperCase()}
                 </span>
               </div>
-              <span className="font-medium hidden md:inline text-gray-900">{displayName}</span>
+              <span className="font-medium hidden md:inline text-foreground">{displayName}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="focus:bg-slate-50">
+            <DropdownMenuItem className="focus:bg-secondary">
               <User className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={signOut} className="focus:bg-slate-50">
+            <DropdownMenuItem onClick={signOut} className="focus:bg-secondary">
               <LogOut className="mr-2 h-4 w-4" />
               <span>Logout</span>
             </DropdownMenuItem>

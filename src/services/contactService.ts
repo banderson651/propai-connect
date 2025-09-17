@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { Contact, Interaction, ContactTag } from '@/types/contact';
 
 // Get all contacts from Supabase for the current user

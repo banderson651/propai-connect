@@ -1,16 +1,16 @@
 
 import { createClient } from '@supabase/supabase-js';
+import type { Database } from '@/integrations/supabase/types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+if (!supabaseUrl) {
+  throw new Error('Missing VITE_SUPABASE_URL environment variable');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-// Make supabase available globally for debugging
-if (typeof window !== 'undefined') {
-  (window as any).supabase = supabase;
+if (!supabaseAnonKey) {
+  throw new Error('Missing VITE_SUPABASE_ANON_KEY environment variable');
 }
+
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);

@@ -135,15 +135,15 @@ export function AnalyticsOverview() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-slate-50 p-4 rounded-lg">
+        <div className="bg-secondary p-4 rounded-lg">
           <h4 className="text-sm font-medium text-slate-600">Average Lead Response Time</h4>
           <p className="text-2xl font-bold text-slate-900 mt-2">2.5 hours</p>
         </div>
-        <div className="bg-slate-50 p-4 rounded-lg">
+        <div className="bg-secondary p-4 rounded-lg">
           <h4 className="text-sm font-medium text-slate-600">Property Viewing Rate</h4>
           <p className="text-2xl font-bold text-slate-900 mt-2">68%</p>
         </div>
-        <div className="bg-slate-50 p-4 rounded-lg">
+        <div className="bg-secondary p-4 rounded-lg">
           <h4 className="text-sm font-medium text-slate-600">Task Completion Rate</h4>
           <p className="text-2xl font-bold text-slate-900 mt-2">85%</p>
         </div>

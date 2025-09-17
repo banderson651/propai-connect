@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Check, AlertTriangle, X, RefreshCw } from 'lucide-react';
 import { EmailAccount } from '@/types/email';
-import { testEmailConnection, sendTestEmail } from '@/services/email/emailUtils';
+import { testEmailConnection, sendTestEmail } from '@/services/email';
 
 type DiagnosticStatus = 'idle' | 'running' | 'success' | 'error';
 
@@ -217,7 +217,7 @@ export function EmailDiagnostics({ account, onSuccess, onError }: EmailDiagnosti
                   ? 'border-green-200 bg-green-50'
                   : step.status === 'error'
                   ? 'border-red-200 bg-red-50'
-                  : 'border-gray-200'
+                  : 'border-border'
               }`}
             >
               <div className="flex items-center justify-between">

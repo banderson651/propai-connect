@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { Campaign } from '@/types/email';
 
 // Get all campaigns for the current user

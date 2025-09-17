@@ -76,8 +76,6 @@ const EmailAccountsPage = () => {
     queryFn: getEmailAccounts,
   });
   
-  console.log('EmailAccountsPage mounted. isLoading:', isLoading, 'error:', error);
-  
   const createMutation = useMutation({
     mutationFn: createEmailAccount,
     onSuccess: (newAccount) => {
@@ -153,24 +151,19 @@ const EmailAccountsPage = () => {
     
     // Prepare account data matching the backend expectation
     const accountDataToSend = {
-      id: Date.now().toString(), // Generate a temporary ID for the frontend
-      user_id: user?.id, // Include user_id
       email,
-      name: email, // Default name
-      type: 'smtp', // Default type
+      name: email,
+      type: 'smtp' as const,
       host: smtpHost,
       port: numSmtpPort,
       username: smtpUser,
-      secure: true, // Assuming secure is true for common SMTP ports
-      smtp_secure: true, // Assuming smtp_secure is the same as secure
+      secure: true,
+      smtp_secure: true,
       is_active: true,
       is_default: false,
-      status: 'active',
-      last_checked: null, // Will be updated by backend
-      domain_verified: false, // Will be updated by backend
-      created_at: new Date().toISOString(), // Will be set by backend
-      updated_at: new Date().toISOString(), // Will be set by backend
-      smtpPass, // Include password for the backend to encrypt
+      status: 'active' as const,
+      domain_verified: domainVerified,
+      smtpPass,
     };
     
     // Ensure user_id is available before mutating
@@ -183,8 +176,7 @@ const EmailAccountsPage = () => {
       return;
     }
 
-    console.log('Attempting to add account with data:', accountDataToSend);
-    createMutation.mutate(accountDataToSend as any); // Cast to any temporarily if needed due to partial type match
+    createMutation.mutate(accountDataToSend);
   };
   
   const testConnection = async () => {
