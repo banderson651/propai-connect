@@ -16,6 +16,7 @@ import { AutomationProvider } from '@/contexts/AutomationContext';
 const Landing = lazy(() => import('@/pages/Landing'));
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
+const DocumentationPage = lazy(() => import('@/pages/Documentation'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 const IndexPage = lazy(() => import('@/pages/Index'));
 const AnalyticsPage = lazy(() => import('@/app/analytics/page'));
@@ -54,6 +55,7 @@ const App = () => {
                 <Routes>
                   {/* Public routes */}
                   <Route path="/" element={<PublicRoute><Landing /></PublicRoute>} />
+                  <Route path="/documentation" element={<PublicRoute><DocumentationPage /></PublicRoute>} />
                   <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
                   <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
                   <Route path="/properties/public/:slug" element={<PublicPropertyPage />} />

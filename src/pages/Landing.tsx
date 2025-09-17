@@ -1,30 +1,15 @@
-import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { 
-  Building2, 
-  CheckCircle2, 
-  ArrowRight, 
-  Users, 
-  LineChart, 
-  LayoutDashboard, 
-  MessageSquare, 
-  Calendar, 
-  ListChecks, 
-  Zap, 
-  ChevronRight, 
-  Mail, 
-  Phone
-} from 'lucide-react';
 import { LandingHeader } from '@/components/landing/LandingHeader';
 import { HeroSection } from '@/components/landing/HeroSection';
 import { FeaturesSection } from '@/components/landing/FeaturesSection';
+import { TrustedBySection } from '@/components/landing/TrustedBySection';
+import { PricingSection } from '@/components/landing/PricingSection';
+import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
+import { ContactSection } from '@/components/landing/ContactSection';
+import { LandingFooter } from '@/components/landing/LandingFooter';
 
 const Landing = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [activeFeature, setActiveFeature] = useState(0);
   
   // Handle scroll effect for navbar
   useEffect(() => {
@@ -36,21 +21,16 @@ const Landing = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   
-  // Automatic feature cycling
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveFeature(prev => (prev + 1) % 5);
-    }, 5000);
-    
-    return () => clearInterval(interval);
-  }, []);
-  
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white font-playfair overflow-hidden">
       <LandingHeader isScrolled={isScrolled} />
       <HeroSection />
       <FeaturesSection />
-      {/* Add other sections as components */}
+      <TrustedBySection />
+      <PricingSection />
+      <TestimonialsSection />
+      <ContactSection />
+      <LandingFooter />
     </div>
   );
 };

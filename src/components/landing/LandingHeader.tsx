@@ -18,10 +18,13 @@ export const LandingHeader = ({ isScrolled }: LandingHeaderProps) => {
         </div>
         <nav className="hidden md:flex items-center gap-8">
           <a href="#features" className="text-indigo-800 hover:text-indigo-600 transition-colors">Features</a>
-          <a href="#solutions" className="text-indigo-800 hover:text-indigo-600 transition-colors">Solutions</a>
+          <a href="#trusted" className="text-indigo-800 hover:text-indigo-600 transition-colors">Trusted by</a>
           <a href="#pricing" className="text-indigo-800 hover:text-indigo-600 transition-colors">Pricing</a>
           <a href="#testimonials" className="text-indigo-800 hover:text-indigo-600 transition-colors">Testimonials</a>
           <a href="#contact" className="text-indigo-800 hover:text-indigo-600 transition-colors">Contact</a>
+          <Link to="/documentation" className="text-indigo-800 hover:text-indigo-600 transition-colors">
+            Docs
+          </Link>
         </nav>
         <div className="flex items-center gap-4">
           <Link to="/login">
