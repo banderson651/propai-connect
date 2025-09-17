@@ -7,92 +7,92 @@
 
 @layer base {
   :root {
-    --background: 248 250 252;
-    --foreground: 17 20 24;
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
     
-    --sidebar: 255 255 255;
-    --sidebar-foreground: 17 20 24;
+    --sidebar: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
 
-    --card: 255 255 255;
-    --card-foreground: 17 20 24;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
 
-    --popover: 255 255 255;
-    --popover-foreground: 17 20 24;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 61 152 244;
-    --primary-foreground: 255 255 255;
+    --primary: 214 95% 48%;
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 240 242 245;
-    --secondary-foreground: 96 117 138;
+    --secondary: 210 38% 96%;
+    --secondary-foreground: 222 47% 18%;
 
-    --muted: 240 242 245;
-    --muted-foreground: 96 117 138;
+    --muted: 210 22% 90%;
+    --muted-foreground: 222 23% 36%;
 
-    --accent: 240 242 245;
-    --accent-foreground: 17 20 24;
+    --accent: 32 92% 64%;
+    --accent-foreground: 210 40% 98%;
 
-    --destructive: 231 57 8;
-    --destructive-foreground: 255 255 255;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 240 242 245;
-    --input: 240 242 245;
-    --ring: 61 152 244;
+    --border: 210 30% 87%;
+    --input: 210 30% 87%;
+    --ring: 214 95% 48%;
 
     --radius: 0.75rem;
     
-    --timeline-line: 240 242 245;
-    --timeline-dot: 61 152 244;
-    --timeline-dot-border: 255 255 255;
+    --timeline-line: 210 30% 87%;
+    --timeline-dot: 214 95% 48%;
+    --timeline-dot-border: 0 0% 100%;
     
-    --accent-green: 7 136 56;
-    --accent-red: 231 57 8;
-    --text-primary: 17 20 24;
-    --text-secondary: 96 117 138;
+    --accent-green: 152 65% 45%;
+    --accent-red: 0 72% 51%;
+    --text-primary: 222 47% 11%;
+    --text-secondary: 222 23% 36%;
   }
 
   .dark {
-    --background: 17 20 24;
-    --foreground: 248 250 252;
+    --background: 222 47% 9%;
+    --foreground: 210 40% 96%;
     
-    --sidebar: 30 35 41;
-    --sidebar-foreground: 248 250 252;
+    --sidebar: 222 47% 7%;
+    --sidebar-foreground: 210 40% 96%;
 
-    --card: 30 35 41;
-    --card-foreground: 248 250 252;
+    --card: 222 37% 10%;
+    --card-foreground: 210 40% 96%;
 
-    --popover: 30 35 41;
-    --popover-foreground: 17 20 24;
+    --popover: 222 37% 10%;
+    --popover-foreground: 210 40% 96%;
 
-    --primary: 61 152 244;
-    --primary-foreground: 255 255 255;
+    --primary: 214 95% 68%;
+    --primary-foreground: 222 47% 10%;
 
-    --secondary: 45 52 61;
-    --secondary-foreground: 156 163 175;
+    --secondary: 222 27% 20%;
+    --secondary-foreground: 210 40% 96%;
 
-    --muted: 45 52 61;
-    --muted-foreground: 156 163 175;
+    --muted: 222 27% 20%;
+    --muted-foreground: 215 16% 65%;
 
-    --accent: 45 52 61;
-    --accent-foreground: 248 250 252;
+    --accent: 32 92% 60%;
+    --accent-foreground: 222 47% 10%;
 
-    --destructive: 231 57 8;
-    --destructive-foreground: 248 250 252;
+    --destructive: 0 72% 60%;
+    --destructive-foreground: 210 40% 96%;
 
-    --border: 45 52 61;
-    --input: 45 52 61;
-    --ring: 61 152 244;
+    --border: 222 27% 20%;
+    --input: 222 27% 20%;
+    --ring: 214 95% 68%;
     
-    --timeline-line: 45 52 61;
-    --timeline-dot: 61 152 244;
-    --timeline-dot-border: 30 35 41;
+    --timeline-line: 222 27% 20%;
+    --timeline-dot: 214 95% 68%;
+    --timeline-dot-border: 222 37% 10%;
   }
 
   body {
-    @apply bg-slate-50 text-foreground font-inter antialiased;
+    @apply bg-background text-foreground font-inter antialiased;
   }
 
   .glass-card {
-    @apply bg-white/95 backdrop-blur-sm border border-gray-200 shadow-lg;
+    @apply bg-card/95 text-card-foreground backdrop-blur-sm border border-border shadow-lg;
   }
 
   .animate-in {
@@ -152,7 +152,7 @@
   }
 
   .stat-card {
-    @apply bg-white rounded-xl p-6 shadow-lg border border-gray-200;
+    @apply bg-card text-card-foreground rounded-xl p-6 shadow-lg border border-border;
   }
 
   /* Comprehensive autofill styling fix */

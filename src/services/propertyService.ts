@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { Property, PropertyStatus, PropertyType } from '@/types/property';
 import { Contact } from '@/types/contact';
 

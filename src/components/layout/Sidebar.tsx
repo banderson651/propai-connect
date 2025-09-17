@@ -51,18 +51,18 @@ export const Sidebar = ({ open }: SidebarProps) => {
 
   return (
     <aside className={cn(
-      'fixed left-0 top-0 h-screen bg-white border-r border-gray-200 shadow-md transition-transform duration-300 z-50',
+      'fixed left-0 top-0 h-screen bg-sidebar text-sidebar-foreground border-r border-border shadow-md transition-transform duration-300 z-50',
       open ? 'w-64' : 'w-16'
     )}>
       {/* Header */}
-      <div className="flex items-center gap-3 p-6 border-b border-gray-200">
+      <div className="flex items-center gap-3 p-6 border-b border-border">
         <div className="size-8 text-primary">
           <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
             <path clipRule="evenodd" d="M24 4H42V17.3333V30.6667H24V44H6V30.6667V17.3333H24V4Z" fill="currentColor" fillRule="evenodd"></path>
           </svg>
         </div>
         {open && (
-          <h2 className="text-xl font-bold leading-tight tracking-tight text-gray-900">
+          <h2 className="text-xl font-bold leading-tight tracking-tight text-foreground">
             PropAI
           </h2>
         )}
@@ -78,8 +78,8 @@ export const Sidebar = ({ open }: SidebarProps) => {
               className={cn(
                 "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium leading-normal transition-all duration-200",
                 isActive(item.path) 
-                  ? "bg-primary text-white font-semibold shadow-md" 
-                  : "text-gray-600 hover:bg-slate-100 hover:text-primary",
+                  ? "bg-primary text-primary-foreground font-semibold shadow-md" 
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                 !open && "justify-center"
               )}
             >
@@ -95,8 +95,8 @@ export const Sidebar = ({ open }: SidebarProps) => {
               className={cn(
                 "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium leading-normal transition-all duration-200",
                 isActive(item.path) 
-                  ? "bg-primary text-white font-semibold shadow-md" 
-                  : "text-gray-600 hover:bg-slate-100 hover:text-primary",
+                  ? "bg-primary text-primary-foreground font-semibold shadow-md" 
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                 !open && "justify-center"
               )}
             >
@@ -108,9 +108,9 @@ export const Sidebar = ({ open }: SidebarProps) => {
       </div>
 
       {/* User Profile Section */}
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 border-t border-border">
         <div className="flex items-center gap-3">
-          <div className="bg-primary/10 rounded-full size-10 flex items-center justify-center border-2 border-primary">
+          <div className="bg-primary/10 rounded-full size-10 flex items-center justify-center border border-primary/60">
             <span className="text-primary font-semibold text-sm">
               {displayName.charAt(0).toUpperCase()}
             </span>
@@ -118,14 +118,14 @@ export const Sidebar = ({ open }: SidebarProps) => {
           {open && (
             <>
               <div className="flex flex-col flex-1">
-                <p className="text-sm font-semibold text-gray-900">{displayName}</p>
-                <p className="text-xs text-gray-500">Admin</p>
+                <p className="text-sm font-semibold text-foreground">{displayName}</p>
+                <p className="text-xs text-muted-foreground">Admin</p>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={signOut}
-                className="ml-auto text-gray-500 hover:text-primary"
+                className="ml-auto text-muted-foreground hover:text-primary"
               >
                 <LogOut className="w-5 h-5" />
               </Button>

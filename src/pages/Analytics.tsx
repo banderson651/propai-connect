@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart3 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import type { Property, Lead, Communication, Task } from '@/types/database';
 import { MetricsGrid } from '@/components/analytics/MetricsGrid';
 import { MonthlyTrendsChart } from '@/components/analytics/MonthlyTrendsChart';

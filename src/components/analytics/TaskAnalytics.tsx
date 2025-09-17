@@ -185,19 +185,19 @@ export function TaskAnalytics() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-slate-50 p-4 rounded-lg">
+        <div className="bg-secondary p-4 rounded-lg">
           <h4 className="text-sm font-medium text-slate-600">Total Tasks</h4>
           <p className="text-2xl font-bold text-slate-900 mt-2">
             {taskMetrics.status.reduce((acc, status) => acc + status.count, 0)}
           </p>
         </div>
-        <div className="bg-slate-50 p-4 rounded-lg">
+        <div className="bg-secondary p-4 rounded-lg">
           <h4 className="text-sm font-medium text-slate-600">Completion Rate</h4>
           <p className="text-2xl font-bold text-slate-900 mt-2">
             {taskMetrics.completion[taskMetrics.completion.length - 1]?.rate || 0}%
           </p>
         </div>
-        <div className="bg-slate-50 p-4 rounded-lg">
+        <div className="bg-secondary p-4 rounded-lg">
           <h4 className="text-sm font-medium text-slate-600">Overdue Tasks</h4>
           <p className="text-2xl font-bold text-slate-900 mt-2">
             {taskMetrics.overdue}

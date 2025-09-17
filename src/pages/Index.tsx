@@ -108,43 +108,43 @@ export default function Index() {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="bg-white shadow-lg border border-gray-200">
+          <Card>
             <CardHeader>
               <div className="space-y-1">
-                <CardTitle className="text-lg font-semibold text-gray-900">Quick Actions</CardTitle>
-                <CardDescription className="text-gray-600">Common tasks you can perform</CardDescription>
+                <CardTitle>Quick Actions</CardTitle>
+                <CardDescription>Common tasks you can perform</CardDescription>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-start hover:bg-slate-50" onClick={() => navigate('/contacts/new')}>
+              <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/contacts/new')}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add New Contact
               </Button>
-              <Button variant="outline" className="w-full justify-start hover:bg-slate-50" onClick={() => navigate('/properties/new')}>
+              <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/properties/new')}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add New Property
               </Button>
-              <Button variant="outline" className="w-full justify-start hover:bg-slate-50" onClick={() => navigate('/tasks')}>
+              <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/tasks')}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Create Task
               </Button>
-              <Button variant="outline" className="w-full justify-start hover:bg-slate-50" onClick={() => navigate('/email/campaigns/new')}>
+              <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/email/campaigns/new')}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Start Email Campaign
               </Button>
             </CardContent>
           </Card>
           
-          <Card className="md:col-span-2 bg-white shadow-lg border border-gray-200">
+          <Card className="md:col-span-2">
             <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-900">Upcoming Deadlines</CardTitle>
-              <CardDescription className="text-gray-600">Tasks and activities due soon</CardDescription>
+              <CardTitle>Upcoming Deadlines</CardTitle>
+              <CardDescription>Tasks and activities due soon</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-500 text-sm">Coming soon...</p>
+              <p className="text-muted-foreground text-sm">Coming soon...</p>
             </CardContent>
             <CardFooter>
-              <Button variant="ghost" size="sm" className="text-gray-600 hover:text-primary">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary">
                 View calendar
               </Button>
             </CardFooter>

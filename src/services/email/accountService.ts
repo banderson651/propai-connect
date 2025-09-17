@@ -1,6 +1,12 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { EmailAccount, EmailAccountStatus, EmailAccountType } from '@/types/email';
+
+const toBoolean = (value: boolean | string | null | undefined): boolean => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') return value.toLowerCase() === 'true';
+  return false;
+};
 
 // Get all email accounts for the current user
 export const getEmailAccounts = async (): Promise<EmailAccount[]> => {
@@ -29,12 +35,12 @@ export const getEmailAccounts = async (): Promise<EmailAccount[]> => {
       last_checked: account.last_checked,
       host: account.host,
       port: account.port,
-      secure: account.secure || false,
-      smtp_secure: account.smtp_secure,
+      secure: Boolean(account.secure),
+      smtp_secure: Boolean(account.smtp_secure),
       username: account.username,
-      is_active: account.is_active === 'true',
-      is_default: account.is_default === 'true',
-      domain_verified: account.domain_verified || false
+      is_active: toBoolean(account.is_active),
+      is_default: toBoolean(account.is_default),
+      domain_verified: Boolean(account.domain_verified)
     })) as EmailAccount[];
   } catch (error) {
     console.error('Error fetching email accounts:', error);
@@ -61,8 +67,8 @@ export const createEmailAccount = async (account: Omit<EmailAccount, 'id' | 'cre
         smtp_secure: account.smtp_secure,
         username: account.username,
         status: account.status,
-        is_active: account.is_active ? 'true' : 'false',
-        is_default: account.is_default ? 'true' : 'false',
+        is_active: account.is_active,
+        is_default: account.is_default,
         domain_verified: account.domain_verified
       })
       .select()
@@ -83,12 +89,12 @@ export const createEmailAccount = async (account: Omit<EmailAccount, 'id' | 'cre
       last_checked: data.last_checked,
       host: data.host,
       port: data.port,
-      secure: data.secure || false,
-      smtp_secure: data.smtp_secure,
+      secure: Boolean(data.secure),
+      smtp_secure: Boolean(data.smtp_secure),
       username: data.username,
-      is_active: data.is_active === 'true',
-      is_default: data.is_default === 'true',
-      domain_verified: data.domain_verified || false
+      is_active: toBoolean(data.is_active),
+      is_default: toBoolean(data.is_default),
+      domain_verified: Boolean(data.domain_verified)
     } as EmailAccount;
   } catch (error) {
     console.error('Error creating email account:', error);
@@ -110,8 +116,8 @@ export const updateEmailAccount = async (id: string, updates: Partial<Omit<Email
     if (updates.smtp_secure !== undefined) updateData.smtp_secure = updates.smtp_secure;
     if (updates.username !== undefined) updateData.username = updates.username;
     if (updates.status !== undefined) updateData.status = updates.status;
-    if (updates.is_active !== undefined) updateData.is_active = updates.is_active ? 'true' : 'false';
-    if (updates.is_default !== undefined) updateData.is_default = updates.is_default ? 'true' : 'false';
+    if (updates.is_active !== undefined) updateData.is_active = updates.is_active;
+    if (updates.is_default !== undefined) updateData.is_default = updates.is_default;
     if (updates.domain_verified !== undefined) updateData.domain_verified = updates.domain_verified;
     
     const { data, error } = await supabase
@@ -136,12 +142,12 @@ export const updateEmailAccount = async (id: string, updates: Partial<Omit<Email
       last_checked: data.last_checked,
       host: data.host,
       port: data.port,
-      secure: data.secure || false,
-      smtp_secure: data.smtp_secure,
+      secure: Boolean(data.secure),
+      smtp_secure: Boolean(data.smtp_secure),
       username: data.username,
-      is_active: data.is_active === 'true',
-      is_default: data.is_default === 'true',
-      domain_verified: data.domain_verified || false
+      is_active: toBoolean(data.is_active),
+      is_default: toBoolean(data.is_default),
+      domain_verified: Boolean(data.domain_verified)
     } as EmailAccount;
   } catch (error) {
     console.error('Error updating email account:', error);

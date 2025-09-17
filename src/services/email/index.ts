@@ -1,16 +1,34 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { EmailAccount } from '@/types/email';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL ?? (import.meta.env.DEV ? 'http://localhost:5000' : undefined);
+
+if (!API_URL) {
+  throw new Error('Missing VITE_API_URL environment variable for email service requests');
+}
 
 // Export email-related functions and utilities
 export * from './gmailAuthService';
 export * from './syncService';
-export * from './emailUtils';
+
+type CreateEmailAccountPayload = {
+  email: string;
+  name: string;
+  type: string;
+  host: string;
+  port: number;
+  username: string;
+  secure: boolean;
+  smtp_secure: boolean;
+  is_active: boolean;
+  is_default: boolean;
+  status: string;
+  domain_verified: boolean;
+  smtpPass: string;
+};
 
 // Fetch all email accounts for the current user
 export const getEmailAccounts = async () => {
-  console.log('Attempting to get user for email accounts...');
   const { data: { user }, error: userError } = await supabase.auth.getUser();
 
   if (userError || !user) {
@@ -18,16 +36,11 @@ export const getEmailAccounts = async () => {
     // Consider if throwing here is always desired or if returning empty array is better if user is simply not logged in
     throw new Error(userError?.message || 'User not authenticated');
   }
-  console.log('Current user ID fetched:', user.id);
-
-  console.log('Attempting to fetch email accounts for user:', user.id);
   const { data, error } = await supabase
     .from('email_accounts')
     .select('*')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
-
-  console.log('Supabase query executed.', 'error:', error, 'data:', data);
 
   if (error) {
     console.error('Error fetching email accounts:', error);
@@ -53,7 +66,6 @@ export const getEmailAccounts = async () => {
     updated_at: acc.updated_at || '',
     domain_verified: acc.domain_verified !== undefined ? acc.domain_verified : false,
   }));
-  console.log('Fetched and mapped email accounts:', mapped);
   return mapped;
 };
 
@@ -67,21 +79,22 @@ export const getEmailTemplates = async () => {
 };
 
 // Create a new email account for the current user
-export const createEmailAccount = async (accountData: EmailAccount & { smtpPass: string }) => {
+export const createEmailAccount = async (accountData: CreateEmailAccountPayload) => {
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) {
     console.error('User not authenticated:', userError);
     throw new Error('User not authenticated');
   }
-  console.log('Current user ID:', user.id);
 
   const response = await fetch(`${API_URL}/api/save-email-account`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...accountData, user_id: user.id, id: accountData.id || Date.now().toString() }), // Include user_id and id
+    body: JSON.stringify({ ...accountData, user_id: user.id }),
   });
   const result = await response.json();
-  if (!result.success) throw new Error(result.message);
+  if (!response.ok || !result.success) {
+    throw new Error(result.message || 'Failed to save email account');
+  }
   return result.account;
 };
 

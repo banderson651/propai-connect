@@ -1,7 +1,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { Contact, ContactTag } from '@/types/contact';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 export interface ImportMapping {

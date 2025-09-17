@@ -176,19 +176,19 @@ export function CommunicationAnalytics() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-slate-50 p-4 rounded-lg">
+        <div className="bg-secondary p-4 rounded-lg">
           <h4 className="text-sm font-medium text-slate-600">Total Messages</h4>
           <p className="text-2xl font-bold text-slate-900 mt-2">
             {communicationMetrics.channels.reduce((acc, channel) => acc + channel.count, 0)}
           </p>
         </div>
-        <div className="bg-slate-50 p-4 rounded-lg">
+        <div className="bg-secondary p-4 rounded-lg">
           <h4 className="text-sm font-medium text-slate-600">Avg Response Time</h4>
           <p className="text-2xl font-bold text-slate-900 mt-2">
             {communicationMetrics.responseTime[communicationMetrics.responseTime.length - 1]?.time || 0} min
           </p>
         </div>
-        <div className="bg-slate-50 p-4 rounded-lg">
+        <div className="bg-secondary p-4 rounded-lg">
           <h4 className="text-sm font-medium text-slate-600">Engagement Rate</h4>
           <p className="text-2xl font-bold text-slate-900 mt-2">
             {communicationMetrics.engagement[communicationMetrics.engagement.length - 1]?.rate || 0}%

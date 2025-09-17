@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 
 export const FeaturesSection = () => {
   return (
-    <section id="features" className="py-20 px-4 bg-slate-50 relative overflow-hidden">
+    <section id="features" className="py-20 px-4 bg-secondary relative overflow-hidden">
       {/* Blob decoration */}
       <div className="absolute top-1/2 left-0 transform -translate-y-1/2 -ml-40 z-0">
         <div className="w-[300px] h-[300px] rounded-full bg-indigo-50 mix-blend-multiply animate-blob animation-delay-4000"></div>

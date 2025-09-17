@@ -11,7 +11,7 @@ export const TaskStatusBadge = ({ status }: TaskStatusBadgeProps) => {
   switch (status) {
     case "todo":
       return (
-        <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
+        <Badge variant="outline" className="bg-secondary text-secondary-foreground border-border">
           <Clock className="h-3 w-3 mr-1" />
           To Do
         </Badge>

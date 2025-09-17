@@ -2,61 +2,126 @@ const express = require('express');
 const nodemailer = require('nodemailer');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const { z, ZodError } = require('zod');
 const { encrypt, decrypt } = require('./crypto-utils.cjs');
 const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!SUPABASE_URL) {
+  throw new Error('Missing SUPABASE_URL environment variable');
+}
+
+if (!SUPABASE_SERVICE_ROLE_KEY) {
+  throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable');
+}
+
 const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY // Use service role for admin access
+  SUPABASE_URL,
+  SUPABASE_SERVICE_ROLE_KEY // Use service role for admin access
 );
 
 app.use(cors());
 app.use(bodyParser.json());
 
+const saveEmailAccountSchema = z.object({
+  id: z.string().uuid().optional(),
+  user_id: z.string().uuid(),
+  email: z.string().email(),
+  name: z.string().min(1),
+  type: z.string().min(1).default('smtp'),
+  host: z.string().min(1),
+  port: z.coerce.number().int().positive(),
+  username: z.string().min(1),
+  secure: z.boolean().default(true),
+  smtp_secure: z.boolean().default(true),
+  is_active: z.boolean().default(true),
+  is_default: z.boolean().default(false),
+  status: z.string().min(1).optional(),
+  last_checked: z.string().datetime({ offset: true }).nullable().optional(),
+  domain_verified: z.boolean().default(false),
+  smtpPass: z.string().min(1)
+});
+
+const testExistingAccountSchema = z.object({
+  id: z.string().uuid()
+});
+
+const testNewAccountSchema = z.object({
+  host: z.string().min(1),
+  port: z.coerce.number().int().positive(),
+  username: z.string().min(1),
+  secure: z.boolean().default(true),
+  smtpPass: z.string().min(1)
+});
+
+const sendTestEmailSchema = z.object({
+  id: z.string().uuid(),
+  recipient: z.string().email()
+});
+
+const sanitizeAccountResponse = (account) => {
+  if (!account) return null;
+  const { smtp_password_encrypted, ...rest } = account;
+  return rest;
+};
+
 // Save or update an email account
 app.post('/api/save-email-account', async (req, res) => {
-  const { id, host, port, username, smtpPass, secure, email, name, type, is_active, is_default, status, last_checked, domain_verified, user_id } = req.body;
-
-  if (!user_id) return res.status(400).json({ success: false, message: 'Missing user_id' });
-  if (!smtpPass) return res.status(400).json({ success: false, message: 'Missing password' });
-
   try {
+    const payload = saveEmailAccountSchema.parse(req.body);
+    const {
+      id,
+      smtpPass,
+      status,
+      last_checked,
+      ...account
+    } = payload;
+
     const encryptedPassword = encrypt(smtpPass);
+    const upsertPayload = {
+      ...(id ? { id } : {}),
+      user_id: account.user_id,
+      email: account.email,
+      name: account.name || account.email,
+      type: account.type,
+      host: account.host,
+      port: account.port,
+      username: account.username,
+      secure: account.secure,
+      smtp_secure: account.smtp_secure,
+      is_active: account.is_active,
+      is_default: account.is_default,
+      status: status ?? 'active',
+      last_checked: last_checked ?? null,
+      domain_verified: account.domain_verified,
+      smtp_password_encrypted: encryptedPassword,
+      updated_at: new Date().toISOString()
+    };
 
     const { data, error } = await supabase
       .from('email_accounts')
-      .upsert({
-        id,
-        user_id,
-        email,
-        name: name || email,
-        type: type || 'smtp',
-        host,
-        port,
-        username,
-        secure,
-        smtp_secure: secure, // Assuming smtp_secure is the same as secure for simplicity
-        is_active: is_active !== undefined ? is_active : true,
-        is_default: is_default !== undefined ? is_default : false,
-        status: status || 'active',
-        last_checked: last_checked || null,
-        domain_verified: domain_verified !== undefined ? domain_verified : false,
-        smtp_password_encrypted: encryptedPassword,
-        created_at: new Date().toISOString(), // Assuming created_at/updated_at are handled by DB, but including for upsert
-        updated_at: new Date().toISOString()
-      })
+      .upsert(upsertPayload, { onConflict: 'id' })
       .select()
       .single(); // Assuming id is provided for update, or upsert returns the single new row
 
     if (error) {
       console.error('Supabase upsert error:', error);
-      return res.status(500).json({ success: false, message: error.message });
+      return res.status(500).json({ success: false, message: 'Failed to save email account' });
     }
-    res.json({ success: true, message: 'Account saved', account: data });
+    res.json({ success: true, message: 'Account saved', account: sanitizeAccountResponse(data) });
   } catch (error) {
+    if (error instanceof ZodError) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email account payload',
+        issues: error.errors
+      });
+    }
     console.error('Backend save email account error:', error);
     res.status(500).json({ success: false, message: 'Failed to save email account' });
   }
@@ -64,13 +129,13 @@ app.post('/api/save-email-account', async (req, res) => {
 
 // Test SMTP connection using encrypted password
 app.post('/api/test-smtp', async (req, res) => {
-  const { id, user_id, host, port, username, secure } = req.body; // Allow passing partial data for new accounts
-
   let account;
   let smtpPass;
 
-  if (id) {
-    // Fetch existing account by ID
+  const existingPayload = testExistingAccountSchema.safeParse(req.body);
+
+  if (existingPayload.success) {
+    const { id } = existingPayload.data;
     const { data, error } = await supabase
       .from('email_accounts')
       .select('*')
@@ -85,50 +150,52 @@ app.post('/api/test-smtp', async (req, res) => {
       console.error('Decryption error:', decryptError);
       return res.status(500).json({ success: false, message: 'Failed to decrypt password' });
     }
-  } else if (host && port && username && req.body.smtpPass !== undefined) {
-    // Use provided data for testing a *new* account before saving
-    account = { host, port, username, secure };
-    smtpPass = req.body.smtpPass; // Password sent in the request for *new* account test
   } else {
-    return res.status(400).json({ success: false, message: 'Invalid request data for test connection' });
+    const newAccountPayload = testNewAccountSchema.safeParse(req.body);
+    if (!newAccountPayload.success) {
+      return res.status(400).json({ success: false, message: 'Invalid data for SMTP test' });
+    }
+
+    const { host, port, username, secure, smtpPass: providedPass } = newAccountPayload.data;
+    account = { host, port, username, secure };
+    smtpPass = providedPass;
   }
 
   try {
     const transporter = nodemailer.createTransport({
       host: account.host,
       port: account.port,
-      secure: account.secure,
+      secure: Boolean(account.secure),
       auth: { user: account.username, pass: smtpPass }
     });
     await transporter.verify();
     res.json({ success: true, message: 'Connection successful' });
   } catch (error) {
     console.error('SMTP connection test failed:', error);
-    res.json({ success: false, message: error.message });
+    res.json({ success: false, message: 'SMTP connection failed' });
   }
 });
 
 // Send test email using encrypted password
 app.post('/api/send-test-email', async (req, res) => {
-  const { id, recipient } = req.body;
-
-  if (!id) return res.status(400).json({ success: false, message: 'Missing account id' });
-  if (!recipient) return res.status(400).json({ success: false, message: 'Missing recipient email' });
-
-  const { data: account, error } = await supabase
-    .from('email_accounts')
-    .select('*')
-    .eq('id', id)
-    .single();
-
-  if (error || !account) return res.status(404).json({ success: false, message: 'Account not found' });
-
   try {
+    const { id, recipient } = sendTestEmailSchema.parse(req.body);
+
+    const { data: account, error } = await supabase
+      .from('email_accounts')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error || !account) {
+      return res.status(404).json({ success: false, message: 'Account not found' });
+    }
+
     const smtpPass = decrypt(account.smtp_password_encrypted);
     const transporter = nodemailer.createTransport({
       host: account.host,
       port: account.port,
-      secure: account.secure,
+      secure: Boolean(account.secure),
       auth: { user: account.username, pass: smtpPass }
     });
     await transporter.sendMail({
@@ -140,8 +207,15 @@ app.post('/api/send-test-email', async (req, res) => {
     });
     res.json({ success: true, message: 'Test email sent successfully' });
   } catch (error) {
+    if (error instanceof ZodError) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid test email payload',
+        issues: error.errors
+      });
+    }
     console.error('Error sending test email:', error);
-    res.json({ success: false, message: error.message });
+    res.json({ success: false, message: 'Failed to send test email' });
   }
 });
 

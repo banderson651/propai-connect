@@ -111,7 +111,7 @@ const ContactsPage = () => {
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input placeholder="Search contacts..." className="pl-10 bg-white border-gray-200" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+            <Input placeholder="Search contacts..." className="pl-10 bg-card border-border" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
           </div>
           <div className="flex gap-2 items-center">
             <ContactsViewSwitcher currentView={viewType} onChange={setViewType} />
@@ -128,8 +128,8 @@ const ContactsPage = () => {
             </Badge>)}
         </div>
         
-        <Tabs defaultValue="all" className="bg-white rounded-xl border border-gray-200 shadow-lg">
-          <TabsList className="bg-gray-100 border border-gray-200 m-1">
+        <Tabs defaultValue="all" className="bg-card rounded-xl border border-border shadow-lg">
+          <TabsList className="bg-secondary border border-border m-1">
             <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-white">All Contacts</TabsTrigger>
             <TabsTrigger value="recent" className="data-[state=active]:bg-primary data-[state=active]:text-white">Recently Added</TabsTrigger>
             <TabsTrigger value="buyers" className="data-[state=active]:bg-primary data-[state=active]:text-white">Buyers</TabsTrigger>

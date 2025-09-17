@@ -213,7 +213,7 @@ const TaskManagerPage = () => {
   return <DashboardLayout>
       <div className="container py-6 max-w-7xl">
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-4 bg-slate-50">
+          <TabsList className="mb-4 bg-secondary">
             <TabsTrigger value="all" className="bg-indigo-600 hover:bg-indigo-500 text-white">All Tasks</TabsTrigger>
             <TabsTrigger value="todo" className="text-white bg-indigo-600 hover:bg-indigo-500">To Do</TabsTrigger>
             <TabsTrigger value="in-progress" className="bg-blue-600 hover:bg-blue-500 text-white">In Progress</TabsTrigger>

@@ -82,7 +82,7 @@ export const ProfileSettings = ({ user, isLoading, setIsLoading }: ProfileSettin
               type="email"
               value={formData.email}
               disabled
-              className="border-slate-200 bg-slate-50"
+              className="border-border bg-secondary"
             />
           </div>
           <div className="space-y-2">
