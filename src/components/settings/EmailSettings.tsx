@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { supabase } from '@/lib/supabase';
+import { saveEmailSettings } from '@/services/email';
 import type { User } from '@supabase/supabase-js';
 
 interface EmailSettingsProps {
@@ -21,7 +21,7 @@ interface EmailSettingsData {
   smtp_password: string;
 }
 
-export const EmailSettings = ({ user, isLoading, setIsLoading }: EmailSettingsProps) => {
+export const EmailSettings = ({ user: _user, isLoading, setIsLoading }: EmailSettingsProps) => {
   const { toast } = useToast();
   const [emailSettings, setEmailSettings] = useState<EmailSettingsData>({
     smtp_host: '',
@@ -35,19 +35,12 @@ export const EmailSettings = ({ user, isLoading, setIsLoading }: EmailSettingsPr
     setIsLoading(true);
 
     try {
-      // Update email settings in Supabase
-      const { error } = await supabase
-        .from('email_settings')
-        .upsert({
-          user_id: user?.id,
-          smtp_host: emailSettings.smtp_host,
-          smtp_port: emailSettings.smtp_port,
-          smtp_user: emailSettings.smtp_user,
-          smtp_password: emailSettings.smtp_password,
-          updated_at: new Date().toISOString(),
-        });
-
-      if (error) throw error;
+      await saveEmailSettings({
+        smtp_host: emailSettings.smtp_host,
+        smtp_port: emailSettings.smtp_port,
+        smtp_user: emailSettings.smtp_user,
+        smtp_password: emailSettings.smtp_password,
+      });
 
       toast({
         title: 'Email settings updated',

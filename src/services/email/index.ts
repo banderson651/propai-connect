@@ -27,6 +27,22 @@ type CreateEmailAccountPayload = {
   smtpPass: string;
 };
 
+const getAccessToken = async () => {
+  const { data, error } = await supabase.auth.getSession();
+  if (error || !data.session?.access_token) {
+    throw new Error('User not authenticated');
+  }
+  return data.session.access_token;
+};
+
+const buildAuthHeaders = async (headers: Record<string, string> = {}) => {
+  const token = await getAccessToken();
+  return {
+    ...headers,
+    Authorization: `Bearer ${token}`,
+  };
+};
+
 // Fetch all email accounts for the current user
 export const getEmailAccounts = async () => {
   const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -80,16 +96,10 @@ export const getEmailTemplates = async () => {
 
 // Create a new email account for the current user
 export const createEmailAccount = async (accountData: CreateEmailAccountPayload) => {
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError || !user) {
-    console.error('User not authenticated:', userError);
-    throw new Error('User not authenticated');
-  }
-
   const response = await fetch(`${API_URL}/api/save-email-account`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...accountData, user_id: user.id }),
+    headers: await buildAuthHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(accountData),
   });
   const result = await response.json();
   if (!response.ok || !result.success) {
@@ -120,7 +130,7 @@ export const deleteEmailAccount = async (id) => {
 export const testEmailConnection = async (account: { id: string } | { host: string; port: number; username: string; smtpPass: string; secure: boolean; email: string; }) => {
   const response = await fetch(`${API_URL}/api/test-smtp`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await buildAuthHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(account),
   });
   return response.json();
@@ -129,11 +139,31 @@ export const testEmailConnection = async (account: { id: string } | { host: stri
 export const sendTestEmail = async (account: { id: string }, recipient: string) => {
   const response = await fetch(`${API_URL}/api/send-test-email`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await buildAuthHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify({ id: account.id, recipient }),
   });
   const result = await response.json();
   if (!result.success) throw new Error(result.message);
+  return result;
+};
+
+type EmailSettingsPayload = {
+  smtp_host: string;
+  smtp_port: number;
+  smtp_user: string;
+  smtp_password: string;
+};
+
+export const saveEmailSettings = async (settings: EmailSettingsPayload) => {
+  const response = await fetch(`${API_URL}/api/email-settings`, {
+    method: 'POST',
+    headers: await buildAuthHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(settings),
+  });
+  const result = await response.json();
+  if (!response.ok || !result.success) {
+    throw new Error(result.message || 'Failed to update email settings');
+  }
   return result;
 };
 

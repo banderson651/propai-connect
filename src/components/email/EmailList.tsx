@@ -23,6 +23,28 @@ interface EmailListProps {
   account: EmailAccount;
 }
 
+const sanitizeHtml = (html: string) => {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
+  const blockedTags = ['script', 'style', 'iframe', 'object', 'embed', 'link', 'meta'];
+  blockedTags.forEach((tag) => {
+    doc.querySelectorAll(tag).forEach((el) => el.remove());
+  });
+
+  doc.querySelectorAll('*').forEach((el) => {
+    Array.from(el.attributes).forEach((attr) => {
+      const attrName = attr.name.toLowerCase();
+      const attrValue = attr.value?.toLowerCase?.() ?? '';
+      if (attrName.startsWith('on') || attrValue.includes('javascript:') || attrValue.includes('data:text/html')) {
+        el.removeAttribute(attr.name);
+      }
+    });
+  });
+
+  return doc.body.innerHTML;
+};
+
 export function EmailList({ account }: EmailListProps) {
   const [messages, setMessages] = useState<EmailMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -120,7 +142,7 @@ export function EmailList({ account }: EmailListProps) {
                 <div className="mt-4">
                   {message.html ? (
                     <div
-                      dangerouslySetInnerHTML={{ __html: message.html }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(message.html) }}
                       className="prose max-w-none"
                     />
                   ) : (

@@ -1,14 +1,42 @@
 import { supabase } from '@/lib/supabase';
 
+const API_URL = import.meta.env.VITE_API_URL ?? (import.meta.env.DEV ? 'http://localhost:5000' : undefined);
+const GMAIL_CLIENT_ID = import.meta.env.VITE_GMAIL_CLIENT_ID;
+const defaultRedirect = typeof window !== 'undefined' ? `${window.location.origin}/api/auth/gmail/callback` : undefined;
+const GMAIL_REDIRECT_URI = import.meta.env.VITE_GMAIL_REDIRECT_URI ?? defaultRedirect;
+
+if (!API_URL) {
+  throw new Error('Missing VITE_API_URL environment variable for Gmail auth requests');
+}
+
+if (!GMAIL_CLIENT_ID) {
+  throw new Error('Missing VITE_GMAIL_CLIENT_ID environment variable');
+}
+
+if (!GMAIL_REDIRECT_URI) {
+  throw new Error('Missing VITE_GMAIL_REDIRECT_URI environment variable');
+}
+
 const GMAIL_OAUTH_CONFIG = {
-  clientId: '242794493271-madsh1jdt8cdm9tk8gk8v5fpr8em2jgl.apps.googleusercontent.com',
-  clientSecret: import.meta.env.VITE_GMAIL_CLIENT_SECRET,
-  redirectUri: `${import.meta.env.VITE_APP_URL}/api/auth/gmail/callback`,
+  clientId: GMAIL_CLIENT_ID,
+  redirectUri: GMAIL_REDIRECT_URI,
   scopes: [
     'https://www.googleapis.com/auth/gmail.readonly',
     'https://www.googleapis.com/auth/gmail.send',
     'https://www.googleapis.com/auth/gmail.modify'
   ]
+};
+
+const buildAuthHeaders = async () => {
+  const { data, error } = await supabase.auth.getSession();
+  if (error || !data.session?.access_token) {
+    throw new Error('User not authenticated');
+  }
+
+  return {
+    Authorization: `Bearer ${data.session.access_token}`,
+    'Content-Type': 'application/json',
+  } as const;
 };
 
 export class GmailAuthService {
@@ -47,48 +75,25 @@ export class GmailAuthService {
     };
   }> {
     try {
-      const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      const response = await fetch(`${API_URL}/api/gmail/oauth/token`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          code,
-          client_id: GMAIL_OAUTH_CONFIG.clientId,
-          client_secret: GMAIL_OAUTH_CONFIG.clientSecret,
-          redirect_uri: GMAIL_OAUTH_CONFIG.redirectUri,
-          grant_type: 'authorization_code',
-        }),
+        headers: await buildAuthHeaders(),
+        body: JSON.stringify({ code }),
       });
 
-      if (!tokenResponse.ok) {
-        throw new Error('Failed to get access token');
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to exchange Gmail authorization code');
       }
-
-      const tokenData = await tokenResponse.json();
-      const { access_token, refresh_token, expires_in } = tokenData;
-
-      // Get user's email address
-      const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-        },
-      });
-
-      if (!userResponse.ok) {
-        throw new Error('Failed to get user info');
-      }
-
-      const userData = await userResponse.json();
-      const email = userData.email;
 
       return {
         success: true,
         account: {
-          email,
-          accessToken: access_token,
-          refreshToken: refresh_token,
-          expiresAt: new Date(Date.now() + expires_in * 1000),
+          email: result.account.email,
+          accessToken: result.account.accessToken,
+          refreshToken: result.account.refreshToken,
+          expiresAt: new Date(result.account.expiresAt),
         },
       };
     } catch (error) {
@@ -106,30 +111,22 @@ export class GmailAuthService {
     expiresAt?: Date;
   }> {
     try {
-      const response = await fetch('https://oauth2.googleapis.com/token', {
+      const response = await fetch(`${API_URL}/api/gmail/oauth/refresh`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          client_id: GMAIL_OAUTH_CONFIG.clientId,
-          client_secret: GMAIL_OAUTH_CONFIG.clientSecret,
-          refresh_token: refreshToken,
-          grant_type: 'refresh_token',
-        }),
+        headers: await buildAuthHeaders(),
+        body: JSON.stringify({ refreshToken }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to refresh token');
-      }
+      const result = await response.json();
 
-      const data = await response.json();
-      const { access_token, expires_in } = data;
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to refresh Gmail token');
+      }
 
       return {
         success: true,
-        accessToken: access_token,
-        expiresAt: new Date(Date.now() + expires_in * 1000),
+        accessToken: result.accessToken,
+        expiresAt: new Date(result.expiresAt),
       };
     } catch (error) {
       return {
