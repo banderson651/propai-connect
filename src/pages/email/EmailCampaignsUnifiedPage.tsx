@@ -1,20 +1,17 @@
 import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import EmailAccountsPage from './EmailAccountsPage';
-import EmailTemplatesPage from './EmailTemplatesPage';
-import EmailCampaignsPage from './EmailCampaignsPage';
+import { EmailAccountsContent } from './EmailAccountsPage';
+import { EmailTemplatesContent } from './EmailTemplatesPage';
+import { EmailCampaignsContent } from './EmailCampaignsPage';
 
 const EmailCampaignsUnifiedPage = () => {
   const [activeTab, setActiveTab] = useState('accounts');
 
   return (
-    <DashboardLayout>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Email Campaigns</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage your email accounts, templates, and campaigns</p>
-        </div>
+    <DashboardLayout pageTitle="Email Campaigns">
+      <div className="mb-6">
+        <p className="text-sm text-muted-foreground">Manage your email accounts, templates, and campaigns.</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -24,13 +21,13 @@ const EmailCampaignsUnifiedPage = () => {
           <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
         </TabsList>
         <TabsContent value="accounts">
-          <EmailAccountsPage />
+          <EmailAccountsContent />
         </TabsContent>
         <TabsContent value="templates">
-          <EmailTemplatesPage />
+          <EmailTemplatesContent />
         </TabsContent>
         <TabsContent value="campaigns">
-          <EmailCampaignsPage />
+          <EmailCampaignsContent />
         </TabsContent>
       </Tabs>
     </DashboardLayout>

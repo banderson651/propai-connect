@@ -1,0 +1,3 @@
+-- This placeholder exists because the remote database already executed
+-- migration version 20250628054701. The original SQL was applied elsewhere,
+-- so no changes need to run locally.

@@ -182,11 +182,12 @@ export const ImportContacts: React.FC = () => {
       await saveColumnMappings(importId, mappings);
 
       // Process the import
-      await processImport(importId, fileData, mappings, progressUpdate => {
+      const finalProgress = await processImport(importId, fileData, mappings, progressUpdate => {
         setProgress(progressUpdate);
         console.log('Import progress:', progressUpdate);
       });
-      toast.success(`Successfully imported ${progress?.successful || 0} contacts.`);
+      setProgress(finalProgress);
+      toast.success(`Successfully imported ${finalProgress.successful} contacts.`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('Import error:', errorMessage);

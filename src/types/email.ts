@@ -56,6 +56,11 @@ export interface EmailTemplate {
   name: string;
   subject: string;
   body: string;
+  htmlBody?: string;
+  textBody?: string | null;
+  description?: string | null;
+  placeholders?: string[];
+  metadata?: Record<string, unknown>;
   isPrebuilt: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -64,35 +69,69 @@ export interface EmailTemplate {
   content?: string; // For backward compatibility
 }
 
-export interface CampaignStats {
+export interface CampaignMetrics {
+  queued: number;
   sent: number;
+  delivered: number;
   opened: number;
   clicked: number;
   bounced: number;
+  failed: number;
+  unsubscribed: number;
+}
+
+export interface CampaignSendSettings {
+  batchSize: number;
+  intervalSeconds: number;
+  hourlyCap: number | null;
+  dailyCap: number | null;
 }
 
 export interface Campaign {
   id: string;
   name: string;
   subject: string;
-  body: string;
-  senderEmailAccountId: string;
-  contactListId: string;
-  status: 'draft' | 'sending' | 'sent' | 'cancelled' | 'failed';
-  sentAt: string | null;
-  stats: CampaignStats;
-  // Additional fields for mock data compatibility
-  templateId?: string;
-  scheduledDate?: string | null;
-  sentDate?: string | null;
+  htmlBody: string;
+  textBody?: string | null;
+  emailAccountId: string;
+  status: 'draft' | 'scheduled' | 'sending' | 'paused' | 'completed' | 'failed' | 'cancelled';
+  scheduledAt: string | null;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  cancelledAt?: string | null;
+  metrics: CampaignMetrics;
+  totalRecipients: number;
+  templateId?: string | null;
+  fromName?: string | null;
+  replyTo?: string | null;
+  sendSettings: CampaignSendSettings;
   createdAt?: string;
   updatedAt?: string;
-  userId?: string;
-  recipientCount?: number;
-  openRate?: number;
-  clickRate?: number;
-  tags?: string[];
-  accountId?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface CampaignAnalytics {
+  totals: {
+    recipients: number;
+    sent: number;
+    delivered: number;
+    opened: number;
+    clicked: number;
+    bounced: number;
+    failed: number;
+    unsubscribed: number;
+  };
+  rates: {
+    deliveryRate: number;
+    openRate: number;
+    clickRate: number;
+    bounceRate: number;
+    failureRate: number;
+  };
+  timeline: Array<{
+    date: string;
+    counts: Record<string, number>;
+  }>;
 }
 
 export interface ContactList {

@@ -1,7 +1,6 @@
 
 import { supabase } from '@/lib/supabase';
 import { Task, TaskStatus, TaskPriority, TaskReminder } from '@/types/task';
-import { useUser } from '@/hooks/useUser';
 
 // Get all tasks for the current user
 export const getTasks = async (filters?: {
@@ -15,9 +14,14 @@ export const getTasks = async (filters?: {
   relatedAutomationId?: string;
 }): Promise<Task[]> => {
   try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    if (!user) throw new Error('User not authenticated');
+
     let query = supabase
       .from('tasks')
       .select('*')
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
     if (filters) {
@@ -52,7 +56,9 @@ export const getTasks = async (filters?: {
 
     if (error) throw error;
 
-    return data.map(task => ({
+    const tasksData = data ?? [];
+
+    return tasksData.map(task => ({
       ...task,
       dueDate: task.due_date,
       assignedTo: task.assigned_to,
@@ -75,10 +81,15 @@ export const getTasks = async (filters?: {
 // Get task by ID
 export const getTaskById = async (id: string): Promise<Task | undefined> => {
   try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    if (!user) throw new Error('User not authenticated');
+
     const { data, error } = await supabase
       .from('tasks')
       .select('*')
       .eq('id', id)
+      .eq('user_id', user.id)
       .maybeSingle();
 
     if (error) throw error;
@@ -107,7 +118,8 @@ export const getTaskById = async (id: string): Promise<Task | undefined> => {
 // Create a new task
 export const createTask = async (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<Task> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
     if (!user) throw new Error('User not authenticated');
 
     const { data, error } = await supabase
@@ -157,6 +169,10 @@ export const createTask = async (task: Omit<Task, 'id' | 'createdAt' | 'updatedA
 // Update an existing task
 export const updateTask = async (id: string, updates: Partial<Omit<Task, 'id' | 'createdAt' | 'updatedAt'>>): Promise<Task | undefined> => {
   try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    if (!user) throw new Error('User not authenticated');
+
     const updateData: any = {};
 
     if (updates.title !== undefined) updateData.title = updates.title;
@@ -188,6 +204,7 @@ export const updateTask = async (id: string, updates: Partial<Omit<Task, 'id' | 
       .from('tasks')
       .update(updateData)
       .eq('id', id)
+      .eq('user_id', user.id)
       .select()
       .single();
 
@@ -216,10 +233,15 @@ export const updateTask = async (id: string, updates: Partial<Omit<Task, 'id' | 
 // Delete a task
 export const deleteTask = async (id: string): Promise<boolean> => {
   try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    if (!user) throw new Error('User not authenticated');
+
     const { error } = await supabase
       .from('tasks')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', user.id);
 
     if (error) throw error;
     return true;

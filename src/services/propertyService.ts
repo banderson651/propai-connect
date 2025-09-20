@@ -15,9 +15,14 @@ export const getProperties = async (filters?: {
   state?: string;
 }): Promise<Property[]> => {
   try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    if (!user) throw new Error('User not authenticated');
+
     let query = supabase
       .from('properties')
       .select('*')
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
     if (filters) {
@@ -43,7 +48,9 @@ export const getProperties = async (filters?: {
     if (error) throw error;
 
     // Transform database format to application format
-    return (data || []).map(property => ({
+    const propertiesData = data ?? [];
+
+    return propertiesData.map(property => ({
       id: property.id,
       title: property.title,
       description: property.description,
@@ -75,13 +82,28 @@ export const getProperties = async (filters?: {
 };
 
 // Get property by ID
-export const getPropertyById = async (id: string): Promise<Property | null> => {
+export const getPropertyById = async (id: string, options: { requireAuth?: boolean } = {}): Promise<Property | null> => {
   try {
-    const { data, error } = await supabase
+    const requireAuth = options.requireAuth ?? true;
+    let userId: string | null = null;
+
+    if (requireAuth) {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+      if (!user) throw new Error('User not authenticated');
+      userId = user.id;
+    }
+
+    let query = supabase
       .from('properties')
       .select('*')
-      .eq('id', id)
-      .maybeSingle();
+      .eq('id', id);
+
+    if (requireAuth && userId) {
+      query = query.eq('user_id', userId);
+    }
+
+    const { data, error } = await query.maybeSingle();
 
     if (error) throw error;
     if (!data) return null;
@@ -120,7 +142,8 @@ export const getPropertyById = async (id: string): Promise<Property | null> => {
 // Create a new property
 export const createProperty = async (propertyData: Omit<Property, 'id' | 'createdAt' | 'updatedAt' | 'publicPageUrl'>): Promise<Property> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
     if (!user) throw new Error('User not authenticated');
 
     const { data, error } = await supabase
@@ -173,6 +196,10 @@ export const createProperty = async (propertyData: Omit<Property, 'id' | 'create
 // Update an existing property
 export const updateProperty = async (id: string, propertyData: Partial<Omit<Property, 'id' | 'createdAt' | 'updatedAt'>>): Promise<Property | null> => {
   try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    if (!user) throw new Error('User not authenticated');
+    
     const updateData: any = {};
     
     if (propertyData.title !== undefined) updateData.title = propertyData.title;
@@ -190,6 +217,7 @@ export const updateProperty = async (id: string, propertyData: Partial<Omit<Prop
       .from('properties')
       .update(updateData)
       .eq('id', id)
+      .eq('user_id', user.id)
       .select()
       .single();
 
@@ -229,10 +257,15 @@ export const updateProperty = async (id: string, propertyData: Partial<Omit<Prop
 // Delete a property
 export const deleteProperty = async (id: string): Promise<boolean> => {
   try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    if (!user) throw new Error('User not authenticated');
+
     const { error } = await supabase
       .from('properties')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', user.id);
 
     if (error) throw error;
     return true;
@@ -248,7 +281,8 @@ export const submitPropertyLead = async (
   leadData: { name: string; email: string; phone?: string; message?: string }
 ): Promise<Contact> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
     if (!user) throw new Error('User not authenticated');
 
     const property = await getPropertyById(propertyId);

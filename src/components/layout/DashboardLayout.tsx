@@ -11,35 +11,42 @@ export function DashboardLayout({
   children,
   pageTitle
 }: DashboardLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    return window.innerWidth >= 1280;
+  });
   const location = useLocation();
 
-  // Close sidebar on mobile by default
   useEffect(() => {
-    const isMobile = window.innerWidth < 768;
-    if (isMobile) {
-      setSidebarOpen(false);
-    }
+    const isDesktop = window.innerWidth >= 1280;
+    setSidebarOpen(isDesktop);
   }, []);
 
-  // Close sidebar on route change on mobile
   useEffect(() => {
-    const isMobile = window.innerWidth < 768;
+    const isMobile = window.innerWidth < 1024;
     if (isMobile) {
       setSidebarOpen(false);
     }
   }, [location.pathname]);
-  return <div className="min-h-screen bg-background relative">
+
+  return (
+    <div className="flex min-h-screen bg-muted/20 text-foreground">
       <Sidebar open={sidebarOpen} onOpenChange={setSidebarOpen} />
-      
-      <div className={cn("transition-all duration-300", sidebarOpen ? "md:ml-64" : "md:ml-16")}>
+
+      <div
+        className={cn(
+          'flex min-h-screen flex-1 flex-col transition-all duration-300 ease-out',
+          sidebarOpen ? 'md:ml-64 lg:ml-72' : 'md:ml-20'
+        )}
+      >
         <TopBar onMenuClick={() => setSidebarOpen(!sidebarOpen)} pageTitle={pageTitle} />
-        
-        <main className="px-6 lg:px-10 xl:px-14 py-8 bg-background min-h-[calc(100vh-80px)]">
-          <div className="max-w-screen-2xl mx-auto bg-card text-card-foreground rounded-2xl shadow-sm border border-border">
+
+        <main className="flex-1 px-4 pb-10 pt-6 sm:px-6 lg:px-10">
+          <div className="mx-auto w-full max-w-6xl space-y-6">
             {children}
           </div>
         </main>
       </div>
-    </div>;
+    </div>
+  );
 }

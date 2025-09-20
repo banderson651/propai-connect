@@ -20,13 +20,11 @@ const PublicPropertyPage = () => {
   
   // In a real app, you would fetch the property by its slug
   // For this demo, we'll just use the first property that matches in the URL
-  const { data: properties } = useQuery({
-    queryKey: ['properties'],
-    queryFn: () => getPropertyById(''), // This is a mock call, in real app would fetch by slug
+  const { data: property } = useQuery({
+    queryKey: ['public-property', slug],
+    queryFn: () => getPropertyById(slug || '', { requireAuth: false }),
+    enabled: Boolean(slug),
   });
-  
-  // Simulate finding the property by slug
-  const property = properties ? properties[0] : null;
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;

@@ -1,8 +1,8 @@
 
-import { v4 as uuidv4 } from 'uuid';
-import { Contact, ContactTag } from '@/types/contact';
+import { ContactTag } from '@/types/contact';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { saveContact } from '@/services/contactService';
 
 export interface ImportMapping {
   sourceColumn: string;
@@ -235,7 +235,7 @@ export const processImport = async (
           console.log(`Processed ${progress.processed} of ${progress.total} rows`);
         }
         
-        const contactData: any = {
+        const contactData: { [key: string]: string | ContactTag[] } = {
           tags: []
         };
         
@@ -256,29 +256,14 @@ export const processImport = async (
           throw new Error(`Missing required fields: ${!contactData.name ? 'name' : ''} ${!contactData.email ? 'email' : ''}`);
         }
         
-        // Generate a new UUID for the contact
-        const contactId = uuidv4();
-        const now = new Date().toISOString();
-        
-        // Insert the contact into Supabase
-        const { error } = await supabase
-          .from('contacts')
-          .insert({
-            id: contactId,
-            name: contactData.name,
-            email: contactData.email,
-            phone: contactData.phone || null,
-            address: contactData.address || null,
-            tags: contactData.tags,
-            notes: contactData.notes || null,
-            created_at: now,
-            updated_at: now
-          });
-          
-        if (error) {
-          console.error('Error inserting contact:', error);
-          throw error;
-        }
+        await saveContact({
+          name: contactData.name as string,
+          email: contactData.email as string,
+          phone: (contactData.phone as string) || undefined,
+          address: (contactData.address as string) || undefined,
+          tags: (contactData.tags as ContactTag[]) || [],
+          notes: (contactData.notes as string) || undefined
+        });
         
         progress.successful++;
         

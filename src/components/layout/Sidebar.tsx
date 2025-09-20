@@ -1,33 +1,39 @@
 
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  Home, 
-  Users, 
-  Building2, 
-  Settings, 
-  Mail, 
-  Shield, 
-  Zap, 
-  CheckSquare, 
-  Calendar, 
+import {
+  Home,
+  Users,
+  Building2,
+  Settings,
+  Mail,
+  Shield,
+  Zap,
+  CheckSquare,
+  Calendar,
   BarChart3,
-  LogOut
+  LogOut,
+  ChevronLeft,
+  Menu,
+  type LucideIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 
 interface SidebarProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export const Sidebar = ({ open }: SidebarProps) => {
+export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
   const { isAdmin, user, signOut } = useAuth();
   const location = useLocation();
   const displayName = user?.email ? user.email.split('@')[0] : 'User';
   
-  const menuItems = [
+  type NavItem = { icon: LucideIcon; label: string; path: string };
+
+  const menuItems: NavItem[] = [
     { icon: Home, label: 'Dashboard', path: '/dashboard' },
     { icon: Users, label: 'Contacts', path: '/contacts' },
     { icon: CheckSquare, label: 'Tasks', path: '/tasks' },
@@ -39,7 +45,7 @@ export const Sidebar = ({ open }: SidebarProps) => {
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];
   
-  const adminItems = [
+  const adminItems: NavItem[] = [
     { icon: Shield, label: 'Admin Panel', path: '/admin-panel' },
   ];
 
@@ -49,90 +55,113 @@ export const Sidebar = ({ open }: SidebarProps) => {
     return location.pathname === path;
   };
 
-  return (
-    <aside className={cn(
-      'fixed left-0 top-0 h-screen bg-sidebar text-sidebar-foreground border-r border-border shadow-md transition-transform duration-300 z-50',
-      open ? 'w-64' : 'w-16'
-    )}>
-      {/* Header */}
-      <div className="flex items-center gap-3 p-6 border-b border-border">
-        <div className="size-8 text-primary">
-          <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-            <path clipRule="evenodd" d="M24 4H42V17.3333V30.6667H24V44H6V30.6667V17.3333H24V4Z" fill="currentColor" fillRule="evenodd"></path>
-          </svg>
-        </div>
-        {open && (
-          <h2 className="text-xl font-bold leading-tight tracking-tight text-foreground">
-            PropAI
-          </h2>
+  const renderNavLink = (item: NavItem) => {
+    const active = isActive(item.path);
+    const linkContent = (
+      <Link
+        key={item.path}
+        to={item.path}
+        className={cn(
+          'group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors duration-200',
+          open ? 'justify-start' : 'justify-center',
+          active ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
         )}
-      </div>
-      
-      {/* Navigation */}
-      <div className="flex flex-col h-[calc(100vh-160px)] justify-between">
-        <nav className="flex flex-col gap-2 p-4 flex-1">
-          {menuItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium leading-normal transition-all duration-200",
-                isActive(item.path) 
-                  ? "bg-primary text-primary-foreground font-semibold shadow-md" 
-                  : "text-muted-foreground hover:bg-secondary hover:text-foreground",
-                !open && "justify-center"
-              )}
-            >
-              <item.icon className="h-5 w-5 flex-shrink-0" />
-              {open && <span className="truncate">{item.label}</span>}
-            </Link>
-          ))}
-          
-          {isAdmin && adminItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium leading-normal transition-all duration-200",
-                isActive(item.path) 
-                  ? "bg-primary text-primary-foreground font-semibold shadow-md" 
-                  : "text-muted-foreground hover:bg-secondary hover:text-foreground",
-                !open && "justify-center"
-              )}
-            >
-              <item.icon className="h-5 w-5 flex-shrink-0" />
-              {open && <span className="truncate">{item.label}</span>}
-            </Link>
-          ))}
-        </nav>
-      </div>
+      >
+        <span
+          className={cn(
+            'flex h-9 w-9 items-center justify-center rounded-lg border transition-colors duration-200',
+            active
+              ? 'border-transparent bg-primary text-primary-foreground'
+              : 'border-transparent bg-secondary text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
+          )}
+        >
+          <item.icon className="h-5 w-5" />
+        </span>
+        {open && <span className="truncate text-base">{item.label}</span>}
+      </Link>
+    );
 
-      {/* User Profile Section */}
-      <div className="p-4 border-t border-border">
-        <div className="flex items-center gap-3">
-          <div className="bg-primary/10 rounded-full size-10 flex items-center justify-center border border-primary/60">
-            <span className="text-primary font-semibold text-sm">
-              {displayName.charAt(0).toUpperCase()}
-            </span>
-          </div>
-          {open && (
-            <>
-              <div className="flex flex-col flex-1">
-                <p className="text-sm font-semibold text-foreground">{displayName}</p>
-                <p className="text-xs text-muted-foreground">Admin</p>
+    if (open) {
+      return linkContent;
+    }
+
+    return (
+      <Tooltip key={item.path} delayDuration={100}>
+        <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+        <TooltipContent side="right" className="border border-white/60 bg-white/80 text-foreground shadow-lg">
+          {item.label}
+        </TooltipContent>
+      </Tooltip>
+    );
+  };
+
+  return (
+    <TooltipProvider delayDuration={120}>
+      <aside
+        className={cn(
+          'fixed left-0 top-0 z-40 h-screen w-64 border-r border-border bg-sidebar transition-transform duration-300',
+          open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        )}
+      >
+      <div className="flex h-full flex-col px-6 py-8">
+        <div className="mb-10 flex items-center justify-between">
+          <Link to="/dashboard" className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
+              <span>P</span>
+            </div>
+            {open && (
+              <div className="leading-tight">
+                <p className="text-base font-semibold text-foreground">PropAI</p>
+                <p className="text-xs text-muted-foreground">Connect</p>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={signOut}
-                className="ml-auto text-muted-foreground hover:text-primary"
-              >
-                <LogOut className="w-5 h-5" />
-              </Button>
-            </>
+            )}
+          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onOpenChange(!open)}
+            className="md:hidden text-muted-foreground hover:text-primary"
+          >
+            {open ? <ChevronLeft className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+        </div>
+
+        <nav className="flex flex-1 flex-col gap-2">
+          {menuItems.map(renderNavLink)}
+
+          {isAdmin && (
+            <div className="mt-6 space-y-2">
+              {open && <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Admin</p>}
+              {adminItems.map(renderNavLink)}
+            </div>
+          )}
+        </nav>
+
+        <div className="mt-10 space-y-3">
+          <div className="flex items-center gap-3 rounded-xl bg-secondary px-3 py-3 text-sm">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">
+              {displayName.charAt(0).toUpperCase()}
+            </div>
+            {open && (
+              <div className="flex flex-col">
+                <span className="font-semibold text-foreground">{displayName}</span>
+                <span className="text-xs text-muted-foreground">{isAdmin ? 'Administrator' : 'Member'}</span>
+              </div>
+            )}
+          </div>
+          {open ? (
+            <Button variant="outline" className="w-full justify-start gap-2" onClick={signOut}>
+              <LogOut className="h-4 w-4" />
+              Sign out
+            </Button>
+          ) : (
+            <Button variant="outline" size="icon" onClick={signOut}>
+              <LogOut className="h-4 w-4" />
+            </Button>
           )}
         </div>
       </div>
     </aside>
+    </TooltipProvider>
   );
 }

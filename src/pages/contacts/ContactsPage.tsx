@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Plus, UserPlus, Tag } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { getContacts, getInteractions } from '@/services/mockData';
-import { Contact, ContactTag } from '@/types/contact';
+import { useQuery } from '@tanstack/react-query';
+import { getContacts as fetchContacts, getInteractions as fetchInteractions } from '@/services/contactService';
+import { Contact, ContactTag, Interaction } from '@/types/contact';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { ContactCard } from '@/components/contacts/ContactCard';
@@ -14,6 +15,7 @@ import { ImportContacts } from '@/components/contacts/ImportContacts';
 import { ContactListView } from '@/components/contacts/ContactListView';
 import { ContactTableView } from '@/components/contacts/ContactTableView';
 import { ContactCarouselView } from '@/components/contacts/ContactCarouselView';
+import { useAuth } from '@/contexts/AuthContext';
 const TagColors: Record<ContactTag, string> = {
   'buyer': 'bg-blue-100 text-blue-800 hover:bg-blue-100',
   'seller': 'bg-green-100 text-green-800 hover:bg-green-100',
@@ -41,8 +43,33 @@ const ContactsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState<ContactTag | null>(null);
   const [viewType, setViewType] = useState<ContactViewType>('grid');
-  const contacts = getContacts();
-  const interactions = getInteractions();
+  const { user } = useAuth();
+  const userId = user?.id;
+
+  const {
+    data: contactsData,
+    isLoading: contactsLoading,
+    error: contactsError
+  } = useQuery<Contact[]>({
+    queryKey: ['contacts', userId],
+    queryFn: fetchContacts,
+    enabled: Boolean(userId)
+  });
+
+  const {
+    data: interactionsData,
+    isLoading: interactionsLoading,
+    error: interactionsError
+  } = useQuery<Interaction[]>({
+    queryKey: ['interactions', userId],
+    queryFn: fetchInteractions,
+    enabled: Boolean(userId)
+  });
+
+  const contacts = contactsData ?? [];
+  const interactions = interactionsData ?? [];
+  const isLoadingData = contactsLoading || interactionsLoading;
+  const hasError = Boolean(contactsError) || Boolean(interactionsError);
   const allTags = useMemo(() => {
     const tags = new Set<ContactTag>();
     contacts.forEach(contact => {
@@ -70,6 +97,20 @@ const ContactsPage = () => {
   }, [contacts, interactions]);
   const lastInteractionMap = useMemo(() => getContactLastInteractions(), [getContactLastInteractions]);
   const renderContactsView = () => {
+    if (hasError) {
+      const message = contactsError instanceof Error ? contactsError.message : interactionsError instanceof Error ? interactionsError.message : 'Unable to load contacts at this time.';
+      return <div className="text-center py-12">
+          <p className="text-red-500">Failed to load contacts.</p>
+          <p className="text-gray-500 text-sm mt-1">{message}</p>
+        </div>;
+    }
+
+    if (isLoadingData) {
+      return <div className="text-center py-12">
+          <p className="text-gray-500">Loading contacts...</p>
+        </div>;
+    }
+
     switch (viewType) {
       case 'list':
         return <ContactListView contacts={filteredContacts} lastInteraction={lastInteractionMap} />;
@@ -136,7 +177,7 @@ const ContactsPage = () => {
             <TabsTrigger value="sellers" className="data-[state=active]:bg-primary data-[state=active]:text-white">Sellers</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="all" className="mt-6 p-6">
+            <TabsContent value="all" className="mt-6 p-6">
             {renderContactsView()}
           </TabsContent>
           

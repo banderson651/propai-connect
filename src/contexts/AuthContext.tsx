@@ -1,8 +1,9 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/components/ui/use-toast';
 import type { User, Session } from '@supabase/supabase-js';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface AuthContextValue {
   user: User | null;
@@ -49,6 +50,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const queryClient = useQueryClient();
+  const previousUserIdRef = useRef<string | null>(null);
   
   useEffect(() => {
     // Set up auth state listener
@@ -103,6 +106,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    const currentUserId = user?.id ?? null;
+    if (previousUserIdRef.current && previousUserIdRef.current !== currentUserId) {
+      queryClient.clear();
+    }
+    if (!previousUserIdRef.current && currentUserId) {
+      queryClient.clear();
+    }
+    previousUserIdRef.current = currentUserId;
+  }, [user?.id, queryClient]);
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -228,6 +242,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           description: 'You have been signed out successfully.',
         });
       }
+      queryClient.clear();
     } catch (err) {
       console.error('Sign out exception:', err);
       toast({

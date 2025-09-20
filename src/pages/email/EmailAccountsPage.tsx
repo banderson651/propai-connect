@@ -49,7 +49,7 @@ import { Link } from 'react-router-dom';
 import { EmailDiagnostics } from '@/components/email/EmailDiagnostics';
 import { useAuth } from '@/contexts/AuthContext';
 
-const EmailAccountsPage = () => {
+export const EmailAccountsContent = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -320,7 +320,7 @@ const EmailAccountsPage = () => {
   };
   
   return (
-    <DashboardLayout>
+    <>
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">Email Accounts</h1>
@@ -564,8 +564,14 @@ const EmailAccountsPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
+    </>
   );
 };
+
+const EmailAccountsPage = () => (
+  <DashboardLayout pageTitle="Email Accounts">
+    <EmailAccountsContent />
+  </DashboardLayout>
+);
 
 export default EmailAccountsPage;

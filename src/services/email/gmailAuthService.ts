@@ -1,21 +1,16 @@
 import { supabase } from '@/lib/supabase';
 
-const API_URL = import.meta.env.VITE_API_URL ?? (import.meta.env.DEV ? 'http://localhost:5000' : undefined);
-const GMAIL_CLIENT_ID = import.meta.env.VITE_GMAIL_CLIENT_ID;
+// Prefer explicit API URL but fall back to same-origin requests in production.
+const API_URL = import.meta.env.VITE_API_URL ?? (import.meta.env.DEV ? 'http://localhost:5000' : '');
+const GMAIL_CLIENT_ID = import.meta.env.VITE_GMAIL_CLIENT_ID ?? '';
 const defaultRedirect = typeof window !== 'undefined' ? `${window.location.origin}/api/auth/gmail/callback` : undefined;
-const GMAIL_REDIRECT_URI = import.meta.env.VITE_GMAIL_REDIRECT_URI ?? defaultRedirect;
+const GMAIL_REDIRECT_URI = import.meta.env.VITE_GMAIL_REDIRECT_URI ?? defaultRedirect ?? '';
 
-if (!API_URL) {
-  throw new Error('Missing VITE_API_URL environment variable for Gmail auth requests');
-}
-
-if (!GMAIL_CLIENT_ID) {
-  throw new Error('Missing VITE_GMAIL_CLIENT_ID environment variable');
-}
-
-if (!GMAIL_REDIRECT_URI) {
-  throw new Error('Missing VITE_GMAIL_REDIRECT_URI environment variable');
-}
+const ensureGmailConfig = () => {
+  if (!GMAIL_CLIENT_ID || !GMAIL_REDIRECT_URI) {
+    throw new Error('Gmail OAuth configuration is missing. Set VITE_GMAIL_CLIENT_ID and VITE_GMAIL_REDIRECT_URI.');
+  }
+};
 
 const GMAIL_OAUTH_CONFIG = {
   clientId: GMAIL_CLIENT_ID,
@@ -52,6 +47,8 @@ export class GmailAuthService {
   }
 
   getAuthUrl(): string {
+    ensureGmailConfig();
+
     const params = new URLSearchParams({
       client_id: GMAIL_OAUTH_CONFIG.clientId,
       redirect_uri: GMAIL_OAUTH_CONFIG.redirectUri,
@@ -75,6 +72,8 @@ export class GmailAuthService {
     };
   }> {
     try {
+      ensureGmailConfig();
+
       const response = await fetch(`${API_URL}/api/gmail/oauth/token`, {
         method: 'POST',
         headers: await buildAuthHeaders(),
@@ -111,6 +110,8 @@ export class GmailAuthService {
     expiresAt?: Date;
   }> {
     try {
+      ensureGmailConfig();
+
       const response = await fetch(`${API_URL}/api/gmail/oauth/refresh`, {
         method: 'POST',
         headers: await buildAuthHeaders(),

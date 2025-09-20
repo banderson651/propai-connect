@@ -5,14 +5,21 @@ import { Contact, Interaction, ContactTag } from '@/types/contact';
 // Get all contacts from Supabase for the current user
 export const getContacts = async (): Promise<Contact[]> => {
   try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    if (!user) throw new Error('User not authenticated');
+
     const { data, error } = await supabase
       .from('contacts')
       .select('*')
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
       
     if (error) throw error;
     
-    return data.map(contact => ({
+    const contactsData = data ?? [];
+
+    return contactsData.map(contact => ({
       ...contact,
       createdAt: contact.created_at,
       updatedAt: contact.updated_at,
@@ -27,10 +34,15 @@ export const getContacts = async (): Promise<Contact[]> => {
 // Get a contact by ID
 export const getContactById = async (id: string): Promise<Contact | null> => {
   try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    if (!user) throw new Error('User not authenticated');
+
     const { data, error } = await supabase
       .from('contacts')
       .select('*')
       .eq('id', id)
+      .eq('user_id', user.id)
       .maybeSingle();
       
     if (error) throw error;
@@ -52,7 +64,8 @@ export const getContactById = async (id: string): Promise<Contact | null> => {
 // Create a new contact
 export const saveContact = async (contact: Omit<Contact, 'id' | 'createdAt' | 'updatedAt'>): Promise<Contact | null> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
     if (!user) throw new Error('User not authenticated');
 
     const { data, error } = await supabase
@@ -86,6 +99,10 @@ export const saveContact = async (contact: Omit<Contact, 'id' | 'createdAt' | 'u
 // Update a contact
 export const updateContact = async (id: string, updates: Partial<Omit<Contact, 'id' | 'createdAt' | 'updatedAt'>>): Promise<Contact | null> => {
   try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    if (!user) throw new Error('User not authenticated');
+
     const updateData: any = {};
     
     if (updates.name !== undefined) updateData.name = updates.name;
@@ -99,6 +116,7 @@ export const updateContact = async (id: string, updates: Partial<Omit<Contact, '
       .from('contacts')
       .update(updateData)
       .eq('id', id)
+      .eq('user_id', user.id)
       .select()
       .single();
       
@@ -119,11 +137,16 @@ export const updateContact = async (id: string, updates: Partial<Omit<Contact, '
 // Delete a contact
 export const deleteContact = async (id: string): Promise<boolean> => {
   try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    if (!user) throw new Error('User not authenticated');
+
     const { error } = await supabase
       .from('contacts')
       .delete()
-      .eq('id', id);
-      
+      .eq('id', id)
+      .eq('user_id', user.id);
+
     if (error) throw error;
     
     return true;
@@ -136,15 +159,22 @@ export const deleteContact = async (id: string): Promise<boolean> => {
 // Get interactions for a contact
 export const getInteractionsByContactId = async (contactId: string): Promise<Interaction[]> => {
   try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    if (!user) throw new Error('User not authenticated');
+
     const { data, error } = await supabase
       .from('interactions')
       .select('*')
       .eq('contact_id', contactId)
+      .eq('user_id', user.id)
       .order('date', { ascending: false });
       
     if (error) throw error;
     
-    return data.map(interaction => ({
+    const interactionsData = data ?? [];
+
+    return interactionsData.map(interaction => ({
       ...interaction,
       contactId: interaction.contact_id,
       createdAt: interaction.created_at,
@@ -159,14 +189,21 @@ export const getInteractionsByContactId = async (contactId: string): Promise<Int
 // Get all interactions for the current user
 export const getInteractions = async (): Promise<Interaction[]> => {
   try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    if (!user) throw new Error('User not authenticated');
+
     const { data, error } = await supabase
       .from('interactions')
       .select('*')
+      .eq('user_id', user.id)
       .order('date', { ascending: false });
       
     if (error) throw error;
     
-    return data.map(interaction => ({
+    const interactionsData = data ?? [];
+
+    return interactionsData.map(interaction => ({
       ...interaction,
       contactId: interaction.contact_id,
       createdAt: interaction.created_at,
@@ -181,7 +218,8 @@ export const getInteractions = async (): Promise<Interaction[]> => {
 // Create a new interaction
 export const saveInteraction = async (interaction: Omit<Interaction, 'id' | 'createdAt' | 'updatedAt'>): Promise<Interaction | null> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
     if (!user) throw new Error('User not authenticated');
 
     const { data, error } = await supabase

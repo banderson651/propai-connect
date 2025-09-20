@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -10,63 +10,47 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import { ArrowLeft, Phone, Mail, MapPin, Tag, MessageSquare, Calendar, Plus } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
-
-interface Contact {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  address?: string;
-  tags: string[];
-  notes?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface Interaction {
-  id: string;
-  type: string;
-  content: string;
-  subject?: string;
-  date: string;
-}
+import { useQueryClient } from '@tanstack/react-query';
+import { Contact, Interaction } from '@/types/contact';
+import { getContactById, getInteractionsByContactId, updateContact as updateContactService, saveInteraction as saveInteractionService } from '@/services/contactService';
 
 export default function ContactDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const [contact, setContact] = useState<Contact | null>(null);
   const [interactions, setInteractions] = useState<Interaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editedContact, setEditedContact] = useState<Contact | null>(null);
-  const [newInteraction, setNewInteraction] = useState({
+  const [newInteraction, setNewInteraction] = useState<{ type: Interaction['type']; content: string; subject: string }>({
     type: 'note',
     content: '',
     subject: ''
   });
   const [showAddInteraction, setShowAddInteraction] = useState(false);
 
-  useEffect(() => {
-    if (id) {
-      fetchContact();
-      fetchInteractions();
-    }
-  }, [id]);
-
-  const fetchContact = async () => {
+  const fetchContact = useCallback(async () => {
+    if (!id) return;
     try {
-      const { data, error } = await supabase
-        .from('contacts')
-        .select('*')
-        .eq('id', id)
-        .single();
+      setIsLoading(true);
+      const contactData = await getContactById(id);
 
-      if (error) throw error;
-      setContact(data);
-      setEditedContact(data);
+      if (!contactData) {
+        setContact(null);
+        setEditedContact(null);
+        toast({
+          title: 'Not found',
+          description: 'The requested contact could not be located.',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      setContact(contactData);
+      setEditedContact(contactData);
     } catch (error) {
       console.error('Error fetching contact:', error);
       toast({
@@ -77,44 +61,45 @@ export default function ContactDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id, toast]);
 
-  const fetchInteractions = async () => {
+  const fetchInteractions = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('interactions')
-        .select('*')
-        .eq('contact_id', id)
-        .order('date', { ascending: false });
-
-      if (error) throw error;
-      setInteractions(data || []);
+      if (!id) return;
+      const interactionData = await getInteractionsByContactId(id);
+      setInteractions(interactionData);
     } catch (error) {
       console.error('Error fetching interactions:', error);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      fetchContact();
+      fetchInteractions();
+    }
+  }, [id, fetchContact, fetchInteractions]);
 
   const handleSave = async () => {
-    if (!editedContact) return;
+    if (!editedContact || !id) return;
 
     try {
-      const { error } = await supabase
-        .from('contacts')
-        .update({
-          name: editedContact.name,
-          email: editedContact.email,
-          phone: editedContact.phone,
-          address: editedContact.address,
-          tags: editedContact.tags,
-          notes: editedContact.notes,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', id);
+      const updated = await updateContactService(id, {
+        name: editedContact.name,
+        email: editedContact.email,
+        phone: editedContact.phone,
+        address: editedContact.address,
+        tags: editedContact.tags,
+        notes: editedContact.notes
+      });
 
-      if (error) throw error;
+      if (!updated) throw new Error('Failed to update contact');
 
-      setContact(editedContact);
+      setContact(updated);
+      setEditedContact(updated);
       setIsEditing(false);
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+
       toast({
         title: 'Success',
         description: 'Contact updated successfully'
@@ -130,24 +115,23 @@ export default function ContactDetailPage() {
   };
 
   const handleAddInteraction = async () => {
-    if (!newInteraction.content.trim()) return;
+    if (!newInteraction.content.trim() || !id) return;
 
     try {
-      const { error } = await supabase
-        .from('interactions')
-        .insert([{
-          contact_id: id,
-          type: newInteraction.type,
-          content: newInteraction.content,
-          subject: newInteraction.subject || null,
-          date: new Date().toISOString()
-        }]);
+      const created = await saveInteractionService({
+        contactId: id,
+        type: newInteraction.type,
+        content: newInteraction.content,
+        subject: newInteraction.subject || undefined,
+        date: new Date().toISOString()
+      });
 
-      if (error) throw error;
+      if (!created) throw new Error('Failed to add interaction');
 
       setNewInteraction({ type: 'note', content: '', subject: '' });
       setShowAddInteraction(false);
-      fetchInteractions();
+      await fetchInteractions();
+      queryClient.invalidateQueries({ queryKey: ['interactions'] });
       toast({
         title: 'Success',
         description: 'Interaction added successfully'
@@ -354,7 +338,7 @@ export default function ContactDetailPage() {
                     <select
                       id="interactionType"
                       value={newInteraction.type}
-                      onChange={(e) => setNewInteraction(prev => ({ ...prev, type: e.target.value }))}
+                      onChange={(e) => setNewInteraction(prev => ({ ...prev, type: e.target.value as Interaction['type'] }))}
                       className="w-full mt-1 block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     >
                       <option value="note">Note</option>
